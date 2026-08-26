@@ -13,7 +13,6 @@ const nextConfig: NextConfig = {
     useTypeScriptCli: true,
   },
   productionBrowserSourceMaps: false,
-  output: "standalone",
   images: {
     minimumCacheTTL: 86_400,
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
