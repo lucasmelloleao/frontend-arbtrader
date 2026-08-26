@@ -34,10 +34,19 @@ describe("getClientApiBaseUrl", () => {
     expect(getClientApiBaseUrl()).toBe("https://api.example.com");
   });
 
-  test("no browser falha fechado quando a env não foi configurada", () => {
+  test("no browser sem env resolve para same-origin ('/')", () => {
+    // A env é opcional no browser: ausente ou "/" cai no same-origin (rewrite
+    // do next.config.ts), permitindo rodar na Vercel sem cadastrar a env.
     pretendBrowser();
     Reflect.deleteProperty(process.env, "NEXT_PUBLIC_API_URL");
 
-    expect(() => getClientApiBaseUrl()).toThrow("NEXT_PUBLIC_API_URL não configurada");
+    expect(getClientApiBaseUrl()).toBe("/");
+  });
+
+  test("no browser com env '/' resolve para same-origin", () => {
+    pretendBrowser();
+    process.env.NEXT_PUBLIC_API_URL = "/";
+
+    expect(getClientApiBaseUrl()).toBe("/");
   });
 });
