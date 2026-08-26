@@ -1,0 +1,18 @@
+{
+  // Contexto de testes (Bun): mesma base do app, mas com os tipos do Bun ligados
+  // (`bun:test`, `Bun`, mocks). Separado do tsconfig do app para os globais do Bun
+  // não vazarem pro código de produção, igual ao tooling. Referenciado pelo
+  // tsconfig raiz para a IDE resolver os `*.test.ts(x)` por aqui.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // `composite` é exigido para o tsconfig raiz referenciar este projeto (a IDE
+    // resolve os testes por aqui). Projeto referenciado não pode fixar `noEmit`
+    // no config, então o emit aponta para um diretório descartável e o typecheck
+    // roda com `--noEmit` na linha de comando (nada é emitido na prática).
+    "composite": true,
+    "noEmit": false,
+    "outDir": "./.tsbuild-test",
+    "types": ["bun"]
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "test/**/*.ts", "next-env.d.ts"]
+}

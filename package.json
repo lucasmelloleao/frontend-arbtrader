@@ -1,0 +1,58 @@
+{
+  "name": "boilerplate",
+  "version": "0.1.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE.md",
+  "scripts": {
+    "dev": "bun --bun next dev -p 8080",
+    "build": "bun --bun next typegen && tsc --noEmit && bun --bun next build",
+    "start": "bun --bun next start",
+    "lint": "oxlint --disable-nested-config --type-aware",
+    "lint:fix": "oxlint --fix --disable-nested-config --type-aware",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "knip": "knip --no-progress",
+    "typecheck": "bun --bun next typegen && tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "typecheck:tooling": "tsc --noEmit -p tooling/tsconfig.json",
+    "test": "bun test --pass-with-no-tests --parallel",
+    "verify:fast": "bun run lint && bun run fmt:check && bun run knip && bun run test",
+    "verify": "bun run lint && bun run fmt:check && bun run typecheck && bun run typecheck:tooling && bun run knip && bun run test && bun tooling/no-lint-suppression.ts && bun tooling/no-heavy-public-assets.ts"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.7.1",
+    "@standard-schema/spec": "^1.1.0",
+    "ky": "^2.0.2",
+    "lucide-react": "^1.33.0",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-hook-form": "^7.84.0",
+    "server-only": "^0.0.1",
+    "valibot": "^1.4.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/bun": "^1.3.14",
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2",
+    "knip": "^6.31.0",
+    "lefthook": "^2.1.10",
+    "oxfmt": "0.62.0",
+    "oxlint": "1.77.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "tailwindcss": "^4.3.3",
+    "typescript": "7.0.2"
+  },
+  "packageManager": "bun@1.4.0-canary.1",
+  "ignoreScripts": [
+    "sharp",
+    "unrs-resolver"
+  ],
+  "trustedDependencies": [
+    "sharp",
+    "unrs-resolver",
+    "lefthook"
+  ]
+}

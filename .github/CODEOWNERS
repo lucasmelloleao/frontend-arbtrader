@@ -1,0 +1,37 @@
+# Ownership dos guardrails. O enforcement de verdade depende de branch protection
+# / ruleset no GitHub: este arquivo só declara quem revisa.
+#
+# Troque `@owner` pelo seu usuário/time. As superfícies abaixo são as que, se
+# mudarem sem revisão, desligam o método em silêncio — hooks de agente, regras de
+# lint, docs canônicos e a config dos gates.
+
+# Superfícies de enforcement dos agentes (Claude Code · Codex · Cursor · Command Code).
+/.github/** @owner
+/.agents/** @owner
+/.claude/** @owner
+/.codex/** @owner
+/.cursor/** @owner
+/.commandcode/** @owner
+/tooling/** @owner
+
+# Documentação canônica dos guardrails.
+/AGENTS.md @owner
+/CLAUDE.md @owner
+/ARCHITECTURE.md @owner
+/CODE-PATTERN.md @owner
+/MEMORY.md @owner
+/VERCEL-OXLINT-MAPPING.md @owner
+/guia/** @owner
+
+# Config de pacote, runtime, build e gates.
+/package.json @owner
+/bun.lock @owner
+/bunfig.toml @owner
+/lefthook.yml @owner
+/.oxlintrc.json @owner
+/.oxfmtrc.json @owner
+/knip.json @owner
+/next.config.ts @owner
+/tsconfig*.json @owner
+/.env.example @owner
+/.gitignore @owner
