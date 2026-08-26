@@ -38,7 +38,9 @@ jobs:
           # `-o` extrai uma URL por linha (não a linha inteira): sem isso, uma linha
           # com uma URL pública E uma de backend juntas seria descartada pelo
           # allowlist, escondendo a violação. Troque `example\.com` pelo seu domínio.
-          if grep -rEon "https?://[^\"' ]*example\.com" src --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' 2>/dev/null | grep -vE '^src/lib/api/'; then
+          # `src/lib/__tests__/` fica de fora: fixtures de teste usam o placeholder
+          # `api.example.com` (docs/examples e test fixtures são o lugar deles).
+          if grep -rEon "https?://[^\"' ]*example\.com" src --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' 2>/dev/null | grep -vE '^src/lib/(api|__tests__)/'; then
             echo "::error::URL do backend fora de src/lib/api"; exit 1
           fi
 
