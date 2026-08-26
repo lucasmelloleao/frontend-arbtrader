@@ -15,6 +15,10 @@
  * - **URL absoluta:** backend em outro origin. Exige CORS com
  *   `Access-Control-Allow-Credentials` no backend e cookie `SameSite=None; Secure`.
  *
+ * A env é opcional no browser: ausente, vazia ou `"/"` resolve para same-origin
+ * (o rewrite do `next.config.ts` cuida do encaminhamento). Isso permite rodar na
+ * Vercel sem cadastrar a env (o painel não aceita `"/"` como valor).
+ *
  * @returns Base URL usada como `baseUrl` do `kyClient`.
  */
 export function getClientApiBaseUrl(): string {
@@ -23,10 +27,8 @@ export function getClientApiBaseUrl(): string {
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!baseUrl) {
-    throw new Error(
-      "NEXT_PUBLIC_API_URL não configurada. Copie o .env.example para .env.local e preencha.",
-    );
+  if (!baseUrl || baseUrl === "/") {
+    return "/";
   }
   return baseUrl;
 }
