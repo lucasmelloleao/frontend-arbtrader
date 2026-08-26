@@ -7,12 +7,13 @@ import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
 
 /**
- * Layout da área autenticada `/dashboard`. Server Component fino: busca o
- * perfil do usuário (nome/email para o header do shell) e compõe o shell
- * (client, interativo) com o conteúdo de cada rota via `children`. O
- * `proxy.ts` protege o prefixo `/dashboard/:path*`.
+ * Carrega o perfil do usuário (nome/email para o header do shell) e monta o
+ * shell. Separado do layout porque ler o cookie (dentro do `kyServer`) torna a
+ * subárvore dinâmica — fica sob `<Suspense>` (streaming), então as rotas do
+ * dashboard continuam prerenderizáveis e o header do usuário chega assim que o
+ * backend responde.
  */
-async function DashboardLayout({
+async function PerfilCarregado({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -26,12 +27,25 @@ async function DashboardLayout({
   }
 
   return (
-    <Suspense fallback={<DashboardShell />}>
-      <DashboardShell nome={perfil?.nome ?? null} email={perfil?.email ?? null}>
-        {children}
-      </DashboardShell>
-    </Suspense>
+    <DashboardShell nome={perfil?.nome ?? null} email={perfil?.email ?? null}>
+      {children}
+    </DashboardShell>
   );
 }
 
-export default DashboardLayout;
+/**
+ * Layout da área autenticada `/dashboard`. Server Component fino: compõe o
+ * shell (client, interativo) com o conteúdo de cada rota via `children`. O
+ * `proxy.ts` protege o prefixo `/dashboard/:path*`.
+ */
+export default function DashboardLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>): React.ReactNode {
+  return (
+    <Suspense fallback={<DashboardShell>{children}</DashboardShell>}>
+      <PerfilCarregado>{children}</PerfilCarregado>
+    </Suspense>
+  );
+}
