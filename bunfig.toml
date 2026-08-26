@@ -1,0 +1,6 @@
+# Só instala versão publicada há pelo menos 3 dias (259200s). Versão mais
+# recente fica filtrada no `bun install` / `bun add` / `bun update` — defesa
+# contra supply-chain que ainda não teve tempo de ser detectada/yankada.
+# Exceção pontual: `minimumReleaseAgeExcludes = ["pacote"]` no mesmo bloco.
+[install]
+minimumReleaseAge = 259200

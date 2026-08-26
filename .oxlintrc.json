@@ -1,0 +1,425 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+
+  // Boilerplate sênior / production-grade.
+  // As regras abaixo traduzem o que é estaticamente verificável da skill
+  // "vercel-react-best-practices" (Vercel Engineering) para regras do oxlint.
+  // Tudo que é arquitetural (Promise.all, Suspense streaming, next/dynamic,
+  // React.cache, LRU, serialização de props RSC, etc.) NÃO tem equivalente
+  // de linter e fica documentado em VERCEL-OXLINT-MAPPING.md.
+
+  "plugins": ["typescript", "unicorn", "oxc", "react", "nextjs", "import", "promise", "jsx-a11y"],
+
+  "jsPlugins": ["./tooling/oxlint-rules/index.ts"],
+
+  "env": {
+    "builtin": true,
+    "es2024": true,
+    "browser": true,
+    "node": true
+  },
+
+  // Buckets "errado / lento / provavelmente errado" sobem para erro.
+  // style/pedantic/restriction ficam fora das categorias e são escolhidos
+  // a dedo em "rules" para não gerar ruído.
+  "categories": {
+    "correctness": "error",
+    "perf": "error",
+    "suspicious": "error"
+  },
+
+  "rules": {
+    // ───────────────────────────────────────────────────────────────
+    // 1. Eliminando Waterfalls  (skill: async-*) : CRÍTICO
+    // ───────────────────────────────────────────────────────────────
+    "no-await-in-loop": "error", // async-parallel / async-defer-await
+    "unicorn/no-await-in-promise-methods": "error", // await dentro de Promise.all() = waterfall
+    "unicorn/no-single-promise-in-promise-methods": "error",
+    "unicorn/prefer-top-level-await": "error",
+    "promise/no-nesting": "error",
+    "promise/no-return-wrap": "error",
+    "promise/no-multiple-resolved": "error",
+    "promise/no-new-statics": "error",
+    "promise/param-names": "error",
+    "promise/valid-params": "error",
+    "promise/prefer-await-to-then": "error",
+
+    // ───────────────────────────────────────────────────────────────
+    // 2. Bundle Size  (skill: bundle-*) : CRÍTICO
+    // ───────────────────────────────────────────────────────────────
+    "oxc/no-barrel-file": ["error", { "threshold": 0 }], // bundle-barrel-imports: qualquer `export *` é erro
+    "import/no-namespace": "error", // `import * as` arrasta o módulo inteiro
+    "import/no-cycle": "error", // bundle-analyzable-paths
+    "import/no-dynamic-require": "error", // bundle-analyzable-paths
+    "import/no-webpack-loader-syntax": "error",
+    "import/no-self-import": "error",
+    "import/no-duplicates": "error",
+
+    // ───────────────────────────────────────────────────────────────
+    // 3. Server-Side / Next.js  (skill: server-*) : ALTO
+    //    Plugin nextjs inteiro como erro = baseline production do Next.
+    // ───────────────────────────────────────────────────────────────
+    "nextjs/google-font-display": "error",
+    "nextjs/google-font-preconnect": "error",
+    "nextjs/inline-script-id": "error",
+    "nextjs/next-script-for-ga": "error",
+    "nextjs/no-assign-module-variable": "error",
+    "nextjs/no-async-client-component": "error",
+    "nextjs/no-before-interactive-script-outside-document": "error",
+    "nextjs/no-css-tags": "error",
+    "nextjs/no-document-import-in-page": "error",
+    "nextjs/no-duplicate-head": "error",
+    "nextjs/no-head-element": "error",
+    "nextjs/no-head-import-in-document": "error",
+    "nextjs/no-html-link-for-pages": "error",
+    "nextjs/no-img-element": "error", // use next/image (LCP)
+    "nextjs/no-page-custom-font": "error",
+    "nextjs/no-script-component-in-head": "error",
+    "nextjs/no-styled-jsx-in-document": "error",
+    "nextjs/no-sync-scripts": "error", // rendering-script-defer-async
+    "nextjs/no-title-in-document-head": "error",
+    "nextjs/no-typos": "error",
+    "nextjs/no-unwanted-polyfillio": "error",
+    "oxc/no-accumulating-spread": "error", // spread acumulado em reduce/loop = O(n²)
+    "oxc/no-map-spread": "error",
+
+    // ───────────────────────────────────────────────────────────────
+    // 4. Client-Side Data Fetching  (skill: client-*) : MÉDIO-ALTO
+    // ───────────────────────────────────────────────────────────────
+    "unicorn/prefer-add-event-listener": "error", // client-event-listeners
+
+    // ───────────────────────────────────────────────────────────────
+    // 5. Otimização de Re-render  (skill: rerender-*) : MÉDIO
+    // ───────────────────────────────────────────────────────────────
+    "react/exhaustive-deps": "error", // deps corretas em hooks
+    "react/rules-of-hooks": "error",
+    "react/no-unstable-nested-components": "error", // rerender-no-inline-components
+    "react/jsx-no-constructed-context-values": "error", // identidade do value de Context
+    "react/no-array-index-key": "error",
+    "react/jsx-key": "error",
+    // react-perf removido: o React Compiler estabiliza props automaticamente
+    // (mesma razão do boilerplate/no-manual-memo). As regras jsx-no-new-* eram
+    // redundantes e impediam qualquer handler de evento em client component.
+    "react/react-compiler": "error", // projeto usa React Compiler
+
+    // ───────────────────────────────────────────────────────────────
+    // 6. Rendering Performance  (skill: rendering-*) : MÉDIO
+    // ───────────────────────────────────────────────────────────────
+    "react/no-danger": "error",
+    "react/void-dom-elements-no-children": "error",
+    "react/no-children-prop": "error",
+    "react/self-closing-comp": "error",
+    "react/jsx-no-target-blank": "error", // segurança + perf
+    "react/no-unknown-property": "error",
+
+    // ───────────────────────────────────────────────────────────────
+    // 7. JavaScript Performance  (skill: js-*) : BAIXO-MÉDIO
+    // ───────────────────────────────────────────────────────────────
+    "oxc/bad-min-max-func": "error", // js-min-max-loop
+    "oxc/only-used-in-recursion": "error",
+    "oxc/uninvoked-array-callback": "error",
+    "oxc/bad-array-method-on-arguments": "error",
+    "unicorn/prefer-set-has": "error", // js-set-map-lookups
+    "unicorn/prefer-includes": "error",
+    "unicorn/prefer-array-find": "error", // js-early-exit
+    "unicorn/prefer-array-some": "error",
+    "unicorn/prefer-array-flat-map": "error", // js-flatmap-filter
+    "unicorn/prefer-node-protocol": "error",
+
+    // ───────────────────────────────────────────────────────────────
+    // Type-aware (tsgolint sobre o TS7 nativo; `lint` roda com --type-aware).
+    // Alvo: fallback morto: ??/?./!= null/template sobre valor que o tipo
+    // já garante; assertion insegura (`as` que estreita além do provado;
+    // liberada só no override de tooling/**, onde a API alpha do oxlint não
+    // publica tipos); retorno inconsistente; union com membro redundante.
+    // ───────────────────────────────────────────────────────────────
+    "typescript/no-unnecessary-condition": "error",
+    "typescript/no-unnecessary-template-expression": "error",
+    "typescript/no-unnecessary-boolean-literal-compare": "error",
+    "typescript/no-unsafe-type-assertion": "error",
+    "typescript/consistent-return": "error",
+    "typescript/no-redundant-type-constituents": "error",
+
+    // ───────────────────────────────────────────────────────────────
+    // Rigor TypeScript / qualidade de código (production-grade)
+    // ───────────────────────────────────────────────────────────────
+    "typescript/no-explicit-any": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-import-type-side-effects": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/consistent-type-assertions": ["error", { "assertionStyle": "never" }],
+    "typescript/explicit-function-return-type": [
+      "error",
+      {
+        "allowExpressions": true,
+        "allowTypedFunctionExpressions": true,
+        "allowHigherOrderFunctions": true
+      }
+    ],
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "no-debugger": "error",
+
+    // `_id` é o campo de id do MongoDB, devolvido pelo backend legado; a borda
+    // normaliza para `id` (contrato do front). Permitido apenas como leitura.
+    "no-underscore-dangle": ["error", { "allow": ["_id"] }],
+
+    // ───────────────────────────────────────────────────────────────
+    // Dead code: variáveis/imports/params/labels não usados + inalcançável.
+    // `_`-prefixo libera intencionais (ex.: function f(_unused, used)).
+    // ───────────────────────────────────────────────────────────────
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "no-unreachable": "error",
+    "no-unused-private-class-members": "error",
+    "no-unused-labels": "error",
+
+    // ───────────────────────────────────────────────────────────────
+    // Ajustes para React 19 + Next 16 (JSX runtime automático)
+    // ───────────────────────────────────────────────────────────────
+    "react/react-in-jsx-scope": "off", // obsoleto com o novo JSX transform
+    "import/no-unassigned-import": "off", // `import "./globals.css"` é side-effect legítimo
+
+    // ───────────────────────────────────────────────────────────────
+    // Import discipline
+    // ───────────────────────────────────────────────────────────────
+    "import/no-default-export": "error",
+    "import/no-relative-parent-imports": "error",
+
+    // ───────────────────────────────────────────────────────────────
+    // Restricted imports: pacotes proibidos no projeto
+    // ───────────────────────────────────────────────────────────────
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "valibot",
+            "message": "valibot só pode ser usado em arquivos *.schema.ts (validação confinada às bordas)."
+          },
+          {
+            "name": "ky",
+            "message": "ky só pode ser usado em src/lib/api/ (gateway único de HTTP)."
+          },
+          {
+            "name": "jsonwebtoken",
+            "message": "Não decodifique/assine JWT no front: o backend é a fonte da verdade. jsonwebtoken é proibido."
+          },
+          {
+            "name": "jose",
+            "message": "Não decodifique/assine JWT no front: o backend é a fonte da verdade. jose é proibido."
+          },
+          {
+            "name": "zod",
+            "message": "Zod proibido: use valibot em *.schema.ts (validação confinada às bordas)."
+          },
+          {
+            "name": "@tanstack/react-query",
+            "message": "React Query proibido: leitura é RSC, sem data-fetching/cache no client."
+          },
+          {
+            "name": "react-query",
+            "message": "React Query proibido: leitura é RSC, sem data-fetching/cache no client."
+          },
+          {
+            "name": "swr",
+            "message": "SWR proibido: leitura é RSC, sem data-fetching no client."
+          },
+          {
+            "name": "axios",
+            "message": "axios proibido: use ky em src/lib/api/."
+          },
+          {
+            "name": "assert",
+            "message": "assert é proibido. Corrija o tipo na borda, sem forçar invariante em runtime."
+          },
+          {
+            "name": "node:assert",
+            "message": "assert é proibido. Corrija o tipo na borda, sem forçar invariante em runtime."
+          }
+        ]
+      }
+    ],
+
+    // ───────────────────────────────────────────────────────────────
+    // Restricted properties
+    // ───────────────────────────────────────────────────────────────
+    "no-restricted-properties": [
+      "error",
+      {
+        "object": "document",
+        "property": "cookie",
+        "message": "Acesso direto a document.cookie é proibido. Use as abstrações de cookie do Next.js (cookies() de next/headers ou next/headers cookies API)."
+      }
+    ],
+
+    // ───────────────────────────────────────────────────────────────
+    // Restricted exports
+    // ───────────────────────────────────────────────────────────────
+    "no-restricted-exports": [
+      "error",
+      {
+        "restrictedNamedExports": ["fetchCache"]
+      }
+    ],
+
+    // ───────────────────────────────────────────────────────────────
+    // Custom rules (boilerplate plugin: tooling/oxlint-rules/)
+    // ───────────────────────────────────────────────────────────────
+    "boilerplate/enforce-boundaries": "error",
+    "boilerplate/no-index-barrel": "error",
+    "boilerplate/no-use-cache": "error",
+    "boilerplate/no-force-static": "error",
+    "boilerplate/api-through-lib": "error",
+    "boilerplate/no-fetch-in-effect": "error",
+    "boilerplate/no-watch-in-effect": "error",
+    "boilerplate/no-derived-state-in-effect": "error",
+    "boilerplate/no-manual-memo": "error",
+    "boilerplate/no-forbidden-imports": "error",
+    "boilerplate/no-focused-tests": "error",
+    "boilerplate/no-assert": "error",
+    "boilerplate/no-defensive-parse": "error",
+    "boilerplate/no-schema-output-converter": "error",
+    "boilerplate/no-catalog-literal-compare": "error",
+
+    // ── Advisory (`warn`): levantam candidatos pra review, não reprovam o gate.
+    // Ambas veem só a AST do arquivo, sem saber quantos callers a função tem —
+    // e como supressão de lint é proibida no repo, `error` aqui seria um bloqueio
+    // sem saída pra um padrão às vezes legítimo. Ver VERCEL-OXLINT-MAPPING.md.
+    //
+    // no-passthrough-mapper: conflita com o mapper snake_case→camelCase que a
+    // skill `api-contract` PRESCREVE (as chaves diferem de verdade, o rename é
+    // load-bearing e o fix sugerido pela regra é impossível ali).
+    "boilerplate/no-passthrough-mapper": "warn",
+    // no-literal-dispatch: um mapper de literais usado em 3+ lugares é DRY legítimo.
+    "boilerplate/no-literal-dispatch": "warn"
+  },
+
+  // Arquivos de config rodam em Node e podem logar/usar default export.
+  "overrides": [
+    {
+      "files": ["*.config.{js,mjs,ts}", "**/*.config.{js,mjs,ts}"],
+      "rules": {
+        "no-console": "off",
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      // Next.js App Router requer default export nas rotas/layouts/pages.
+      "files": ["src/app/**"],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      // Schema files liberam APENAS valibot; ky/jose/jsonwebtoken seguem banidos.
+      "files": ["**/*.schema.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              { "name": "ky", "message": "ky só pode ser usado em src/lib/api/." },
+              {
+                "name": "jsonwebtoken",
+                "message": "Não decodifique/assine JWT no front: jsonwebtoken é proibido."
+              },
+              {
+                "name": "jose",
+                "message": "Não decodifique/assine JWT no front: jose é proibido."
+              },
+              { "name": "zod", "message": "Zod proibido: use valibot." },
+              {
+                "name": "@tanstack/react-query",
+                "message": "React Query proibido: leitura é RSC."
+              },
+              { "name": "react-query", "message": "React Query proibido: leitura é RSC." },
+              { "name": "swr", "message": "SWR proibido: leitura é RSC." },
+              { "name": "axios", "message": "axios proibido: use ky em src/lib/api/." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // Camada de API interna libera APENAS ky; valibot/jose/jsonwebtoken seguem banidos.
+      "files": ["src/lib/api/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "valibot",
+                "message": "valibot só pode ser usado em arquivos *.schema.ts."
+              },
+              {
+                "name": "jsonwebtoken",
+                "message": "Não decodifique/assine JWT no front: jsonwebtoken é proibido."
+              },
+              {
+                "name": "jose",
+                "message": "Não decodifique/assine JWT no front: jose é proibido."
+              },
+              { "name": "zod", "message": "Zod proibido: use valibot." },
+              {
+                "name": "@tanstack/react-query",
+                "message": "React Query proibido: leitura é RSC."
+              },
+              { "name": "react-query", "message": "React Query proibido: leitura é RSC." },
+              { "name": "swr", "message": "SWR proibido: leitura é RSC." },
+              { "name": "axios", "message": "axios proibido: use ky em src/lib/api/." }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // Tooling interno: regras do plugin oxlint e seus testes.
+      // Razões das exceções:
+      //   - no-default-export: oxlint jsPlugins exige default export no arquivo de plugin e nas rules.
+      //   - no-relative-parent-imports: helpers de teste referenciam rules via "../rule".
+      //   - no-console: runner de testes Node usa console.log/error para relatar resultados.
+      //   - no-underscore-dangle: nomes internos com _ são convenção do RuleTester harness.
+      "files": ["tooling/**"],
+      "rules": {
+        "import/no-default-export": "off",
+        "import/no-relative-parent-imports": "off",
+        "no-console": "off",
+        "no-underscore-dangle": "off",
+        "typescript/consistent-type-assertions": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "typescript/explicit-function-return-type": "off"
+      }
+    },
+    {
+      // Nome de arquivo de teste em kebab-case. A skill naming-conventions já
+      // mandava isso, mas sem gate os testes derivaram (componentes/hooks foram
+      // nomeados espelhando o símbolo em PascalCase/camelCase). O escopo é só o
+      // arquivo `*.test.*`: o código de produção segue a convenção do símbolo
+      // (Componente PascalCase, hook `useXxx`), então não entra aqui.
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "unicorn/filename-case": ["error", { "case": "kebabCase" }]
+      }
+    }
+  ],
+
+  "ignorePatterns": [
+    "node_modules/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "public/**",
+    ".claude/**",
+    "srcantigo/**"
+  ]
+}

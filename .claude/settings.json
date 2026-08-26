@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git checkout*)",
+      "Bash(bun run lint*)",
+      "Bash(bun run fmt*)",
+      "Bash(bun run knip*)",
+      "Bash(bun run test*)",
+      "Bash(bun test*)",
+      "Bash(bun run typecheck*)",
+      "Bash(bun run verify*)",
+      "Bash(bun run build*)",
+      "Bash(bun install*)",
+      "Bash(bun run dev*)",
+      "Bash(bun run start*)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(gh *)",
+      "Bash(bunx *)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(sudo *)",
+      "Bash(chmod 777*)",
+      "Bash(cat .env*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/inject-patterns.ts\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/reinforce-patterns.ts\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/pre-pr-review-gate.ts\"",
+            "timeout": 15000
+          },
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/guard-shell.ts\"",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/reinforce-after-write.ts\""
+          },
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/format-after-write.ts\"",
+            "timeout": 30000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/verify-before-stop.ts\"",
+            "timeout": 300000
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1"
+  }
+}

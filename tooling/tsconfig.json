@@ -1,0 +1,21 @@
+{
+  // Contexto separado do app: este é o mundo do plugin oxlint (regras custom)
+  // + testes Bun. Não faz parte do bundle/typecheck da aplicação, por isso o
+  // tsconfig do app exclui `tooling/`. Aqui ligamos os tipos do Bun e do plugin.
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    // A API de plugin do oxlint é alpha e entrega `context`/`node` sem tipos
+    // estáveis; relaxamos só o implicit-any neste contexto de tooling.
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["bun"]
+  },
+  "include": ["**/*.ts"]
+}

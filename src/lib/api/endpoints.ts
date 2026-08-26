@@ -1,0 +1,61 @@
+/**
+ * Config central dos endpoints do backend: fonte única de todos os paths REST do
+ * projeto, agrupados por domínio.
+ *
+ * Cada valor é o path relativo ao `baseUrl` da instância ky (sem barra inicial).
+ * A base URL não entra aqui: ela vive no `kyServer`/`kyClient` (ver `ky.server`,
+ * `ky.client` e `base-url`), então este arquivo guarda só os caminhos.
+ * Centralizar evita string de endpoint solta espalhada pelas features e dá um
+ * lugar só para revisar os paths contra o contrato (skill `api-contract`).
+ *
+ * Cada novo endpoint entra aqui no domínio correspondente, não como const local.
+ */
+export const API_ENDPOINTS = {
+  /** Sessão do usuário. Chamado browser-direct: o backend emite o cookie. */
+  auth: {
+    login: "api/v1/login",
+    logout: "api/v1/logout",
+  },
+
+  /** Perfil do usuário autenticado — a feature de exemplo do boilerplate. */
+  perfil: {
+    me: "api/v1/perfil",
+    senha: "api/v1/perfil/senha",
+    gerar2fa: "api/v1/perfil/2fa/gerar",
+    ativar2fa: "api/v1/perfil/2fa/ativar",
+    desativar2fa: "api/v1/perfil/2fa/desativar",
+  },
+
+  /** Chaves de API de corretoras centralizadas (CEX). */
+  exchanges: {
+    listar: "api/v1/exchanges",
+    criar: "api/v1/exchanges",
+    atualizar: "api/v1/exchanges",
+    deletar: "api/v1/exchanges",
+  },
+
+  /** Portfolio: resumo patrimonial, evolução e posições ao vivo. */
+  portfolio: {
+    resumo: "api/v1/portfolio/resumo",
+    historico: "api/v1/portfolio/historico",
+    live: "api/v1/portfolio/live",
+  },
+
+  /** Arbitragem perpétuo vs spot (Funding Arb). */
+  perpArb: {
+    listarStrategies: "api/v1/perp-arb/strategies",
+    criarStrategy: "api/v1/perp-arb/strategies",
+    atualizarStrategy: "api/v1/perp-arb/strategies",
+    deletarStrategy: "api/v1/perp-arb/strategies",
+    listarTrades: "api/v1/perp-arb/trades",
+    tradesResumo: "api/v1/perp-arb/trades/resumo",
+    settings: "api/v1/perp-arb/settings",
+    botStatus: "api/v1/bot-status",
+    fechar: "api/v1/perp-arb/close",
+    aumentar: "api/v1/perp-arb/increase",
+    voidClose: "api/v1/perp-arb/void-close",
+    logs: "api/v1/perp-arb/logs",
+    manualScan: "api/v1/perp-arb/manual-scan",
+    auditExchange: "api/v1/perp-arb/audit-exchange",
+  },
+} as const;

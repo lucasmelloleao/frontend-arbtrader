@@ -1,0 +1,71 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/inject-patterns.ts\"",
+            "statusMessage": "Carregando convenções do projeto"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/reinforce-patterns.ts\"",
+            "statusMessage": "Reforçando as regras do repo"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/pre-pr-review-gate.ts\"",
+            "statusMessage": "Portão de pré-review de PR"
+          },
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/guard-shell.ts\"",
+            "statusMessage": "Guarda de shell e branch protegida"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/reinforce-after-write.ts\"",
+            "statusMessage": "Reforço pós-escrita"
+          },
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/format-after-write.ts\"",
+            "statusMessage": "Formatando com oxfmt"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/verify-before-stop.ts\"",
+            "statusMessage": "Rodando bun run verify:fast"
+          }
+        ]
+      }
+    ]
+  }
+}

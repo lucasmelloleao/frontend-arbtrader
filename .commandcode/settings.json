@@ -1,0 +1,95 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(git status:*)",
+      "Shell(git diff:*)",
+      "Shell(git log:*)",
+      "Shell(git branch:*)",
+      "Shell(git checkout:*)",
+      "Shell(bun run lint:*)",
+      "Shell(bun run fmt:*)",
+      "Shell(bun run knip:*)",
+      "Shell(bun run test:*)",
+      "Shell(bun test:*)",
+      "Shell(bun run typecheck:*)",
+      "Shell(bun run verify:*)",
+      "Shell(bun run build:*)",
+      "Shell(bun install:*)",
+      "Shell(bun run dev:*)",
+      "Shell(bun run start:*)",
+      "Shell(ls:*)",
+      "Shell(wc:*)",
+      "Shell(gh:*)",
+      "Shell(bunx:*)"
+    ],
+    "deny": [
+      "Shell(rm -rf /*)",
+      "Shell(rm -rf ~*)",
+      "Shell(git push --force*)",
+      "Shell(git reset --hard*)",
+      "Shell(git clean -f*)",
+      "Shell(sudo *)",
+      "Shell(chmod 777*)",
+      "Shell(cat .env*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/inject-patterns.ts\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "shell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/pre-pr-review-gate.ts\"",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/guard-shell.ts\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "write|edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/reinforce-after-write.ts\""
+          },
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/format-after-write.ts\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/verify-before-stop.ts\"",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
+  }
+}

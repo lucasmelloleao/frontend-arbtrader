@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+# Least privilege: o gate só precisa ler o repo.
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      # Actions pinadas por SHA (supply-chain) + sem persistir credencial no checkout.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          # Alinhado ao `packageManager` do package.json (quem gerou o bun.lock).
+          bun-version-file: package.json
+
+      - run: bun install --frozen-lockfile
+
+      # Backstop em grep dos guardrails que dependem do jsPlugins (alpha): se o
+      # plugin um dia falhar em carregar, estes gates ainda barram as violações.
+      - name: Grep-gate, sempre fresco
+        run: |
+          if grep -rEn "['\"]use cache[ :a-z]*['\"]|unstable_cache" src --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' 2>/dev/null; then
+            echo "::error::cache proibido ('use cache' / unstable_cache) em src/"; exit 1
+          fi
+
+      - name: Grep-gate, backend só em src/lib/api
+        run: |
+          # Backend = URL http(s) do domínio do backend fora de src/lib/api.
+          # `-o` extrai uma URL por linha (não a linha inteira): sem isso, uma linha
+          # com uma URL pública E uma de backend juntas seria descartada pelo
+          # allowlist, escondendo a violação. Troque `example\.com` pelo seu domínio.
+          if grep -rEon "https?://[^\"' ]*example\.com" src --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' 2>/dev/null | grep -vE '^src/lib/api/'; then
+            echo "::error::URL do backend fora de src/lib/api"; exit 1
+          fi
+
+      # `verify` = lint type-aware + fmt + typecheck (app/testes/tooling) + knip +
+      # testes + guard de supressão de lint + budget de peso dos assets.
+      - name: Gate canônico
+        run: bun run verify
+
+      # `bun run build` faz: next typegen && tsc --noEmit && bun --bun next build
+      # (inclui o typecheck do app com as rotas tipadas geradas).
+      - name: Build (typegen + typecheck + next build sob Bun)
+        run: bun run build
+        env:
+          # A borda falha fechada sem a base URL; no build nenhuma request sai de
+          # verdade (o prerender vira dinâmico no `cookies()`), então um
+          # placeholder local basta.
+          NEXT_PUBLIC_API_URL: http://localhost:3333
+          INTERNAL_API_URL: http://localhost:3333
