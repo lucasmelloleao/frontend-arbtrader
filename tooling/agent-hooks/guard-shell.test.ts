@@ -68,7 +68,6 @@ describe("guard-shell", () => {
     "rm -rf ./node_modules",
     // Heredoc literal é dado: documentar `sudo rm -rf /` não é executá-lo.
     "cat > doc.md <<'EOF'\nNunca rode sudo rm -rf / no servidor.\nEOF",
-    "git push --force-with-lease origin feature/x",
     "cat .env.example",
     "bun run verify",
   ])("allows %s", (command) => {
@@ -76,6 +75,24 @@ describe("guard-shell", () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout.toString()).toBe("");
+  });
+
+  test("allows git push --force-with-lease fora de branch protegida", () => {
+    // O hook nega QUALQUER commit/push quando a branch atual é protegida; fora
+    // dela, `--force-with-lease` é um push seguro e deve passar. O repo do CI
+    // roda o checkout na branch do evento (a `main` do push direto), então o
+    // veredito depende da branch corrente — como no teste de commit abaixo.
+    const branch = Bun.spawnSync(["git", "rev-parse", "--abbrev-ref", "HEAD"], { stdout: "pipe" })
+      .stdout.toString()
+      .trim();
+    const result = runHook(bash("git push --force-with-lease origin feature/x"));
+
+    expect(result.exitCode).toBe(0);
+    if (["main", "release", "staging", "develop"].includes(branch)) {
+      expect(readDenialReason(result)).toContain("branch protegida");
+    } else {
+      expect(result.stdout.toString()).toBe("");
+    }
   });
 
   test("denies commit on a protected branch", () => {
