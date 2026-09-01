@@ -95,7 +95,11 @@ async function PolymarketArbCarregado(): Promise<React.ReactNode> {
         </div>
       </div>
 
-      <PredictionStatsHeader summary={summaryData} abertasCount={abertas.length} />
+      <PredictionStatsHeader
+        summary={summaryData}
+        abertasCount={abertas.length}
+        saldoDisponivel={botData?.saldoDisponivel ?? 0}
+      />
 
       <PredictionSettingsPanel settings={settingsData} />
 
