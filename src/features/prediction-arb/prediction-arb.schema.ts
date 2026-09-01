@@ -44,7 +44,9 @@ export const predictionArbStrategyListSchema = array(predictionArbStrategySchema
 
 /** Schema de um trade em Prediction Market. */
 const predictionArbTradeSchema = object({
-  id: string(),
+  // O backend devolve _id (ObjectId) — aceita ambos como id
+  id: fallback(string(), ""),
+  _id: fallback(string(), ""),
   strategyId: fallback(string(), ""),
   openTradeId: fallback(string(), ""),
   marketId: fallback(string(), ""),
