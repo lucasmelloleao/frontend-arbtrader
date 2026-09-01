@@ -287,20 +287,57 @@ export function PredictionArbBoard({
                   <div>
                     <h4 className="text-sm font-bold text-white">{t.question || t.slug}</h4>
                     <div className="mt-0.5 text-xs text-slate-400 font-mono">
-                      Tipo: {t.type} | Lado: {t.side}
-                    </div>
-                  </div>
-                  <div className="text-right font-mono">
-                    <div
-                      className={`text-base font-black ${t.pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}
-                    >
-                      {fmtUsd(t.pnl)}
-                    </div>
-                    <div className="text-[11px] text-slate-500">
+                      {t.type === "close_pair" ? "Encerrada" : "Aberta"} |{" "}
                       {new Date(t.createdAt).toLocaleString()}
                     </div>
                   </div>
+                  <div
+                    className={`text-right font-mono text-base font-black ${
+                      t.pnl > 0
+                        ? "text-emerald-400"
+                        : t.pnl < 0
+                          ? "text-rose-400"
+                          : "text-slate-400"
+                    }`}
+                  >
+                    {fmtUsd(t.pnl)}
+                  </div>
                 </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/5 pt-3 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">
+                      Investido
+                    </span>
+                    <div className="mt-0.5 font-mono font-bold text-white">
+                      ${(t.investedUsd ?? t.amount ?? 0).toFixed(2)}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">
+                      Realizado
+                    </span>
+                    <div className="mt-0.5 font-mono font-bold text-slate-300">
+                      ${(t.realizedUsd ?? 0).toFixed(2)}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">P/L</span>
+                    <div
+                      className={`mt-0.5 font-mono font-bold ${
+                        t.pnl > 0
+                          ? "text-emerald-400"
+                          : t.pnl < 0
+                            ? "text-rose-400"
+                            : "text-slate-400"
+                      }`}
+                    >
+                      {fmtUsd(t.pnl)}
+                    </div>
+                  </div>
+                </div>
+                {t.reason ? (
+                  <div className="mt-2 text-[10px] text-slate-600">{t.reason}</div>
+                ) : null}
               </div>
             ))
           )}

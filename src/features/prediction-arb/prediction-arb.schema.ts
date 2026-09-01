@@ -62,6 +62,8 @@ const predictionArbTradeSchema = object({
   yesShares: fallback(number(), 0),
   noShares: fallback(number(), 0),
   pnl: fallback(number(), 0),
+  investedUsd: fallback(number(), 0),
+  realizedUsd: fallback(number(), 0),
   spreadPct: fallback(number(), 0),
   reason: fallback(string(), ""),
   orderIds: fallback(array(string()), []),
