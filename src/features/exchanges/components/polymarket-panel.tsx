@@ -8,6 +8,7 @@ import { ArrowDownToLine, Loader2, RefreshCw, Save, Wallet } from "lucide-react"
 import {
   deployDepositWalletPolymarket,
   salvarCredenciaisPolymarket,
+  sincronizarHistoricoPolymarket,
   sincronizarSaldoPolymarket,
   transferirPusdPolymarket,
 } from "@/features/exchanges/polymarket.actions";
@@ -226,6 +227,18 @@ export function PolymarketPanel({ eoa, credenciais }: PolymarketPanelProps): Rea
           title="Cria a deposit wallet via relayer (se ainda não existir)"
         >
           Deploy Deposit Wallet
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            executar(() => sincronizarHistoricoPolymarket(), "Histórico sincronizado!")
+          }
+          disabled={isPending}
+          className="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white disabled:opacity-50"
+          title="Importa as operações reais da Polymarket para o painel"
+        >
+          <RefreshCw className="mr-1 inline h-3 w-3" aria-hidden="true" />
+          Sincronizar Histórico
         </button>
       </div>
 

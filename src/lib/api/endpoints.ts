@@ -40,6 +40,7 @@ export const API_ENDPOINTS = {
     balance: "api/v1/polymarket/balance",
     transfer: "api/v1/polymarket/transfer",
     deployWallet: "api/v1/polymarket/deploy-wallet",
+    syncHistory: "api/v1/polymarket/sync-history",
   },
 
   /** Portfolio: resumo patrimonial, evolução e posições ao vivo. */

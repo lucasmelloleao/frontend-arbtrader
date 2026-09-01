@@ -75,3 +75,16 @@ export async function deployDepositWalletPolymarket(): Promise<PolymarketResult>
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
 }
+
+/** Sincroniza o histórico de operações da Polymarket para o banco. */
+export async function sincronizarHistoricoPolymarket(): Promise<PolymarketResult> {
+  try {
+    const data = await apiClient(kyServer, API_ENDPOINTS.polymarket.syncHistory, undefined, {
+      method: "post",
+    });
+    revalidatePath("/dashboard/polymarket-arb");
+    return { ok: true, data };
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+}
