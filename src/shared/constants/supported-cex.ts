@@ -11,4 +11,36 @@ export const SUPPORTED_CEX = [
   { id: "okx", nome: "OKX" },
   { id: "bybit", nome: "Bybit" },
   { id: "gateio", nome: "Gate.io" },
+  { id: "polymarket", nome: "Polymarket" },
+  { id: "ctrader", nome: "cTrader (Pepperstone)" },
+  { id: "pepperstone", nome: "Pepperstone" },
+  { id: "fix", nome: "FIX API (Pepperstone)" },
+  { id: "pepperstone-fix", nome: "Pepperstone FIX" },
+  { id: "ctrader-fix", nome: "cTrader FIX" },
 ] as const;
+
+/**
+ * Corretoras que usam o fluxo cTrader Open API (Client ID/Secret em vez de
+ * API Key/Secret). O `apiKey` no backend é o espelho do `clientId`.
+ */
+const CTRADER_CEX_IDS: ReadonlySet<string> = new Set(["ctrader", "pepperstone"]);
+
+export function isCtraderId(exchangeId: string): boolean {
+  return CTRADER_CEX_IDS.has(exchangeId);
+}
+
+/**
+ * Corretoras que usam FIX API (Pepperstone/cTrader): credenciais host/ports/
+ * comp ids/username/password em vez de API Key/Secret.
+ */
+const FIX_CEX_IDS: ReadonlySet<string> = new Set(["fix", "pepperstone-fix", "ctrader-fix"]);
+
+export function isFixId(exchangeId: string): boolean {
+  return FIX_CEX_IDS.has(exchangeId);
+}
+
+/**
+ * Corretoras com auditoria spot/perp (relatório `/perp-arb/audit-exchange`).
+ * cTrader/Pepperstone são forex/CFD — não entram no cruzamento spot vs perp.
+ */
+export const AUDITABLE_CEX_IDS: readonly string[] = ["mexc", "binance", "okx", "bybit", "gateio"];

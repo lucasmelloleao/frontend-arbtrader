@@ -11,6 +11,10 @@ import {
   voidCloseStrategy,
 } from "@/features/perp-arb/perp-arb.actions";
 import type { PerpArbStrategy, PerpArbTrade } from "@/features/perp-arb/perp-arb.schema";
+import {
+  FundingHarvestsDialog,
+  type FundingHarvest,
+} from "@/features/perp-arb/components/funding-harvests-dialog";
 
 /** Posição futura ao vivo (shape do `/portfolio/live`). */
 type LivePosition = {
@@ -97,6 +101,7 @@ export function OpenPositionCard({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showIncrease, setShowIncrease] = useState(false);
+  const [showFunding, setShowFunding] = useState(false);
   const [amount, setAmount] = useState("50");
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -206,8 +211,29 @@ export function OpenPositionCard({
         ? openTrade.fundingRate
         : null;
 
-  const spotUnits = entrySpot > 0 ? positionSize / entrySpot : 0;
-  const perpUnits = entryPerp > 0 ? positionSize / entryPerp : 0;
+  // Unidades reais negociadas: prioriza as quantidades exatas do trade de
+  // abertura (`spotQuantity`/`perpQuantity`); senão deriva do notional/preço.
+  const spotUnits =
+    openTrade !== undefined && openTrade.spotQuantity !== null && openTrade.spotQuantity > 0
+      ? openTrade.spotQuantity
+      : entrySpot > 0
+        ? positionSize / entrySpot
+        : 0;
+  const rawPerpUnits =
+    openTrade !== undefined && openTrade.perpQuantity !== null && openTrade.perpQuantity > 0
+      ? openTrade.perpQuantity
+      : 0;
+  const expectedPerpNotional = positionSize > 0 ? positionSize : spotUnits * entrySpot;
+  const perpNotionalFromQty = rawPerpUnits * entryPerp;
+  const isPerpQtyBaseUnits =
+    rawPerpUnits > 0 &&
+    expectedPerpNotional > 0 &&
+    Math.abs(perpNotionalFromQty - expectedPerpNotional) / expectedPerpNotional < 0.5;
+  const perpUnits = isPerpQtyBaseUnits
+    ? rawPerpUnits
+    : entryPerp > 0
+      ? (positionSize > 0 ? positionSize : spotUnits * entrySpot) / entryPerp
+      : spotUnits;
   const spotPnL = spotUnits > 0 && exitSpotPrice > 0 ? (exitSpotPrice - entrySpot) * spotUnits : 0;
   const perpPnL = perpUnits > 0 && exitPerpPrice > 0 ? (entryPerp - exitPerpPrice) * perpUnits : 0;
   const marketPnL = spotPnL + perpPnL;
@@ -240,6 +266,14 @@ export function OpenPositionCard({
           { amount: t.pnl, timestamp: t.createdAt, fundingRate: t.fundingRate },
         ]);
   const fundingCount = fundingHistoryList.length;
+
+  // Lista normalizada para o extrato de colheitas do modal (rate `null` quando
+  // ausente, em vez de `undefined`).
+  const harvests: readonly FundingHarvest[] = fundingHistoryList.map((h) => ({
+    amount: h.amount,
+    timestamp: h.timestamp,
+    fundingRate: h.fundingRate !== undefined ? h.fundingRate : null,
+  }));
 
   const estimatedTradingFees = positionSize * 0.0012;
   const totalUnrealizedPnL = marketPnL + fundingCollected;
@@ -346,9 +380,9 @@ export function OpenPositionCard({
             ${positionSize.toFixed(2)}{" "}
             <span className="text-xs font-normal text-slate-400">USDT</span>
           </div>
-          {entrySpot > 0 ? (
+          {spotUnits > 0 ? (
             <span className="mt-1 font-mono text-[11px] text-slate-400">
-              ~{(positionSize / entrySpot).toFixed(2)} base
+              {spotUnits.toFixed(2)} base
             </span>
           ) : null}
         </div>
@@ -446,13 +480,19 @@ export function OpenPositionCard({
           </span>
         </div>
         <div className="flex items-center justify-between border-t border-white/5 pt-1.5">
-          <span className="rounded border border-cyan-500/30 bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-bold text-cyan-300">
+          <button
+            type="button"
+            onClick={() => setShowFunding(true)}
+            disabled={fundingCount === 0}
+            className="inline-flex items-center gap-1 rounded border border-cyan-500/30 bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-bold text-cyan-300 transition-colors hover:bg-cyan-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+            title={fundingCount > 0 ? "Ver extrato de colheitas" : "Sem colheitas registradas"}
+          >
             🌾 Funding Coletado (
             {fundingCount > 0
               ? `${fundingCount} ${fundingCount === 1 ? "colheita" : "colheitas"}`
               : "Acumulado"}
             )
-          </span>
+          </button>
           <span className="flex items-center gap-1 font-mono font-bold text-cyan-300">
             <span className="text-[10px] font-normal text-slate-500">Pagamento Corretora</span>
             +${fundingCollected.toFixed(4)} USDT
@@ -596,6 +636,11 @@ export function OpenPositionCard({
           </div>
         </div>
       </dialog>
+
+      {/* Modal de extrato de colheitas de funding */}
+      {showFunding ? (
+        <FundingHarvestsDialog harvests={harvests} onClose={() => setShowFunding(false)} />
+      ) : null}
     </div>
   );
 }

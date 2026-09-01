@@ -112,15 +112,22 @@ export function OperationsBoard({
               for maior que a taxa mínima configurada.
             </div>
           ) : (
-            openPositions.map((s) => (
-              <OpenPositionCard
-                key={s.id}
-                strategy={s}
-                trades={trades}
-                livePositions={livePositions}
-                liveSpotCoins={liveSpotCoins}
-              />
-            ))
+            // Mais antigas primeiro: posição sem data de abertura vai pro fim.
+            openPositions
+              .toSorted(
+                (a, b) =>
+                  new Date(a.positionOpenedAt ?? 0).getTime() -
+                  new Date(b.positionOpenedAt ?? 0).getTime(),
+              )
+              .map((s) => (
+                <OpenPositionCard
+                  key={s.id}
+                  strategy={s}
+                  trades={trades}
+                  livePositions={livePositions}
+                  liveSpotCoins={liveSpotCoins}
+                />
+              ))
           )}
         </div>
       ) : (

@@ -1,0 +1,15 @@
+{
+  "name": "mongo",
+  "private": true,
+  "type": "module",
+  "module": "index.ts",
+  "dependencies": {
+    "mongodb": "^7.6.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  }
+}
