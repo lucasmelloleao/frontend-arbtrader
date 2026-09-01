@@ -6,8 +6,9 @@ import { useTransition } from "react";
 import { Key, Pencil, Trash2 } from "lucide-react";
 
 import { deletarExchange } from "@/features/exchanges/exchanges.actions";
+import { PolymarketPanel } from "@/features/exchanges/components/polymarket-panel";
 import type { Exchange } from "@/features/exchanges/exchanges.schema";
-import { SUPPORTED_CEX } from "@/shared/constants/supported-cex";
+import { isCtraderId, SUPPORTED_CEX } from "@/shared/constants/supported-cex";
 
 type ExchangeListProps = {
   exchanges: readonly Exchange[];
@@ -73,7 +74,9 @@ export function ExchangeList({
                   </span>
                 </h4>
                 <p className="mt-2 font-mono text-xs text-slate-400">
-                  Chave: {exchange.apiKey.slice(0, 8)}...{exchange.apiKey.slice(-4)}
+                  {isCtraderId(exchange.exchangeId)
+                    ? `Client ID: ${exchange.clientId ?? exchange.apiKey}`
+                    : `Chave: ${exchange.apiKey.slice(0, 8)}...${exchange.apiKey.slice(-4)}`}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -105,6 +108,18 @@ export function ExchangeList({
                 Segredo Criptografado
               </span>
             </div>
+
+            {exchange.exchangeId === "polymarket" ? (
+              <PolymarketPanel
+                eoa={exchange.apiKey}
+                credenciais={{
+                  relayerApiKey: exchange.relayerApiKey,
+                  depositWallet: exchange.depositWallet,
+                  clobApiKey: exchange.clobApiKey,
+                  pusdBalance: exchange.pusdBalance,
+                }}
+              />
+            ) : null}
           </div>
         );
       })}

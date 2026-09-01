@@ -34,6 +34,14 @@ export const API_ENDPOINTS = {
     deletar: "api/v1/exchanges",
   },
 
+  /** Polymarket: credenciais, saldo e transferência de pUSD. */
+  polymarket: {
+    credentials: "api/v1/polymarket/credentials",
+    balance: "api/v1/polymarket/balance",
+    transfer: "api/v1/polymarket/transfer",
+    deployWallet: "api/v1/polymarket/deploy-wallet",
+  },
+
   /** Portfolio: resumo patrimonial, evolução e posições ao vivo. */
   portfolio: {
     resumo: "api/v1/portfolio/resumo",
@@ -57,5 +65,34 @@ export const API_ENDPOINTS = {
     logs: "api/v1/perp-arb/logs",
     manualScan: "api/v1/perp-arb/manual-scan",
     auditExchange: "api/v1/perp-arb/audit-exchange",
+  },
+
+  /** Arbitragem Forex (simples e triangular, via cTrader/FIX). */
+  forexArb: {
+    listarStrategies: "api/v1/forex-arb/strategies",
+    criarStrategy: "api/v1/forex-arb/strategies",
+    deletarStrategy: "api/v1/forex-arb/strategies",
+    listarTrades: "api/v1/forex-arb/trades",
+    oportunidades: "api/v1/forex-arb/opportunities",
+    settings: "api/v1/forex-arb/settings",
+    ctraderCredentials: "api/v1/forex-arb/ctrader-credentials",
+    fechar: "api/v1/forex-arb/close",
+    logs: "api/v1/forex-arb/logs",
+  },
+
+  /** Arbitragem em prediction markets (Polymarket). */
+  predictionArb: {
+    listarStrategies: "api/v1/prediction-arb/strategies",
+    criarStrategy: "api/v1/prediction-arb/strategies",
+    atualizarStrategy: "api/v1/prediction-arb/strategies",
+    deletarStrategy: "api/v1/prediction-arb/strategies",
+    listarTrades: "api/v1/prediction-arb/trades",
+    tradesResumo: "api/v1/prediction-arb/trades/resumo",
+    settings: "api/v1/prediction-arb/settings",
+    botStatus: "api/v1/prediction-arb/bot-status",
+    fechar: "api/v1/prediction-arb/close",
+    aumentar: "api/v1/prediction-arb/increase",
+    voidClose: "api/v1/prediction-arb/void-close",
+    manualScan: "api/v1/prediction-arb/manual-scan",
   },
 } as const;
