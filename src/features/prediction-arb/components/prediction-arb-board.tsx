@@ -428,9 +428,9 @@ export function PredictionArbBoard({
 
       {/* Aba: Histórico de Trades */}
       {aba === "closed" ? (
-        <div className="space-y-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {encerradas.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
+            <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
               <TrendingUp className="mx-auto mb-3 h-8 w-8 opacity-40" aria-hidden="true" />
               Nenhum trade encerrado registrado.
             </div>
