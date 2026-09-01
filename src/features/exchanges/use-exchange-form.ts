@@ -37,15 +37,30 @@ const VALORES_INICIAIS: ExchangeFormInput = {
   nome: "",
   apiKey: "",
   apiSecret: "",
+  clientId: "",
+  clientSecret: "",
+  accessToken: "",
+  refreshToken: "",
+  accountId: "",
+  environment: "live",
+  host: "",
+  quotePort: 5211,
+  tradePort: 5212,
+  senderCompId: "",
+  targetCompId: "CSERVER",
+  username: "",
+  password: "",
 };
 
 /**
  * Estado e submit do formulário de chave CEX (criar ou editar).
  *
- * Em modo edição, o form é pré-preenchido com a conexão e o `apiSecret` fica
- * vazio (o backend nunca devolve o segredo; vazio = manter). A mutação é a
- * Server Action (`salvarExchange`/`atualizarExchange`) que revalida no
- * servidor e chama `revalidatePath`.
+ * Em modo edição, o form é pré-preenchido com a conexão e os campos de segredo
+ * (`apiSecret`/`clientSecret`/`password`) ficam vazios (o backend nunca devolve
+ * segredos; vazio = manter). Para cTrader, o `clientId` vem do `apiKey` (o
+ * backend espelha). A mutação é a Server Action
+ * (`salvarExchange`/`atualizarExchange`) que revalida no servidor e chama
+ * `revalidatePath`.
  *
  * @param editando - Conexão em edição (null = criar nova).
  * @returns Form do RHF, handler de submit, erro e controle de edição.
@@ -67,6 +82,19 @@ export function useExchangeForm(
             nome: editando.nome,
             apiKey: editando.apiKey,
             apiSecret: "",
+            clientId: editando.clientId ?? editando.apiKey,
+            clientSecret: "",
+            accessToken: "",
+            refreshToken: "",
+            accountId: editando.accountId ?? "",
+            environment: editando.environment ?? "live",
+            host: editando.host ?? "",
+            quotePort: editando.quotePort ?? 5211,
+            tradePort: editando.tradePort ?? 5212,
+            senderCompId: editando.senderCompId ?? "",
+            targetCompId: editando.targetCompId ?? "CSERVER",
+            username: editando.username ?? "",
+            password: "",
           },
   });
 

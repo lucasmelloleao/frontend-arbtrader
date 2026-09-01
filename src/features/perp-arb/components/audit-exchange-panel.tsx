@@ -6,7 +6,10 @@ import { Search } from "lucide-react";
 
 import { buscarAuditExchange } from "@/features/perp-arb/perp-arb.actions";
 import type { PerpArbAuditExchange } from "@/features/perp-arb/perp-arb.schema";
-import { SUPPORTED_CEX } from "@/shared/constants/supported-cex";
+import { AUDITABLE_CEX_IDS, SUPPORTED_CEX } from "@/shared/constants/supported-cex";
+
+/** Corretoras spot/perp com auditoria disponível (cTrader/Pepperstone ficam de fora). */
+const CORRETORAS_AUDITAVEIS = SUPPORTED_CEX.filter((cex) => AUDITABLE_CEX_IDS.includes(cex.id));
 
 /** Períodos disponíveis para a auditoria (em dias). */
 const PERIODOS = [1, 3, 5, 7, 15, 30] as const;
@@ -29,7 +32,7 @@ const fmtP = (valor: number): string => (valor < 0.1 ? valor.toFixed(6) : valor.
  * a busca depende da seleção do usuário (Server Action + estado local).
  */
 export function AuditExchangePanel(): React.ReactNode {
-  const [exchange, setExchange] = useState<string>(SUPPORTED_CEX[0].id);
+  const [exchange, setExchange] = useState<string>(CORRETORAS_AUDITAVEIS[0].id);
   const [days, setDays] = useState<number>(5);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -74,7 +77,7 @@ export function AuditExchangePanel(): React.ReactNode {
             onChange={(e) => setExchange(e.target.value)}
             className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-indigo-400"
           >
-            {SUPPORTED_CEX.map((cex) => (
+            {CORRETORAS_AUDITAVEIS.map((cex) => (
               <option key={cex.id} value={cex.id}>
                 {cex.nome}
               </option>
@@ -296,7 +299,7 @@ export function AuditExchangePanel(): React.ReactNode {
                                         {trade.feeCurrency !== null &&
                                         trade.feeCurrency !== undefined ? (
                                           <span className="ml-1 text-[10px] text-slate-500">
-                                            {trade.feeCurrency}
+                                            ({trade.feeCurrency})
                                           </span>
                                         ) : null}
                                       </td>

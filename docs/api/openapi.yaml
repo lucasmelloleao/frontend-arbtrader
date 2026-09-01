@@ -31,6 +31,10 @@ tags:
     description: Resumo patrimonial, evolução e posições ao vivo
   - name: PerpArb
     description: Estratégias e operações de arbitragem perpétuo vs spot (Funding Arb)
+  - name: ForexArb
+    description: Estratégias, oportunidades e operações de arbitragem Forex (simples e triangular)
+  - name: PredictionArb
+    description: Arbitragem estrutural + market making em prediction markets (Polymarket)
   - name: Usuarios
     description: Manutenção administrativa de usuários
 paths:
@@ -660,6 +664,202 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /forex-arb/strategies:
+    get:
+      tags: [ForexArb]
+      summary: Lista as estratégias de arbitragem Forex
+      operationId: getForexStrategies
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Lista de estratégias Forex
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ForexArbStrategy"
+        "401":
+          description: Não autenticado
+    post:
+      tags: [ForexArb]
+      summary: Cria uma nova estratégia Forex
+      operationId: createForexStrategy
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForexArbStrategyCreateRequest"
+      responses:
+        "201":
+          description: Estratégia Forex criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForexArbStrategy"
+        "401":
+          description: Não autenticado
+    delete:
+      tags: [ForexArb]
+      summary: Remove uma estratégia Forex
+      operationId: deleteForexStrategy
+      security:
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Estratégia removida
+        "401":
+          description: Não autenticado
+  /forex-arb/trades:
+    get:
+      tags: [ForexArb]
+      summary: Lista o histórico de trades de arbitragem Forex
+      operationId: getForexTrades
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Lista de trades Forex
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ForexArbTrade"
+        "401":
+          description: Não autenticado
+  /forex-arb/opportunities:
+    get:
+      tags: [ForexArb]
+      summary: Lista as oportunidades detectadas de arbitragem Forex
+      operationId: getForexOpportunities
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Lista de oportunidades Forex
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ForexArbTrade"
+        "401":
+          description: Não autenticado
+  /forex-arb/settings:
+    get:
+      tags: [ForexArb]
+      summary: Retorna as configurações de arbitragem Forex
+      operationId: getForexSettings
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Configurações Forex
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForexArbSettings"
+        "401":
+          description: Não autenticado
+    post:
+      tags: [ForexArb]
+      summary: Atualiza as configurações de arbitragem Forex
+      operationId: updateForexSettings
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForexArbSettingsUpdateRequest"
+      responses:
+        "200":
+          description: Configurações salvas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForexArbSettings"
+        "401":
+          description: Não autenticado
+  /forex-arb/ctrader-credentials:
+    put:
+      tags: [ForexArb]
+      summary: Atualiza os tokens OAuth e credenciais cTrader do usuário
+      operationId: updateCtraderCredentials
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: font-false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CtraderCredentialsUpdateRequest"
+      responses:
+        "200":
+          description: Credenciais salvas
+        "401":
+          description: Não autenticado
+  /forex-arb/close:
+    post:
+      tags: [ForexArb]
+      summary: Aciona o fechamento de uma posição Forex aberta
+      operationId: closeForexStrategy
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [strategyId]
+              properties:
+                strategyId:
+                  type: string
+      responses:
+        "200":
+          description: Fechamento acionado
+        "401":
+          description: Não autenticado
+  /forex-arb/logs:
+    get:
+      tags: [ForexArb]
+      summary: Retorna os logs de execução do robô Forex
+      operationId: getForexLogs
+      security:
+        - CookieAuth: []
+      parameters:
+        - name: process
+          in: query
+          required: false
+          schema:
+            type: string
+            default: forex-arb
+          description: "Nome do processo PM2 (ex: forex-arb, forex-scanner)"
+        - name: lines
+          in: query
+          required: false
+          schema:
+            type: string
+            default: "150"
+          description: "Quantidade de linhas de log a retornar"
+      responses:
+        "200":
+          description: Logs do processo retornado com sucesso
+        "401":
+          description: Não autenticado
   /bot-status:
     get:
       tags: [PerpArb]
@@ -1078,6 +1278,257 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  # ─── PredictionArb ───────────────────────────────────────────────────────────
+  /prediction-arb/strategies:
+    get:
+      tags: [PredictionArb]
+      summary: Lista as estratégias de prediction markets
+      operationId: listPredictionStrategies
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Lista de estratégias
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionArbStrategyListResponse"
+        "401":
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [PredictionArb]
+      summary: Cria uma nova estratégia de prediction market
+      operationId: createPredictionStrategy
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictionArbStrategyCreateRequest"
+      responses:
+        "201":
+          description: Estratégia criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionArbStrategyResponse"
+        "400":
+          description: slug obrigatório
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Mercado não encontrado na Gamma API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [PredictionArb]
+      summary: Atualiza uma estratégia de prediction market
+      operationId: updatePredictionStrategy
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictionArbStrategyUpdateRequest"
+      responses:
+        "200":
+          description: Estratégia atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionArbStrategyResponse"
+        "400":
+          description: Campos obrigatórios ausentes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [PredictionArb]
+      summary: Remove uma estratégia (somente sem posição aberta)
+      operationId: deletePredictionStrategy
+      security:
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Estratégia removida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Estratégia com posição aberta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /prediction-arb/trades:
+    get:
+      tags: [PredictionArb]
+      summary: Lista os trades de prediction markets
+      operationId: listPredictionTrades
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Lista de trades
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionArbTradeListResponse"
+  /prediction-arb/trades/resumo:
+    get:
+      tags: [PredictionArb]
+      summary: Resumo dos trades de prediction markets
+      operationId: predictionTradesSummary
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Resumo (total fechado, PnL, APR)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionArbTradesSummaryResponse"
+  /prediction-arb/settings:
+    get:
+      tags: [PredictionArb]
+      summary: Obtém as configurações do robô de prediction markets
+      operationId: getPredictionArbSettings
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Configurações
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionArbSettingsResponse"
+    post:
+      tags: [PredictionArb]
+      summary: Atualiza as configurações do robô
+      operationId: updatePredictionArbSettings
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictionArbSettingsUpdateRequest"
+      responses:
+        "200":
+          description: Configurações salvas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionArbSettingsResponse"
+  /prediction-arb/bot-status:
+    get:
+      tags: [PredictionArb]
+      summary: Status online do robô de prediction markets
+      operationId: getPredictionBotStatus
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Status do bot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionArbBotStatusResponse"
+  /prediction-arb/close:
+    post:
+      tags: [PredictionArb]
+      summary: Aciona o fechamento de uma posição de prediction market
+      operationId: closePredictionStrategy
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictionArbCloseRequest"
+      responses:
+        "200":
+          description: Fechamento acionado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /prediction-arb/increase:
+    post:
+      tags: [PredictionArb]
+      summary: Aumenta o aporte de uma estratégia
+      operationId: increasePredictionStrategy
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictionArbIncreaseRequest"
+      responses:
+        "200":
+          description: Aporte aumentado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /prediction-arb/void-close:
+    post:
+      tags: [PredictionArb]
+      summary: Marca posição como encerrada pela corretora (sem PnL)
+      operationId: voidClosePredictionStrategy
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictionArbVoidCloseRequest"
+      responses:
+        "200":
+          description: Posição marcada como encerrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /prediction-arb/manual-scan:
+    get:
+      tags: [PredictionArb]
+      summary: Executa um scan manual de mercados
+      operationId: manualScanPrediction
+      security:
+        - CookieAuth: []
+      responses:
+        "200":
+          description: Scan concluído
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionArbManualScanResponse"
 components:
   securitySchemes:
     CookieAuth:
@@ -1226,14 +1677,59 @@ components:
           description: Id da conexão
         exchangeId:
           type: string
-          description: "Identificador da corretora (registry do front: mexc, binance, okx, bybit, gateio)"
-          enum: [mexc, binance, okx, bybit, gateio]
+          description: "Identificador da corretora (registry do front: mexc, binance, okx, bybit, gateio, ctrader, fix, pepperstone, pepperstone-fix, ctrader-fix, dukascopy, hyperliquid)"
+          enum:
+            [
+              mexc,
+              binance,
+              okx,
+              bybit,
+              gateio,
+              ctrader,
+              fix,
+              pepperstone,
+              pepperstone-fix,
+              ctrader-fix,
+              dukascopy,
+              hyperliquid,
+            ]
         nome:
           type: string
           description: Nome amigável da conexão
         apiKey:
           type: string
-          description: Chave pública (mascarada na UI; o segredo nunca é devolvido)
+          description: Chave pública ou identificador (mascarada na UI; o segredo nunca é devolvido)
+        clientId:
+          type: string
+          description: Client ID para cTrader / Pepperstone Open API
+        accountId:
+          type: string
+          description: Account ID para cTrader / Pepperstone Open API
+        environment:
+          type: string
+          enum: [live, demo]
+          description: Ambiente para cTrader / Pepperstone Open API
+        host:
+          type: string
+          description: Host para FIX API (Pepperstone)
+        senderCompId:
+          type: string
+          description: SenderCompID para FIX API
+        targetCompId:
+          type: string
+          description: TargetCompID para FIX API
+        username:
+          type: string
+          description: Username/Login da conta para FIX API ou Dukascopy
+        quotePort:
+          type: number
+          description: Porta Quote SSL para FIX API
+        tradePort:
+          type: number
+          description: Porta Trade SSL para FIX API
+        jnlpUrl:
+          type: string
+          description: JNLP URL para Dukascopy JForex
         ativa:
           type: boolean
           description: Se a conexão está ativa
@@ -1257,42 +1753,140 @@ components:
               $ref: "#/components/schemas/Exchange"
     ExchangeCreateRequest:
       type: object
-      required: [exchangeId, nome, apiKey, apiSecret]
+      required: [exchangeId, nome]
       properties:
         exchangeId:
           type: string
-          description: Identificador da corretora (mexc, binance, okx, bybit, gateio)
-          enum: [mexc, binance, okx, bybit, gateio]
+          description: Identificador da corretora (mexc, binance, okx, bybit, gateio, ctrader, fix, pepperstone, pepperstone-fix, ctrader-fix, dukascopy, hyperliquid)
+          enum:
+            [
+              mexc,
+              binance,
+              okx,
+              bybit,
+              gateio,
+              ctrader,
+              fix,
+              pepperstone,
+              pepperstone-fix,
+              ctrader-fix,
+              dukascopy,
+              hyperliquid,
+            ]
         nome:
           type: string
           minLength: 1
         apiKey:
           type: string
-          minLength: 1
+          description: "Obrigatório para corretoras CEX padrão (MEXC, Binance, OKX, etc.) ou MASTER (Hyperliquid)"
         apiSecret:
           type: string
-          minLength: 1
-          description: Criptografado pelo backend (AES-256-GCM) antes de persistir
+          description: "Obrigatório para CEX padrão / Hyperliquid AGENT. Criptografado pelo backend (AES-256-GCM)"
+        clientId:
+          type: string
+          description: Client ID para cTrader / Pepperstone Open API
+        clientSecret:
+          type: string
+          description: Client Secret para cTrader / Pepperstone Open API (criptografado)
+        accessToken:
+          type: string
+          description: Access Token OAuth cTrader (criptografado)
+        refreshToken:
+          type: string
+          description: Refresh Token OAuth cTrader (criptografado)
+        accountId:
+          type: string
+          description: Account ID / Número da Conta para cTrader / Pepperstone Open API
+        username:
+          type: string
+          description: Username/Login da conta para cTrader, FIX API ou Dukascopy
+        environment:
+          type: string
+          enum: [live, demo]
+          default: live
+        host:
+          type: string
+          description: Host para FIX API (Pepperstone)
+        quotePort:
+          type: number
+          default: 5211
+        tradePort:
+          type: number
+          default: 5212
+        senderCompId:
+          type: string
+          description: "SenderCompID para FIX API (ex: live.pepperstone.1382148)"
+        username:
+          type: string
+          description: Username/Login da conta para cTrader, FIX API ou Dukascopy
+        password:
+          type: string
+          description: Senha para FIX API ou Dukascopy (criptografada)
+        jnlpUrl:
+          type: string
+          description: JNLP URL para Dukascopy JForex
     ExchangeUpdateRequest:
       type: object
-      required: [id, exchangeId, nome, apiKey]
+      required: [id, exchangeId, nome]
       properties:
         id:
           type: string
           description: Id da conexão a atualizar
         exchangeId:
           type: string
-          description: Identificador da corretora (mexc, binance, okx, bybit, gateio)
-          enum: [mexc, binance, okx, bybit, gateio]
+          description: Identificador da corretora
+          enum:
+            [
+              mexc,
+              binance,
+              okx,
+              bybit,
+              gateio,
+              ctrader,
+              fix,
+              pepperstone,
+              pepperstone-fix,
+              ctrader-fix,
+              dukascopy,
+              hyperliquid,
+            ]
         nome:
           type: string
           minLength: 1
         apiKey:
           type: string
-          minLength: 1
         apiSecret:
           type: string
           description: "Opcional: vazio mantém o segredo atual; se preenchido, é criptografado (AES-256-GCM)"
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        accountId:
+          type: string
+        environment:
+          type: string
+          enum: [live, demo]
+        host:
+          type: string
+        quotePort:
+          type: number
+        tradePort:
+          type: number
+        senderCompId:
+          type: string
+        targetCompId:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        jnlpUrl:
+          type: string
     PerpArbStrategy:
       type: object
       properties:
@@ -1488,6 +2082,14 @@ components:
         perpOrderId:
           type: string
           nullable: true
+        spotQuantity:
+          type: number
+          nullable: true
+          description: Quantidade exata negociada em unidades de token no Spot
+        perpQuantity:
+          type: number
+          nullable: true
+          description: Quantidade exata de contratos negociados no Perpétuo
         spotPrice:
           type: number
           description: Preço de entrada no Spot (LONG)
@@ -1653,6 +2255,220 @@ components:
           properties:
             data:
               $ref: "#/components/schemas/PortfolioLive"
+    ForexLeg:
+      type: object
+      required: [symbol, side]
+      properties:
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [buy, sell]
+        price:
+          type: number
+          nullable: true
+        amount:
+          type: number
+          nullable: true
+        orderId:
+          type: string
+          nullable: true
+    ForexArbStrategy:
+      type: object
+      required: [id, name, tradeSize]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        exchangeId:
+          type: string
+        exchangeKeyId:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [simple, triangular]
+        legs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ForexLeg"
+        tradeSize:
+          type: number
+        expectedProfitPct:
+          type: number
+        minProfitPct:
+          type: number
+        maxSlippagePct:
+          type: number
+        autoExecute:
+          type: boolean
+        isAutoCreated:
+          type: boolean
+        active:
+          type: boolean
+        positionOpen:
+          type: boolean
+        positionOpenedAt:
+          type: string
+          format: date-time
+          nullable: true
+        positionSize:
+          type: number
+        status:
+          type: string
+        pnl:
+          type: number
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+    ForexArbStrategyCreateRequest:
+      type: object
+      required: [name, tradeSize]
+      properties:
+        name:
+          type: string
+        exchangeId:
+          type: string
+        exchangeKeyId:
+          type: string
+        type:
+          type: string
+          enum: [simple, triangular]
+        legs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ForexLeg"
+        tradeSize:
+          type: number
+        expectedProfitPct:
+          type: number
+        minProfitPct:
+          type: number
+        maxSlippagePct:
+          type: number
+        autoExecute:
+          type: boolean
+    ForexArbTrade:
+      type: object
+      required: [type, status]
+      properties:
+        id:
+          type: string
+        strategyId:
+          type: string
+          nullable: true
+        strategyName:
+          type: string
+          nullable: true
+        exchangeId:
+          type: string
+        type:
+          type: string
+          enum: [opportunity_found, execution, close, error]
+        legs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ForexLeg"
+        amount:
+          type: number
+          nullable: true
+        expectedProfitPct:
+          type: number
+          nullable: true
+        realizedPnl:
+          type: number
+        status:
+          type: string
+          enum: [detected, executed, simulated, failed, skipped]
+        reason:
+          type: string
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    ForexArbSettings:
+      type: object
+      properties:
+        isScanningEnabled:
+          type: boolean
+        lastScannedAt:
+          type: string
+          format: date-time
+          nullable: true
+        tradeSize:
+          type: number
+        minProfitPct:
+          type: number
+        minVolume24hUSD:
+          type: number
+        maxStrategiesPerScan:
+          type: number
+        scanIntervalMs:
+          type: number
+        maxDailyLoss:
+          type: number
+        maxSlippagePct:
+          type: number
+        autoExecute:
+          type: boolean
+        simpleEnabled:
+          type: boolean
+        triangularEnabled:
+          type: boolean
+        allowedExchanges:
+          type: array
+          items:
+            type: string
+    ForexArbSettingsUpdateRequest:
+      type: object
+      properties:
+        isScanningEnabled:
+          type: boolean
+        tradeSize:
+          type: number
+        minProfitPct:
+          type: number
+        minVolume24hUSD:
+          type: number
+        maxStrategiesPerScan:
+          type: number
+        scanIntervalMs:
+          type: number
+        maxDailyLoss:
+          type: number
+        maxSlippagePct:
+          type: number
+        autoExecute:
+          type: boolean
+        simpleEnabled:
+          type: boolean
+        triangularEnabled:
+          type: boolean
+        allowedExchanges:
+          type: array
+          items:
+            type: string
+    CtraderCredentialsUpdateRequest:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        accountId:
+          type: string
+        environment:
+          type: string
+          enum: [live, demo]
     PortfolioLive:
       type: object
       required: [spotCoins, positions, spotTotalUsd, futuresUnrealizedPnl, timestamp]
@@ -2174,6 +2990,333 @@ components:
                             feeCost:
                               type: number
                             feeCurrency:
-                              type: string
+                              type: number
                             feeUsd:
                               type: number
+    # ── PredictionArb ──────────────────────────────────────────────────────────
+    PredictionArbStrategy:
+      type: object
+      description: Estratégia de arbitragem em prediction market (par YES/NO)
+      properties:
+        id:
+          type: string
+        nome:
+          type: string
+        slug:
+          type: string
+        marketId:
+          type: string
+        conditionId:
+          type: string
+        yesPrice:
+          type: number
+        noPrice:
+          type: number
+        spreadPct:
+          type: number
+          description: Spread de completude 1-(yes+no) em %
+        tradeSize:
+          type: number
+        ativo:
+          type: boolean
+        autoExecute:
+          type: boolean
+        positionOpen:
+          type: boolean
+        positionSize:
+          type: number
+        yesShares:
+          type: number
+        noShares:
+          type: number
+        avgYesPrice:
+          type: number
+        avgNoPrice:
+          type: number
+        targetProfitPct:
+          type: number
+        endDate:
+          type: string
+          format: date-time
+        isAutoCreated:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    PredictionArbStrategyListResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiEnvelope"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/PredictionArbStrategy"
+    PredictionArbStrategyResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/PredictionArbStrategy"
+    PredictionArbStrategyCreateRequest:
+      type: object
+      required: [slug]
+      properties:
+        slug:
+          type: string
+          description: Slug do mercado na Gamma API
+        tradeSize:
+          type: number
+          default: 100
+        autoExecute:
+          type: boolean
+          default: false
+        exchangeKeyId:
+          type: string
+    PredictionArbStrategyUpdateRequest:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+        strategyId:
+          type: string
+        tradeSize:
+          type: number
+        active:
+          type: boolean
+        autoExecute:
+          type: boolean
+        targetProfitPct:
+          type: number
+    PredictionArbTrade:
+      type: object
+      description: Trade de prediction market (abertura/fechamento de par)
+      properties:
+        id:
+          type: string
+        strategyId:
+          type: string
+        openTradeId:
+          type: string
+        marketId:
+          type: string
+        slug:
+          type: string
+        question:
+          type: string
+        type:
+          type: string
+          enum: [open_pair, close_pair, trade, fee, rebalance, voided]
+        status:
+          type: string
+          enum: [detected, executed, simulated, failed, voided]
+        side:
+          type: string
+          enum: [YES, NO]
+        yesPrice:
+          type: number
+        noPrice:
+          type: number
+        yesExitPrice:
+          type: number
+        noExitPrice:
+          type: number
+        amount:
+          type: number
+        yesShares:
+          type: number
+        noShares:
+          type: number
+        pnl:
+          type: number
+        spreadPct:
+          type: number
+        reason:
+          type: string
+        orderIds:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+    PredictionArbTradeListResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiEnvelope"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/PredictionArbTrade"
+    PredictionArbTradesSummaryResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiEnvelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                operacoesEncerradas:
+                  type: number
+                totalPnl:
+                  type: number
+                aprPct:
+                  type: number
+                monthlyPct:
+                  type: number
+                totalEntradaUsd:
+                  type: number
+                totalSaidaUsd:
+                  type: number
+    PredictionArbSettings:
+      type: object
+      description: Configurações globais do robô de prediction markets
+      properties:
+        userId:
+          type: string
+        isScanningEnabled:
+          type: boolean
+          default: false
+        lastScannedAt:
+          type: string
+          format: date-time
+        tradeSize:
+          type: number
+          default: 100
+        minSpreadPct:
+          type: number
+          default: 0.5
+        minVolume24hUSD:
+          type: number
+          default: 10000
+        maxStrategiesPerScan:
+          type: number
+          default: 5
+        maxPortfolioCapUSD:
+          type: number
+          default: 1000
+        maxDailyLoss:
+          type: number
+          default: 10
+        makerOnly:
+          type: boolean
+          default: true
+        makerRebatePct:
+          type: number
+          default: 0
+        maxSlippagePct:
+          type: number
+          default: 0.1
+        closeWhenComplete:
+          type: boolean
+          default: true
+        targetProfitPct:
+          type: number
+          default: 1.0
+        allowedMarkets:
+          type: array
+          items:
+            type: string
+        scanIntervalMs:
+          type: number
+          default: 60000
+    PredictionArbSettingsResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiEnvelope"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/PredictionArbSettings"
+    PredictionArbSettingsUpdateRequest:
+      type: object
+      properties:
+        isScanningEnabled:
+          type: boolean
+        tradeSize:
+          type: number
+        minSpreadPct:
+          type: number
+        minVolume24hUSD:
+          type: number
+        maxStrategiesPerScan:
+          type: number
+        maxPortfolioCapUSD:
+          type: number
+        maxDailyLoss:
+          type: number
+        makerOnly:
+          type: boolean
+        makerRebatePct:
+          type: number
+        maxSlippagePct:
+          type: number
+        closeWhenComplete:
+          type: boolean
+        targetProfitPct:
+          type: number
+        allowedMarkets:
+          type: array
+          items:
+            type: string
+        scanIntervalMs:
+          type: number
+    PredictionArbCloseRequest:
+      type: object
+      required: [strategyId]
+      properties:
+        strategyId:
+          type: string
+        id:
+          type: string
+    PredictionArbIncreaseRequest:
+      type: object
+      required: [strategyId, amount]
+      properties:
+        strategyId:
+          type: string
+        id:
+          type: string
+        amount:
+          type: number
+    PredictionArbVoidCloseRequest:
+      type: object
+      required: [strategyId]
+      properties:
+        strategyId:
+          type: string
+        id:
+          type: string
+    PredictionArbManualScanResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiEnvelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                scanned:
+                  type: number
+                created:
+                  type: number
+                updated:
+                  type: number
+    PredictionArbBotStatusResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiEnvelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                isScanningEnabled:
+                  type: boolean
+                isOnline:
+                  type: boolean
+                lastHeartbeat:
+                  type: string
+                  format: date-time
+                botName:
+                  type: string

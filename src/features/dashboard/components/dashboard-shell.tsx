@@ -48,7 +48,7 @@ const LINKS: readonly SidebarLink[] = [
     habilitado: true,
   },
   { href: "/dashboard/exchanges", label: "Exchange", icon: Wallet, habilitado: true },
-  { href: "/dashboard/forex-arb", label: "Arbitragem Forex", icon: Globe, habilitado: false },
+  { href: "/dashboard/forex-arb", label: "Arbitragem Forex", icon: Globe, habilitado: true },
   { href: "/dashboard/hyperliquid", label: "Hyperliquid Arb", icon: Waves, habilitado: false },
   {
     href: "/dashboard/hyperliquid-mm",
@@ -56,7 +56,7 @@ const LINKS: readonly SidebarLink[] = [
     icon: Cpu,
     habilitado: false,
   },
-  { href: "/dashboard/polymarket-arb", label: "Polymarket Arb", icon: Activity, habilitado: false },
+  { href: "/dashboard/polymarket-arb", label: "Polymarket Arb", icon: Activity, habilitado: true },
   { href: "/dashboard/liquidation", label: "Liquidação", icon: ShieldAlert, habilitado: false },
   { href: "/dashboard/flash-loan", label: "Flash Loans", icon: Zap, habilitado: false },
   {

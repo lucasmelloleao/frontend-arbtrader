@@ -49,34 +49,47 @@ async function requestEnvelope(
     return await ky(path, options).json<ApiEnvelope>();
   } catch (error: unknown) {
     if (error instanceof HTTPError) {
-      // ky já consome o corpo do response e entrega o envelope parseado em
-      // `error.data` (por isso `response.json()` não funciona mais aqui). O
-      // narrowing aqui não é defesa contra o contrato do backend (esse sempre
-      // traz `message`), e sim contra resposta de infra fora do backend (um
-      // proxy/gateway devolvendo não-JSON num 5xx). A `message` do contrato
-      // vira o texto seguro pra UI.
-      const failure: unknown = error.data;
-      if (
-        failure !== null &&
-        typeof failure === "object" &&
-        "message" in failure &&
-        typeof failure.message === "string"
-      ) {
-        throw new Error(failure.message, { cause: error });
+      let failure: unknown = (error as unknown as { data?: unknown }).data;
+      if (!failure) {
+        try {
+          failure = await error.response.clone().json();
+        } catch {
+          try {
+            const text = await error.response.clone().text();
+            if (text) failure = { message: text };
+          } catch {
+            // ignora falha de leitura
+          }
+        }
       }
-      // Backend legado responde `{ error }` em vez do envelope `{ message }`.
-      // O contrato do boilerplate usa `message`, mas aceitar `error` mantém o
-      // texto real do backend na UI em vez do fallback genérico.
-      if (
-        failure !== null &&
-        typeof failure === "object" &&
-        "error" in failure &&
-        typeof failure.error === "string"
-      ) {
-        throw new Error(failure.error, { cause: error });
+      if (failure !== null && typeof failure === "object") {
+        const obj = failure as Record<string, unknown>;
+        if (typeof obj.message === "string" && obj.message) {
+          throw new Error(obj.message, { cause: error });
+        }
+        if (typeof obj.error === "string" && obj.error) {
+          throw new Error(obj.error, { cause: error });
+        }
+        if (typeof obj.detail === "string" && obj.detail) {
+          throw new Error(obj.detail, { cause: error });
+        }
+        if (typeof obj.msg === "string" && obj.msg) {
+          throw new Error(obj.msg, { cause: error });
+        }
       }
+      if (error.response.status === 404) {
+        throw new Error(
+          "Mercado não encontrado na Gamma API (slug inválido) ou rota inexistente.",
+          {
+            cause: error,
+          },
+        );
+      }
+      throw new Error(`Erro no servidor HTTP ${error.response.status}`, { cause: error });
     }
-    throw new Error(CONNECTION_ERROR_MESSAGE, { cause: error });
+    const causeText =
+      error instanceof Error && error.cause instanceof Error ? ` (${error.cause.message})` : "";
+    throw new Error(`${CONNECTION_ERROR_MESSAGE}${causeText}`, { cause: error });
   }
 }
 

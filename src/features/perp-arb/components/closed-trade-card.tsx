@@ -1,4 +1,12 @@
+"use client";
+
+import { useState } from "react";
+
 import type { PerpArbTrade } from "@/features/perp-arb/perp-arb.schema";
+import {
+  FundingHarvestsDialog,
+  type FundingHarvest,
+} from "@/features/perp-arb/components/funding-harvests-dialog";
 
 type ClosedTradeCardProps = {
   trade: PerpArbTrade;
@@ -27,6 +35,7 @@ const fmtP = (valor: number): string => (valor < 0.1 ? valor.toFixed(6) : valor.
  * coletado no período, spread, duração e APR realizado. Server Component puro.
  */
 export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): React.ReactNode {
+  const [showFunding, setShowFunding] = useState(false);
   const isClose = trade.type === "close_hedge";
   const pnlVal = trade.pnl;
   const isProfit = isClose && pnlVal >= 0;
@@ -60,6 +69,14 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
       : fundingTrades.reduce((acc, t) => acc + t.pnl, 0);
   const fundingCount = fundingTrades.length;
 
+  // Lista de colheitas do extrato (modal): uma entrada por trade de funding
+  // acumulado no período da operação.
+  const harvests: readonly FundingHarvest[] = fundingTrades.map((t) => ({
+    amount: t.pnl,
+    timestamp: t.createdAt,
+    fundingRate: t.fundingRate,
+  }));
+
   // Entrada: preço do trade de abertura (ou do próprio close quando o shape
   // legado gravava os preços de entrada no close). Saída: campos novos do
   // backend (`spotExitPrice`/`perpExitPrice`); fallback pro `spotPrice`/
@@ -69,8 +86,32 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
   const closeSpotPrice = trade.spotExitPrice ?? trade.spotPrice;
   const closePerpPrice = trade.perpExitPrice ?? trade.perpPrice;
 
-  const spotUnits = openSpotPrice > 0 ? amount / openSpotPrice : 0;
-  const perpUnits = openPerpPrice > 0 ? amount / openPerpPrice : 0;
+  // Unidades reais negociadas: prioriza as quantidades exatas que o backend
+  // registra da corretora (`spotQuantity`/`perpQuantity`); senão deriva do
+  // notional/preço (aproximação legada).
+  const spotUnits =
+    matchingOpenTrade?.spotQuantity !== null && matchingOpenTrade?.spotQuantity !== undefined
+      ? matchingOpenTrade.spotQuantity
+      : openSpotPrice > 0
+        ? amount / openSpotPrice
+        : 0;
+  const rawPerpUnits =
+    matchingOpenTrade?.perpQuantity !== null &&
+    matchingOpenTrade?.perpQuantity !== undefined &&
+    matchingOpenTrade.perpQuantity > 0
+      ? matchingOpenTrade.perpQuantity
+      : 0;
+  const expectedPerpNotional = amount;
+  const perpNotionalFromQty = rawPerpUnits * openPerpPrice;
+  const isPerpQtyBaseUnits =
+    rawPerpUnits > 0 &&
+    expectedPerpNotional > 0 &&
+    Math.abs(perpNotionalFromQty - expectedPerpNotional) / expectedPerpNotional < 0.5;
+  const perpUnits = isPerpQtyBaseUnits
+    ? rawPerpUnits
+    : openPerpPrice > 0
+      ? amount / openPerpPrice
+      : 0;
   const spotPnL =
     trade.spotPnl !== null
       ? trade.spotPnl
@@ -126,9 +167,9 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
             <div className="mt-1 text-xl font-black text-white sm:text-2xl">
               ${amount.toFixed(2)} <span className="text-xs font-normal text-slate-400">USDT</span>
             </div>
-            {openSpotPrice > 0 ? (
+            {spotUnits > 0 ? (
               <span className="mt-1 font-mono text-[11px] text-slate-400">
-                ~{(amount / openSpotPrice).toFixed(2)} base
+                {spotUnits.toFixed(2)} base
               </span>
             ) : null}
           </div>
@@ -195,13 +236,19 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
             </div>
           </div>
           <div className="flex items-center justify-between border-t border-white/5 pt-1.5">
-            <span className="rounded border border-cyan-500/30 bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-bold text-cyan-300">
+            <button
+              type="button"
+              onClick={() => setShowFunding(true)}
+              disabled={fundingCount === 0}
+              className="inline-flex items-center gap-1 rounded border border-cyan-500/30 bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-bold text-cyan-300 transition-colors hover:bg-cyan-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+              title={fundingCount > 0 ? "Ver extrato de colheitas" : "Sem colheitas registradas"}
+            >
               🌾 Funding Coletado (
               {fundingCount > 0
                 ? `${fundingCount} ${fundingCount === 1 ? "colheita" : "colheitas"}`
                 : "Acumulado"}
               )
-            </span>
+            </button>
             <span className="font-mono font-bold text-cyan-300">
               +{fundingCollected.toFixed(4)} USDT
             </span>
@@ -246,6 +293,11 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
           ) : null}
         </div>
       </div>
+
+      {/* Modal de extrato de colheitas de funding */}
+      {showFunding ? (
+        <FundingHarvestsDialog harvests={harvests} onClose={() => setShowFunding(false)} />
+      ) : null}
     </div>
   );
 }
