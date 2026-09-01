@@ -49,7 +49,8 @@ export function PredictionArbBoard({
 
   const abertas = strategies.filter((s) => s.positionOpen);
   const monitorando = strategies.filter((s) => !s.positionOpen);
-  const encerradas = trades.filter((t) => t.status === "executed" || t.status === "simulated");
+  // Só trades reais (executed). Simulated = dry-run, não é operação de verdade.
+  const encerradas = trades.filter((t) => t.status === "executed");
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
     startTransition(async () => {
