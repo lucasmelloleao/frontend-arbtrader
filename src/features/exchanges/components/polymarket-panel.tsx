@@ -54,7 +54,10 @@ export function PolymarketPanel({ eoa, credenciais }: PolymarketPanelProps): Rea
   const [amount, setAmount] = useState("");
   const [saldo, setSaldo] = useState<{ eoa?: number; dw?: number } | null>(null);
 
-  const executar = (acao: () => Promise<{ ok: boolean; erro?: string; data?: unknown }>, sucesso: string): void => {
+  const executar = (
+    acao: () => Promise<{ ok: boolean; erro?: string; data?: unknown }>,
+    sucesso: string,
+  ): void => {
     setMensagem(null);
     startTransition(async () => {
       const res = await acao();
@@ -85,7 +88,10 @@ export function PolymarketPanel({ eoa, credenciais }: PolymarketPanelProps): Rea
 
   const transferir = (): void => {
     const valor = amount ? Number(amount) : undefined;
-    if (!confirm("Transferir pUSD da wallet EOA para a deposit wallet? O gas é pago em MATIC da EOA.")) return;
+    if (
+      !confirm("Transferir pUSD da wallet EOA para a deposit wallet? O gas é pago em MATIC da EOA.")
+    )
+      return;
     executar(() => transferirPusdPolymarket(valor), "Transferência enviada!");
   };
 
@@ -99,7 +105,9 @@ export function PolymarketPanel({ eoa, credenciais }: PolymarketPanelProps): Rea
       {mensagem !== null ? (
         <div
           className={`mb-3 rounded-lg p-2.5 text-xs font-semibold ${
-            mensagem.tipo === "ok" ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"
+            mensagem.tipo === "ok"
+              ? "bg-emerald-500/15 text-emerald-300"
+              : "bg-rose-500/15 text-rose-300"
           }`}
         >
           {mensagem.texto}
@@ -123,7 +131,9 @@ export function PolymarketPanel({ eoa, credenciais }: PolymarketPanelProps): Rea
         ) : credenciais.pusdBalance !== undefined ? (
           <div className="mt-2 flex items-center justify-between border-t border-slate-800 pt-2">
             <span className="text-slate-400">Saldo pUSD (deposit wallet)</span>
-            <span className="font-mono font-bold text-emerald-400">${credenciais.pusdBalance.toFixed(2)}</span>
+            <span className="font-mono font-bold text-emerald-400">
+              ${credenciais.pusdBalance.toFixed(2)}
+            </span>
           </div>
         ) : null}
         <button
@@ -132,7 +142,11 @@ export function PolymarketPanel({ eoa, credenciais }: PolymarketPanelProps): Rea
           disabled={isPending}
           className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:text-white disabled:opacity-50"
         >
-          {isPending ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-3 w-3" aria-hidden="true" />}
+          {isPending ? (
+            <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+          ) : (
+            <RefreshCw className="h-3 w-3" aria-hidden="true" />
+          )}
           Sincronizar saldo
         </button>
       </div>
@@ -150,7 +164,9 @@ export function PolymarketPanel({ eoa, credenciais }: PolymarketPanelProps): Rea
           />
         </label>
         <label className="block">
-          <span className="text-[10px] font-bold uppercase text-slate-400">Deposit Wallet (0x...)</span>
+          <span className="text-[10px] font-bold uppercase text-slate-400">
+            Deposit Wallet (0x...)
+          </span>
           <input
             type="text"
             value={depositWallet}
@@ -202,7 +218,9 @@ export function PolymarketPanel({ eoa, credenciais }: PolymarketPanelProps): Rea
         </button>
         <button
           type="button"
-          onClick={() => executar(() => deployDepositWalletPolymarket(), "Deploy da deposit wallet enviado!")}
+          onClick={() =>
+            executar(() => deployDepositWalletPolymarket(), "Deploy da deposit wallet enviado!")
+          }
           disabled={isPending}
           className="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white disabled:opacity-50"
           title="Cria a deposit wallet via relayer (se ainda não existir)"
@@ -214,7 +232,9 @@ export function PolymarketPanel({ eoa, credenciais }: PolymarketPanelProps): Rea
       {/* Transferência */}
       <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-indigo-500/20 pt-3">
         <label className="block">
-          <span className="text-[10px] font-bold uppercase text-slate-400">Valor (pUSD) — vazio = saldo total</span>
+          <span className="text-[10px] font-bold uppercase text-slate-400">
+            Valor (pUSD) — vazio = saldo total
+          </span>
           <input
             type="number"
             value={amount}
