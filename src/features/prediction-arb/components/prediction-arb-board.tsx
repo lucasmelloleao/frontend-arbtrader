@@ -151,7 +151,7 @@ export function PredictionArbBoard({
               const spread = (1 - completude) * 100;
               return (
                 <div
-                  key={strat.id}
+                  key={strat.id || strat.slug}
                   className="rounded-xl border border-emerald-500/30 bg-slate-950/70 p-5 shadow-lg"
                 >
                   <div className="mb-3 flex items-start justify-between gap-2">
@@ -238,7 +238,10 @@ export function PredictionArbBoard({
             </div>
           ) : (
             monitorando.map((strat) => (
-              <div key={strat.id} className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
+              <div
+                key={strat.id || strat.slug}
+                className="rounded-xl border border-white/10 bg-slate-950/70 p-4"
+              >
                 <div className="flex items-center justify-between">
                   <span className="truncate text-sm font-bold text-white">
                     {strat.nome || strat.slug}
@@ -274,8 +277,11 @@ export function PredictionArbBoard({
               Nenhum trade encerrado registrado.
             </div>
           ) : (
-            encerradas.map((t) => (
-              <div key={t.id} className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
+            encerradas.map((t, idx) => (
+              <div
+                key={t.id || `${t.slug}-${idx}`}
+                className="rounded-xl border border-white/10 bg-slate-950/70 p-4"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h4 className="text-sm font-bold text-white">{t.question || t.slug}</h4>

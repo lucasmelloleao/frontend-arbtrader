@@ -44,9 +44,8 @@ export const predictionArbStrategyListSchema = array(predictionArbStrategySchema
 
 /** Schema de um trade em Prediction Market. */
 const predictionArbTradeSchema = object({
-  // O backend devolve _id (ObjectId) — aceita ambos como id
+  // O backend devolve `id` (formatado de _id) — obrigatório para a key do React.
   id: fallback(string(), ""),
-  _id: fallback(string(), ""),
   strategyId: fallback(string(), ""),
   openTradeId: fallback(string(), ""),
   marketId: fallback(string(), ""),
