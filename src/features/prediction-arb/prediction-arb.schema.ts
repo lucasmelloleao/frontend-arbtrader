@@ -35,6 +35,16 @@ const predictionArbStrategySchema = object({
   endDate: fallback(string(), ""),
   isAutoCreated: fallback(boolean(), false),
   createdAt: fallback(string(), ""),
+  // Campos ao vivo da Polymarket (Gamma API)
+  bestBid: fallback(number(), 0),
+  bestAsk: fallback(number(), 0),
+  lastTradePrice: fallback(number(), 0),
+  spread: fallback(number(), 0),
+  volume24hr: fallback(number(), 0),
+  liquidity: fallback(number(), 0),
+  oneHourPriceChange: fallback(number(), 0),
+  openInterest: fallback(number(), 0),
+  minutosParaVencer: fallback(number(), 0),
 });
 
 export type PredictionArbStrategy = InferOutput<typeof predictionArbStrategySchema>;

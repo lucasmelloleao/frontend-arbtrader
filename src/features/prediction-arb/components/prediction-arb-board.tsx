@@ -191,6 +191,46 @@ export function PredictionArbBoard({
                     </div>
                   </div>
 
+                  {/* Dados ao vivo da Polymarket */}
+                  <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-white/5 bg-slate-900/40 p-3 text-xs">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Best Bid/Ask</span>
+                      <div className="font-mono font-bold text-white">
+                        {strat.bestBid.toFixed(3)} / {strat.bestAsk.toFixed(3)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Último Trade</span>
+                      <div className="font-mono font-bold text-white">
+                        {strat.lastTradePrice > 0 ? strat.lastTradePrice.toFixed(3) : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Vol 24h (CLOB)</span>
+                      <div className="font-mono font-bold text-white">
+                        ${strat.volume24hr.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Liquidez</span>
+                      <div className="font-mono font-bold text-white">
+                        ${strat.liquidity.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Var. 1h</span>
+                      <div className={`font-mono font-bold ${strat.oneHourPriceChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                        {strat.oneHourPriceChange !== 0 ? fmtPct(strat.oneHourPriceChange * 100) : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Vence em</span>
+                      <div className="font-mono font-bold text-white">
+                        {strat.minutosParaVencer > 0 ? `${strat.minutosParaVencer}min` : "Vencido"}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
                     <div className="text-[11px] text-slate-500 font-mono">
                       Aporte: ${strat.positionSize || strat.tradeSize} USDT
@@ -257,6 +297,12 @@ export function PredictionArbBoard({
                   </button>
                 </div>
                 <div className="mt-1 font-mono text-[11px] text-slate-400">{strat.slug}</div>
+                <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                  <span className="font-mono text-slate-300">Bid/Ask: <b className="text-white">{strat.bestBid.toFixed(3)}/{strat.bestAsk.toFixed(3)}</b></span>
+                  <span className="font-mono text-slate-300">Var 1h: <b className={strat.oneHourPriceChange >= 0 ? "text-emerald-400" : "text-rose-400"}>{strat.oneHourPriceChange !== 0 ? fmtPct(strat.oneHourPriceChange * 100) : "—"}</b></span>
+                  <span className="font-mono text-slate-300">Vol 24h: <b className="text-white">${strat.volume24hr.toLocaleString(undefined, { maximumFractionDigits: 0 })}</b></span>
+                  <span className="font-mono text-slate-300">Vence: <b className="text-white">{strat.minutosParaVencer > 0 ? `${strat.minutosParaVencer}min` : "Vencido"}</b></span>
+                </div>
                 <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2 text-xs">
                   <span className="font-mono text-slate-300">Aporte: ${strat.tradeSize}</span>
                   <span className="font-mono text-emerald-400 font-bold">
