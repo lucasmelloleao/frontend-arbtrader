@@ -45,6 +45,14 @@ const predictionArbStrategySchema = object({
   oneHourPriceChange: fallback(number(), 0),
   openInterest: fallback(number(), 0),
   minutosParaVencer: fallback(number(), 0),
+  // Mark-to-market da posição
+  bidYesAtual: fallback(number(), 0),
+  bidNoAtual: fallback(number(), 0),
+  valorAtual: fallback(number(), 0),
+  custoTotal: fallback(number(), 0),
+  pnlAtual: fallback(number(), 0),
+  retornoVencimento: fallback(number(), 0),
+  lucroGarantido: fallback(number(), 0),
 });
 
 export type PredictionArbStrategy = InferOutput<typeof predictionArbStrategySchema>;

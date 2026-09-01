@@ -191,6 +191,75 @@ export function PredictionArbBoard({
                     </div>
                   </div>
 
+                  {/* Mark-to-market da posição */}
+                  <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-indigo-500/20 bg-indigo-950/30 p-3 text-xs">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        Custo Total
+                      </span>
+                      <div className="font-mono font-bold text-white">
+                        ${strat.custoTotal.toFixed(2)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        Valor Atual
+                      </span>
+                      <div className="font-mono font-bold text-white">
+                        ${strat.valorAtual.toFixed(2)}
+                        <span className="ml-1 text-[10px] text-slate-500">
+                          bid {strat.bidYesAtual.toFixed(2)}/{strat.bidNoAtual.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        P&L Atual
+                      </span>
+                      <div
+                        className={`font-mono font-black ${
+                          strat.pnlAtual > 0.001
+                            ? "text-emerald-400"
+                            : strat.pnlAtual < -0.001
+                              ? "text-rose-400"
+                              : "text-slate-300"
+                        }`}
+                      >
+                        {strat.pnlAtual > 0 ? "+" : ""}${strat.pnlAtual.toFixed(2)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        Retorno no Venc.
+                      </span>
+                      <div className="font-mono font-bold text-white">
+                        ${strat.retornoVencimento.toFixed(2)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        Lucro Garantido
+                      </span>
+                      <div
+                        className={`font-mono font-black ${
+                          strat.lucroGarantido >= 0 ? "text-emerald-400" : "text-rose-400"
+                        }`}
+                      >
+                        {strat.lucroGarantido > 0 ? "+" : ""}${strat.lucroGarantido.toFixed(2)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        Retorno %
+                      </span>
+                      <div className="font-mono font-black text-emerald-400">
+                        {strat.custoTotal > 0
+                          ? `${((strat.retornoVencimento / strat.custoTotal - 1) * 100).toFixed(1)}%`
+                          : "—"}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Dados ao vivo da Polymarket */}
                   <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-white/5 bg-slate-900/40 p-3 text-xs">
                     <div>
