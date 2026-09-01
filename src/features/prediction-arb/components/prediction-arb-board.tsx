@@ -309,7 +309,7 @@ export function PredictionArbBoard({
                       Investido
                     </span>
                     <div className="mt-0.5 font-mono font-bold text-white">
-                      ${(t.investedUsd ?? t.amount ?? 0).toFixed(2)}
+                      ${t.investedUsd.toFixed(2)}
                     </div>
                   </div>
                   <div>
@@ -317,7 +317,7 @@ export function PredictionArbBoard({
                       Realizado
                     </span>
                     <div className="mt-0.5 font-mono font-bold text-slate-300">
-                      ${(t.realizedUsd ?? 0).toFixed(2)}
+                      ${t.realizedUsd.toFixed(2)}
                     </div>
                   </div>
                   <div>
