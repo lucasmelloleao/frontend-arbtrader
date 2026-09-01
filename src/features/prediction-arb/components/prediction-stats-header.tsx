@@ -1,22 +1,24 @@
-import { Activity, ArrowUpRight, CheckCircle2, DollarSign, TrendingUp } from "lucide-react";
+import { Activity, ArrowUpRight, CheckCircle2, DollarSign, TrendingUp, Wallet } from "lucide-react";
 
 import type { PredictionArbTradesSummary } from "@/features/prediction-arb/prediction-arb.schema";
 
 type PredictionStatsHeaderProps = {
   summary: PredictionArbTradesSummary | null;
   abertasCount: number;
+  saldoDisponivel: number;
 };
 
 const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
 const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 
 /**
- * Cards superiores com estatísticas do Polymarket Arb: Total PnL, Posições Abertas,
- * Operações Encerradas e Retorno / APR.
+ * Cards superiores com estatísticas do Polymarket Arb: Saldo Disponível, Total PnL,
+ * Posições Abertas, Operações Encerradas e Retorno / APR.
  */
 export function PredictionStatsHeader({
   summary,
   abertasCount,
+  saldoDisponivel,
 }: PredictionStatsHeaderProps): React.ReactNode {
   const totalPnl = summary?.totalPnl ?? 0;
   const operacoesEncerradas = summary?.operacoesEncerradas ?? 0;
@@ -24,7 +26,19 @@ export function PredictionStatsHeader({
   const totalEntradaUsd = summary?.totalEntradaUsd ?? 0;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      {/* Saldo Disponível (deposit wallet on-chain) */}
+      <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 shadow-lg">
+        <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
+          <span>Saldo Disponível</span>
+          <Wallet className="h-4 w-4 text-emerald-400" aria-hidden="true" />
+        </div>
+        <div className="mt-2 font-mono text-2xl font-black text-emerald-400">
+          ${saldoDisponivel.toFixed(2)}
+        </div>
+        <div className="mt-1 text-[11px] text-slate-500">pUSD na deposit wallet (Polymarket)</div>
+      </div>
+
       {/* Total PnL */}
       <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 shadow-lg">
         <div className="flex items-center justify-between text-xs font-semibold text-slate-400">

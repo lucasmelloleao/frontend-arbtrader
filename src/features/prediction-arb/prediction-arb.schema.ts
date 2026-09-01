@@ -118,6 +118,7 @@ export const predictionArbBotStatusSchema = object({
   isOnline: fallback(boolean(), false),
   lastHeartbeat: fallback(string(), ""),
   botName: fallback(string(), "prediction-arb"),
+  saldoDisponivel: fallback(number(), 0),
 });
 
 export type PredictionArbBotStatus = InferOutput<typeof predictionArbBotStatusSchema>;
