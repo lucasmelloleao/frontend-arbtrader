@@ -13,7 +13,7 @@ import {
 } from "valibot";
 
 /** Schema de uma estratégia em Prediction Market (Polymarket). */
-export const predictionArbStrategySchema = object({
+const predictionArbStrategySchema = object({
   id: string(),
   nome: fallback(string(), ""),
   slug: fallback(string(), ""),
@@ -42,11 +42,8 @@ export type PredictionArbStrategy = InferOutput<typeof predictionArbStrategySche
 /** Schema de lista de estratégias `array(predictionArbStrategySchema)` */
 export const predictionArbStrategyListSchema = array(predictionArbStrategySchema);
 
-/** Schema de uma resposta de estratégia individual */
-export const predictionArbStrategyResponseSchema = predictionArbStrategySchema;
-
 /** Schema de um trade em Prediction Market. */
-export const predictionArbTradeSchema = object({
+const predictionArbTradeSchema = object({
   id: string(),
   strategyId: fallback(string(), ""),
   openTradeId: fallback(string(), ""),
@@ -123,7 +120,7 @@ export const predictionArbBotStatusSchema = object({
 export type PredictionArbBotStatus = InferOutput<typeof predictionArbBotStatusSchema>;
 
 /** Input de criação manual de estratégia. */
-export const criarPredictionStrategyInputSchema = object({
+const criarPredictionStrategyInputSchema = object({
   slug: pipe(
     string(),
     transform((v) => v.trim()),
@@ -136,7 +133,7 @@ export const criarPredictionStrategyInputSchema = object({
 export type CriarPredictionStrategyInput = InferOutput<typeof criarPredictionStrategyInputSchema>;
 
 /** Input de atualização de configurações. */
-export const atualizarPredictionSettingsInputSchema = object({
+const atualizarPredictionSettingsInputSchema = object({
   isScanningEnabled: optional(boolean()),
   tradeSize: optional(pipe(number(), minValue(1))),
   minSpreadPct: optional(number()),

@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 
-import {
-  type AtualizarPredictionSettingsInput,
-  type CriarPredictionStrategyInput,
+import type {
+  AtualizarPredictionSettingsInput,
+  CriarPredictionStrategyInput,
 } from "@/features/prediction-arb/prediction-arb.schema";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";

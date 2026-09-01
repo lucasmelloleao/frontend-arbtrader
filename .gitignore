@@ -45,4 +45,6 @@ certificates
 # config/journal local do impeccable live mode (tooling, não versionar)
 .impeccable/
 srcantigo/
-.comandcode
+.comandcode  
+"# Scratchpad da sessao (temporario)"  
+"$COMMANDCODE_SCRATCHPAD/"  

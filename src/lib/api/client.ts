@@ -49,33 +49,35 @@ async function requestEnvelope(
     return await ky(path, options).json<ApiEnvelope>();
   } catch (error: unknown) {
     if (error instanceof HTTPError) {
-      let failure: unknown = (error as unknown as { data?: unknown }).data;
-      if (!failure) {
+      // O ky expõe o corpo já parseado do erro em `error.data` (propriedade de
+      // instância, não tipada). `Reflect.get` acessa sem type assertion.
+      const corpoDoErro = Reflect.get(error, "data");
+      let failure: unknown = corpoDoErro;
+      let naoJson = false;
+      if (failure === undefined) {
         try {
           failure = await error.response.clone().json();
         } catch {
-          try {
-            const text = await error.response.clone().text();
-            if (text) failure = { message: text };
-          } catch {
-            // ignora falha de leitura
-          }
+          // Corpo não-JSON (ex: 502 HTML de um proxy): sem envelope do backend,
+          // entrega o texto seguro de conexão (como falha de transporte).
+          naoJson = true;
         }
       }
+      // Corpo que não é objeto (ex: HTML/string) = sem envelope do backend.
+      if (typeof failure === "string") naoJson = true;
       if (failure !== null && typeof failure === "object") {
-        const obj = failure as Record<string, unknown>;
-        if (typeof obj.message === "string" && obj.message) {
-          throw new Error(obj.message, { cause: error });
+        const entradas = Object.entries(failure);
+        const acha = (chave: string): string | undefined => {
+          const par = entradas.find(([k]) => k === chave);
+          return typeof par?.[1] === "string" ? par[1] : undefined;
+        };
+        const mensagem = acha("message") ?? acha("error") ?? acha("detail") ?? acha("msg");
+        if (mensagem) {
+          throw new Error(mensagem, { cause: error });
         }
-        if (typeof obj.error === "string" && obj.error) {
-          throw new Error(obj.error, { cause: error });
-        }
-        if (typeof obj.detail === "string" && obj.detail) {
-          throw new Error(obj.detail, { cause: error });
-        }
-        if (typeof obj.msg === "string" && obj.msg) {
-          throw new Error(obj.msg, { cause: error });
-        }
+      }
+      if (naoJson) {
+        throw new Error(CONNECTION_ERROR_MESSAGE, { cause: error });
       }
       if (error.response.status === 404) {
         throw new Error(
