@@ -45,7 +45,8 @@ certificates
 # config/journal local do impeccable live mode (tooling, não versionar)
 .impeccable/
 srcantigo/
-.comandcode  
-"# Scratchpad da sessao (temporario)"  
-"$COMMANDCODE_SCRATCHPAD/"  
+
+# scratchpad da sessão (temporário, por-máquina — nunca versionar).
+# Sem aspas: em .gitignore aspas são literais e o padrão não casa.
+$COMMANDCODE_SCRATCHPAD/
 .vercel
