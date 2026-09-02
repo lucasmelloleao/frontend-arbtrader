@@ -50,7 +50,11 @@ export function PredictionArbBoard({
   const abertas = strategies.filter((s) => s.positionOpen);
   const monitorando = strategies.filter((s) => !s.positionOpen);
   // Só trades reais (executed). Simulated = dry-run, não é operação de verdade.
-  const encerradas = trades.filter((t) => t.status === "executed");
+  // Inclui mm_quote (cotações do market maker) para o usuário enxergar quantas
+  // vezes o robô cotou sem preencher — observabilidade do comportamento do MM.
+  const encerradas = trades.filter(
+    (t) => t.status === "executed" || (t.type === "mm_quote" && t.status === "open"),
+  );
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
     startTransition(async () => {
@@ -444,7 +448,11 @@ export function PredictionArbBoard({
                   <div>
                     <h4 className="text-sm font-bold text-white">{t.question || t.slug}</h4>
                     <div className="mt-0.5 text-xs text-slate-400 font-mono">
-                      {t.type === "close_pair" ? "Encerrada" : "Aberta"} |{" "}
+                      {t.type === "close_pair"
+                        ? "Encerrada"
+                        : t.type === "mm_quote"
+                          ? (t.orderIds && t.orderIds.length > 0 ? "Cotação MM (ordem enviada)" : "Cotação MM (sem ordem)")
+                          : "Aberta"} |{" "}
                       {new Date(t.createdAt).toLocaleString()}
                     </div>
                   </div>
