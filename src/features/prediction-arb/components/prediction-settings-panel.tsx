@@ -29,6 +29,7 @@ export function PredictionSettingsPanel({
   const [makerOnly, setMakerOnly] = useState(settings?.makerOnly ?? true);
   const [maxSlippagePct, setMaxSlippagePct] = useState(settings?.maxSlippagePct ?? 0.1);
   const [closeWhenComplete, setCloseWhenComplete] = useState(settings?.closeWhenComplete ?? true);
+  const [maxDailyLoss, setMaxDailyLoss] = useState(settings?.maxDailyLoss ?? 10);
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -44,6 +45,7 @@ export function PredictionSettingsPanel({
         makerOnly,
         maxSlippagePct,
         closeWhenComplete,
+        maxDailyLoss,
       });
 
       if (res.ok) {
@@ -154,6 +156,28 @@ export function PredictionSettingsPanel({
                 onChange={(e) => setMinVolume24hUSD(Number(e.target.value))}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
               />
+            </div>
+
+            {/* Limite de Perda Diária */}
+            <div>
+              <label
+                htmlFor="max-daily-loss-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Limite de Perda Diária (USD)
+              </label>
+              <input
+                id="max-daily-loss-input"
+                type="number"
+                min={0}
+                step="0.5"
+                value={maxDailyLoss}
+                onChange={(e) => setMaxDailyLoss(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Para de abrir posições novas quando a perda do dia atingir este valor.
+              </p>
             </div>
 
             {/* Target Profit % */}
