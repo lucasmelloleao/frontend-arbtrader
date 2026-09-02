@@ -24,7 +24,8 @@ export function PredictionSettingsPanel({
   const [isScanningEnabled, setIsScanningEnabled] = useState(settings?.isScanningEnabled ?? false);
   const [tradeSize, setTradeSize] = useState(settings?.tradeSize ?? 100);
   const [minSpreadPct, setMinSpreadPct] = useState(settings?.minSpreadPct ?? 0.5);
-  const [minVolume24hUSD, setMinVolume24hUSD] = useState(settings?.minVolume24hUSD ?? 10000);
+  const [minVolume24hUSD, setMinVolume24hUSD] = useState(settings?.minVolume24hUSD ?? 5000);
+  const [maxOpenPairs, setMaxOpenPairs] = useState(settings?.maxOpenPairs ?? 3);
   const [targetProfitPct, setTargetProfitPct] = useState(settings?.targetProfitPct ?? 1.0);
   const [makerOnly, setMakerOnly] = useState(settings?.makerOnly ?? true);
   const [maxSlippagePct, setMaxSlippagePct] = useState(settings?.maxSlippagePct ?? 0.1);
@@ -41,6 +42,7 @@ export function PredictionSettingsPanel({
         tradeSize,
         minSpreadPct,
         minVolume24hUSD,
+        maxOpenPairs,
         targetProfitPct,
         makerOnly,
         maxSlippagePct,
@@ -177,6 +179,28 @@ export function PredictionSettingsPanel({
               />
               <p className="mt-1 text-[10px] text-slate-500">
                 Para de abrir posições novas quando a perda do dia atingir este valor.
+              </p>
+            </div>
+
+            {/* Máximo de Pares Simultâneos */}
+            <div>
+              <label
+                htmlFor="max-open-pairs-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Máximo de Pares Simultâneos
+              </label>
+              <input
+                id="max-open-pairs-input"
+                type="number"
+                min={1}
+                step={1}
+                value={maxOpenPairs}
+                onChange={(e) => setMaxOpenPairs(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Quantas posições (pares YES+NO) o robô pode manter abertas ao mesmo tempo.
               </p>
             </div>
 
