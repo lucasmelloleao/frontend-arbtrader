@@ -451,9 +451,11 @@ export function PredictionArbBoard({
                       {t.type === "close_pair"
                         ? "Encerrada"
                         : t.type === "mm_quote"
-                          ? (t.orderIds && t.orderIds.length > 0 ? "Cotação MM (ordem enviada)" : "Cotação MM (sem ordem)")
-                          : "Aberta"} |{" "}
-                      {new Date(t.createdAt).toLocaleString()}
+                          ? t.orderIds.length > 0
+                            ? "Cotação MM (ordem enviada)"
+                            : "Cotação MM (sem ordem)"
+                          : "Aberta"}{" "}
+                      | {new Date(t.createdAt).toLocaleString()}
                     </div>
                   </div>
                   <div
