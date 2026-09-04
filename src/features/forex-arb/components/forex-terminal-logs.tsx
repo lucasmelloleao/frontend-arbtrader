@@ -30,10 +30,7 @@ function getBotLabel(bot: string): string {
 export function ForexTerminalLogs(): React.ReactNode {
   const [showLogs, setShowLogs] = useState(false);
   const [selectedBot, setSelectedBot] = useState<
-    | "forex-scalp-executor"
-    | "forex-scalp-scanner"
-    | "forex-arb"
-    | "forex-scanner"
+    "forex-scalp-executor" | "forex-scalp-scanner" | "forex-arb" | "forex-scanner"
   >("forex-scalp-executor");
   const [logs, setLogs] = useState<{ id: number; texto: string }[]>([]);
   const nextLogId = useRef(0);
@@ -44,9 +41,7 @@ export function ForexTerminalLogs(): React.ReactNode {
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const normalizar = (
-    linhas: readonly string[],
-  ): { id: number; texto: string }[] =>
+  const normalizar = (linhas: readonly string[]): { id: number; texto: string }[] =>
     linhas.map((linha) => ({
       id: nextLogId.current++,
       texto: linha.replace(ANSI_ESCAPE, ""),
@@ -74,9 +69,7 @@ export function ForexTerminalLogs(): React.ReactNode {
       } catch {
         if (!ativo) return;
         setLoading(false);
-        setError(
-          "Não foi possível buscar os logs. O backend pode estar indisponível.",
-        );
+        setError("Não foi possível buscar os logs. O backend pode estar indisponível.");
       }
     };
     void buscar();
@@ -104,9 +97,7 @@ export function ForexTerminalLogs(): React.ReactNode {
         setLastUpdate(new Date().toLocaleTimeString());
       } catch {
         setLoading(false);
-        setError(
-          "Não foi possível buscar os logs. O backend pode estar indisponível.",
-        );
+        setError("Não foi possível buscar os logs. O backend pode estar indisponível.");
       }
     };
     const interval = setInterval(() => void buscar(), 7000);
@@ -136,8 +127,8 @@ export function ForexTerminalLogs(): React.ReactNode {
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
           <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-            <Terminal className="h-5 w-5 text-indigo-400" aria-hidden="true" />{" "}
-            Logs do Robô Forex (Terminal)
+            <Terminal className="h-5 w-5 text-indigo-400" aria-hidden="true" /> Logs do Robô Forex
+            (Terminal)
           </h2>
           <button
             type="button"
@@ -154,12 +145,7 @@ export function ForexTerminalLogs(): React.ReactNode {
         {showLogs ? (
           <div className="flex items-center gap-2">
             {(
-              [
-                "forex-scalp-executor",
-                "forex-scalp-scanner",
-                "forex-arb",
-                "forex-scanner",
-              ] as const
+              ["forex-scalp-executor", "forex-scalp-scanner", "forex-arb", "forex-scanner"] as const
             ).map((bot) => (
               <button
                 key={bot}
@@ -231,10 +217,7 @@ export function ForexTerminalLogs(): React.ReactNode {
           >
             {loading && logs.length === 0 ? (
               <div className="flex items-center gap-2 p-4 text-slate-500">
-                <RefreshCw
-                  className="h-4 w-4 animate-spin text-indigo-400"
-                  aria-hidden="true"
-                />{" "}
+                <RefreshCw className="h-4 w-4 animate-spin text-indigo-400" aria-hidden="true" />{" "}
                 Buscando logs...
               </div>
             ) : error ? (
@@ -274,9 +257,8 @@ export function ForexTerminalLogs(): React.ReactNode {
         </div>
       ) : (
         <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 text-center text-xs font-medium text-slate-500">
-          Logs desligados. Clique em{" "}
-          <b className="text-emerald-400">"⚡ Ligar Logs"</b> para visualizar os
-          logs sem fazer requisições constantes.
+          Logs desligados. Clique em <b className="text-emerald-400">"⚡ Ligar Logs"</b> para
+          visualizar os logs sem fazer requisições constantes.
         </div>
       )}
     </div>
