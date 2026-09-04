@@ -421,6 +421,11 @@ export function ForexArbBoard({
                       >
                         {isLucro ? "+" : ""}${trade.realizedPnl.toFixed(2)} USD
                       </div>
+                      {trade.commission ? (
+                        <div className="font-mono text-[10px] font-semibold text-rose-300/80">
+                          Taxa/Comissão: -${Math.abs(trade.commission).toFixed(2)} USD
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 
