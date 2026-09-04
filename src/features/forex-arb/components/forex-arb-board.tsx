@@ -250,23 +250,43 @@ export function ForexArbBoard({
                     </div>
                   </div>
                 </div>
-                <div className="mb-4 space-y-1.5">
+                <div className="mb-4 space-y-2">
                   {strat.legs.map((leg) => (
-                    <div key={`${leg.side}-${leg.symbol}`} className="flex items-center gap-2">
-                      <LegBadge leg={leg} />
-                      {leg.amount !== null && leg.amount !== undefined ? (
-                        <span className="font-mono text-[11px] text-slate-500">
-                          {leg.amount.toFixed(6)}
+                    <div key={`${leg.side}-${leg.symbol}`} className="rounded-lg border border-white/5 bg-slate-900/60 p-2.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <LegBadge leg={leg} />
+                        <span className="font-mono text-xs font-bold text-slate-300">
+                          Preço Entrada: {leg.price ? leg.price : '—'}
                         </span>
-                      ) : null}
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <span>Order/Pos ID cTrader: #{leg.orderId || '—'}</span>
+                        <span>Volume: {leg.amount ? (leg.amount / 100).toFixed(2) + ' Lote(s)' : '0.01 Lote'}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
+
+                <div className="mb-3 grid grid-cols-3 gap-2 rounded-lg bg-slate-900/40 p-2 text-center text-[11px] font-mono">
+                  <div>
+                    <span className="block text-[10px] text-slate-500">Take Profit</span>
+                    <span className="font-bold text-emerald-400">+0.10%</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-slate-500">Trailing Gatilho</span>
+                    <span className="font-bold text-cyan-400">+0.01%</span>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] text-slate-500">Stop Loss</span>
+                    <span className="font-bold text-rose-400">-0.10%</span>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between border-t border-white/5 pt-3">
                   <div className="text-[11px] text-slate-500">
                     Aberta em{" "}
                     {strat.positionOpenedAt
-                      ? new Date(strat.positionOpenedAt).toLocaleString()
+                      ? new Date(strat.positionOpenedAt).toLocaleTimeString()
                       : "—"}
                   </div>
                   <button
