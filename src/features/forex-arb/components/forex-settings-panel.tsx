@@ -223,6 +223,45 @@ export function ForexSettingsPanel({
               />
             </div>
             <div>
+              <label className="mb-1 block text-xs text-emerald-400 font-semibold" htmlFor="fx-tp">
+                Take Profit (%)
+              </label>
+              <input
+                id="fx-tp"
+                type="number"
+                step="0.01"
+                value={formAtual.takeProfitPct ?? 0.10}
+                onChange={(e) => atualizar("takeProfitPct", Number(e.target.value))}
+                className="w-full rounded border border-emerald-500/30 bg-slate-900 px-2 py-1 text-emerald-400 font-bold"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-cyan-400 font-semibold" htmlFor="fx-trailing">
+                Trailing Stop Gatilho (%)
+              </label>
+              <input
+                id="fx-trailing"
+                type="number"
+                step="0.005"
+                value={formAtual.trailingStopPct ?? 0.01}
+                onChange={(e) => atualizar("trailingStopPct", Number(e.target.value))}
+                className="w-full rounded border border-cyan-500/30 bg-slate-900 px-2 py-1 text-cyan-400 font-bold"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-rose-400 font-semibold" htmlFor="fx-sl">
+                Stop Loss (%)
+              </label>
+              <input
+                id="fx-sl"
+                type="number"
+                step="0.01"
+                value={formAtual.stopLossPct ?? 0.10}
+                onChange={(e) => atualizar("stopLossPct", Number(e.target.value))}
+                className="w-full rounded border border-rose-500/30 bg-slate-900 px-2 py-1 text-rose-400 font-bold"
+              />
+            </div>
+            <div>
               <span className="mb-1 block text-xs text-slate-500">Execução Automática</span>
               <label className="flex cursor-pointer items-center gap-2 text-slate-200">
                 <input

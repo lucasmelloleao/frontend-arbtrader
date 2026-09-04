@@ -161,6 +161,9 @@ export const forexArbSettingsSchema = object({
   simpleEnabled: boolean(),
   triangularEnabled: boolean(),
   allowedExchanges: array(string()),
+  takeProfitPct: optional(number()),
+  stopLossPct: optional(number()),
+  trailingStopPct: optional(number()),
 });
 
 /** Tipo das configurações. */
@@ -182,6 +185,9 @@ const atualizarForexSettingsSchema = object({
   simpleEnabled: boolean(),
   triangularEnabled: boolean(),
   allowedExchanges: array(string()),
+  takeProfitPct: optional(number()),
+  stopLossPct: optional(number()),
+  trailingStopPct: optional(number()),
 });
 
 /** Payload de atualização das configurações. */
