@@ -9,6 +9,15 @@ import { buscarLogs } from "@/features/forex-arb/forex-arb.actions";
 /** Regex de escape ANSI (construído sem literal de controle). */
 const ANSI_ESCAPE = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*[mK]`, "g");
 
+function getBotLabel(bot: string): string {
+  switch (bot) {
+    case "forex-scalp-scanner": return "Scalp Scanner";
+    case "forex-scalp-executor": return "Scalp Executor";
+    case "forex-arb": return "Arbitragem";
+    default: return "Scanner";
+  }
+}
+
 /**
  * Terminal de logs do robô Forex: liga/desliga, alterna entre processos
  * (forex-scalper / forex-arb / forex-scanner), auto-refresh a cada 7s, seleção de linhas e
@@ -28,15 +37,6 @@ export function ForexTerminalLogs(): React.ReactNode {
 
   const normalizar = (linhas: readonly string[]): { id: number; texto: string }[] =>
     linhas.map((linha) => ({ id: nextLogId.current++, texto: linha.replace(ANSI_ESCAPE, "") }));
-
-  const getBotLabel = (bot: string) => {
-    switch (bot) {
-      case "forex-scalp-scanner": return "Scalp Scanner";
-      case "forex-scalp-executor": return "Scalp Executor";
-      case "forex-arb": return "Arbitragem";
-      default: return "Scanner";
-    }
-  };
 
   // Fetch inicial ao ligar/trocar bot/linhas
   useEffect(() => {
@@ -139,7 +139,7 @@ export function ForexTerminalLogs(): React.ReactNode {
               <button
                 key={bot}
                 type="button"
-                onClick={() => setSelectedBot(bot as any)}
+                onClick={() => setSelectedBot(bot)}
                 className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-all ${
                   selectedBot === bot
                     ? "border-indigo-500/40 bg-indigo-600/20 text-indigo-300"
