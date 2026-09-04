@@ -6,7 +6,11 @@ import { useEffect, useState, useTransition } from "react";
 import { Plus, Power, TrendingUp, X } from "lucide-react";
 
 import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strategy-form";
-import { deletarStrategy, fecharPosicao, fecharTodasPosicoes } from "@/features/forex-arb/forex-arb.actions";
+import {
+  deletarStrategy,
+  fecharPosicao,
+  fecharTodasPosicoes,
+} from "@/features/forex-arb/forex-arb.actions";
 import type {
   ForexArbLeg,
   ForexArbStrategy,
@@ -23,7 +27,8 @@ type ForexArbBoardProps = {
   exchangeKeys: readonly { id: string; exchangeId: string; nome: string }[];
 };
 
-const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
+const fmtUsd = (v: number): string =>
+  `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
 const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(3)}%`;
 
 /** Badge de uma perna da arbitragem (COMPRA/VENDA). */
@@ -38,19 +43,30 @@ function LegBadge({ leg }: { leg: ForexArbLeg }): React.ReactNode {
       }`}
     >
       {ehCompra ? "COMPRA" : "VENDA"} {leg.symbol}
-      {leg.price !== null ? <span className="font-mono text-slate-400">@{leg.price}</span> : null}
+      {leg.price !== null ? (
+        <span className="font-mono text-slate-400">@{leg.price}</span>
+      ) : null}
     </span>
   );
 }
 
 /** Cadeia de pernas: COMPRA X → VENDA Y → COMPRA Z. */
-function LegsChain({ legs }: { legs: readonly ForexArbLeg[] }): React.ReactNode {
+function LegsChain({
+  legs,
+}: {
+  legs: readonly ForexArbLeg[];
+}): React.ReactNode {
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       {legs.map((leg, i) => (
-        <span key={`${leg.side}-${leg.symbol}`} className="flex items-center gap-1.5">
+        <span
+          key={`${leg.side}-${leg.symbol}`}
+          className="flex items-center gap-1.5"
+        >
           <LegBadge leg={leg} />
-          {i < legs.length - 1 ? <span className="text-slate-600">→</span> : null}
+          {i < legs.length - 1 ? (
+            <span className="text-slate-600">→</span>
+          ) : null}
         </span>
       ))}
     </span>
@@ -71,7 +87,9 @@ export function ForexArbBoard({
 }: ForexArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [aba, setAba] = useState<"open" | "closed" | "opportunities">("opportunities");
+  const [aba, setAba] = useState<"open" | "closed" | "opportunities">(
+    "opportunities",
+  );
   const [criando, setCriando] = useState(false);
 
   useEffect(() => {
@@ -82,7 +100,9 @@ export function ForexArbBoard({
   }, [router]);
 
   const abertas = strategies.filter((s) => s.positionOpen);
-  const encerradas = trades.filter((t) => t.type === "close" && t.status === "executed");
+  const encerradas = trades.filter(
+    (t) => t.type === "close" && t.status === "executed",
+  );
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
     startTransition(async () => {
@@ -111,7 +131,11 @@ export function ForexArbBoard({
   };
 
   const confirmarFecharTodas = (): void => {
-    if (!confirm(`Deseja realmente ZERAR TODAS as ${abertas.length} posições abertas agora?`)) {
+    if (
+      !confirm(
+        `Deseja realmente ZERAR TODAS as ${abertas.length} posições abertas agora?`,
+      )
+    ) {
       return;
     }
     executar(() => fecharTodasPosicoes());
@@ -142,7 +166,11 @@ export function ForexArbBoard({
       <div className="flex gap-2 border-b border-white/10 pb-3">
         {(
           [
-            { key: "opportunities", label: "🎯 Oportunidades", count: opportunities.length },
+            {
+              key: "opportunities",
+              label: "🎯 Oportunidades",
+              count: opportunities.length,
+            },
             { key: "open", label: "Em Aberto", count: abertas.length },
             { key: "closed", label: "Encerradas", count: encerradas.length },
           ] as const
@@ -174,29 +202,43 @@ export function ForexArbBoard({
         <div className="space-y-3">
           {opportunities.length === 0 ? (
             <div className="rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
-              <TrendingUp className="mx-auto mb-3 h-8 w-8 opacity-40" aria-hidden="true" />
-              Nenhuma oportunidade detectada ainda. Inicie o scanner e aguarde o próximo ciclo.
+              <TrendingUp
+                className="mx-auto mb-3 h-8 w-8 opacity-40"
+                aria-hidden="true"
+              />
+              Nenhuma oportunidade detectada ainda. Inicie o scanner e aguarde o
+              próximo ciclo.
             </div>
           ) : (
             opportunities.map((opp) => (
-              <div key={opp.id} className="rounded-xl border border-white/10 bg-slate-950/70 p-5">
+              <div
+                key={opp.id}
+                className="rounded-xl border border-white/10 bg-slate-950/70 p-5"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-md border border-indigo-500/30 bg-indigo-500/15 px-2 py-0.5 text-[11px] font-bold uppercase text-indigo-300">
                       {opp.type}
                     </span>
-                    <span className="text-xs text-slate-400">{opp.exchangeId}</span>
+                    <span className="text-xs text-slate-400">
+                      {opp.exchangeId}
+                    </span>
                     <LegsChain legs={opp.legs} />
                   </div>
                   <div className="text-right">
                     <div className="font-mono text-lg font-black text-emerald-400">
                       {fmtPct(opp.expectedProfitPct)}
                     </div>
-                    <div className="text-[11px] text-slate-500">retorno líquido estimado</div>
+                    <div className="text-[11px] text-slate-500">
+                      retorno líquido estimado
+                    </div>
                   </div>
                 </div>
                 <div className="mt-3 font-mono text-[11px] text-slate-500">
-                  Volume 24h: {opp.amount > 0 ? `$${Math.round(opp.amount).toLocaleString()}` : "—"}{" "}
+                  Volume 24h:{" "}
+                  {opp.amount > 0
+                    ? `$${Math.round(opp.amount).toLocaleString()}`
+                    : "—"}{" "}
                   | Detectada em {new Date(opp.createdAt).toLocaleString()}
                 </div>
               </div>
@@ -216,14 +258,16 @@ export function ForexArbBoard({
                 onClick={confirmarFecharTodas}
                 className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
               >
-                <Power className="h-4 w-4" aria-hidden="true" /> Fechar Todas as Posições ({abertas.length})
+                <Power className="h-4 w-4" aria-hidden="true" /> Fechar Todas as
+                Posições ({abertas.length})
               </button>
             </div>
           ) : null}
           <div className="grid gap-4 md:grid-cols-3">
             {abertas.length === 0 ? (
               <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
-                Nenhuma posição aberta. As oportunidades lucrativas serão executadas automaticamente.
+                Nenhuma posição aberta. As oportunidades lucrativas serão
+                executadas automaticamente.
               </div>
             ) : (
               abertas.map((strat) => {
@@ -242,7 +286,9 @@ export function ForexArbBoard({
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <div>
-                        <h3 className="text-sm font-extrabold text-white">{strat.name}</h3>
+                        <h3 className="text-sm font-extrabold text-white">
+                          {strat.name}
+                        </h3>
                         <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-400">
                           <span className="rounded-md border border-indigo-500/30 bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-indigo-300">
                             {strat.type}
@@ -263,68 +309,93 @@ export function ForexArbBoard({
                             isLucro ? "text-emerald-300" : "text-rose-300"
                           }`}
                         >
-                          ({isLucro ? "+" : ""}{livePct.toFixed(3)}%)
+                          ({isLucro ? "+" : ""}
+                          {livePct.toFixed(3)}%)
                         </div>
                       </div>
                     </div>
-                <div className="mb-4 space-y-2">
-                  {strat.legs.map((leg) => (
-                    <div key={`${leg.side}-${leg.symbol}`} className="rounded-lg border border-white/5 bg-slate-900/60 p-2.5 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <LegBadge leg={leg} />
-                        <span className="font-mono text-xs font-bold text-slate-300">
-                          Preço Entrada: {leg.price ? leg.price : '—'}
+                    <div className="mb-4 space-y-2">
+                      {strat.legs.map((leg) => (
+                        <div
+                          key={`${leg.side}-${leg.symbol}`}
+                          className="rounded-lg border border-white/5 bg-slate-900/60 p-2.5 space-y-1"
+                        >
+                          <div className="flex items-center justify-between">
+                            <LegBadge leg={leg} />
+                            <span className="font-mono text-xs font-bold text-slate-300">
+                              Preço Entrada: {leg.price ? leg.price : "—"}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+                            <span>
+                              Order/Pos ID cTrader: #{leg.orderId || "—"}
+                            </span>
+                            <span>
+                              Volume:{" "}
+                              {leg.amount
+                                ? (leg.amount / 100).toFixed(2) + " Lote(s)"
+                                : "0.01 Lote"}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mb-3 grid grid-cols-3 gap-2 rounded-lg bg-slate-900/40 p-2 text-center text-[11px] font-mono">
+                      <div>
+                        <span className="block text-[10px] text-slate-500">
+                          Take Profit
+                        </span>
+                        <span className="font-bold text-emerald-400">
+                          +0.10%
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-                        <span>Order/Pos ID cTrader: #{leg.orderId || '—'}</span>
-                        <span>Volume: {leg.amount ? (leg.amount / 100).toFixed(2) + ' Lote(s)' : '0.01 Lote'}</span>
+                      <div>
+                        <span className="block text-[10px] text-slate-500">
+                          Trailing Stop
+                        </span>
+                        {strat.isTrailingActive ? (
+                          <span className="inline-flex items-center gap-1 font-extrabold text-emerald-400">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />{" "}
+                            ATIVADO
+                          </span>
+                        ) : (
+                          <span className="font-bold text-slate-400">
+                            +0.01%
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-500">
+                          Stop Loss
+                        </span>
+                        <span className="font-bold text-rose-400">-0.10%</span>
                       </div>
                     </div>
-                  ))}
-                </div>
 
-                <div className="mb-3 grid grid-cols-3 gap-2 rounded-lg bg-slate-900/40 p-2 text-center text-[11px] font-mono">
-                  <div>
-                    <span className="block text-[10px] text-slate-500">Take Profit</span>
-                    <span className="font-bold text-emerald-400">+0.10%</span>
+                    <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                      <div className="text-[11px] text-slate-500">
+                        Aberta em{" "}
+                        {strat.positionOpenedAt
+                          ? new Date(
+                              strat.positionOpenedAt,
+                            ).toLocaleTimeString()
+                          : "—"}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => confirmarFechar(strat)}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
+                      >
+                        <Power className="h-3.5 w-3.5" aria-hidden="true" />{" "}
+                        Encerrar Agora
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-500">Trailing Stop</span>
-                    {strat.isTrailingActive ? (
-                      <span className="inline-flex items-center gap-1 font-extrabold text-emerald-400">
-                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> ATIVADO
-                      </span>
-                    ) : (
-                      <span className="font-bold text-slate-400">+0.01%</span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-[10px] text-slate-500">Stop Loss</span>
-                    <span className="font-bold text-rose-400">-0.10%</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-white/5 pt-3">
-                  <div className="text-[11px] text-slate-500">
-                    Aberta em{" "}
-                    {strat.positionOpenedAt
-                      ? new Date(strat.positionOpenedAt).toLocaleTimeString()
-                      : "—"}
-                  </div>
-                  <button
-                    type="button"
-                    disabled={isPending}
-                    onClick={() => confirmarFechar(strat)}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
-                  >
-                    <Power className="h-3.5 w-3.5" aria-hidden="true" /> Encerrar Agora
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
+                );
+              })
+            )}
           </div>
         </div>
       ) : null}
@@ -338,7 +409,10 @@ export function ForexArbBoard({
             </div>
           ) : (
             encerradas.map((trade) => (
-              <div key={trade.id} className="rounded-xl border border-white/10 bg-slate-950/70 p-5">
+              <div
+                key={trade.id}
+                className="rounded-xl border border-white/10 bg-slate-950/70 p-5"
+              >
                 <div className="mb-3 flex items-center justify-between">
                   <div>
                     <h3 className="text-base font-extrabold text-white">
@@ -350,15 +424,21 @@ export function ForexArbBoard({
                   </div>
                   <div
                     className={`font-mono text-lg font-black ${
-                      trade.realizedPnl >= 0 ? "text-emerald-400" : "text-red-400"
+                      trade.realizedPnl >= 0
+                        ? "text-emerald-400"
+                        : "text-red-400"
                     }`}
                   >
                     {fmtUsd(trade.realizedPnl)}
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-white/5 pt-2 text-[11px] text-slate-500">
-                  <span>Fechada em {new Date(trade.createdAt).toLocaleString()}</span>
-                  {trade.reason ? <span className="text-amber-300/80">{trade.reason}</span> : null}
+                  <span>
+                    Fechada em {new Date(trade.createdAt).toLocaleString()}
+                  </span>
+                  {trade.reason ? (
+                    <span className="text-amber-300/80">{trade.reason}</span>
+                  ) : null}
                 </div>
               </div>
             ))
@@ -374,9 +454,14 @@ export function ForexArbBoard({
           </h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {strategies.map((strat) => (
-              <div key={strat.id} className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
+              <div
+                key={strat.id}
+                className="rounded-xl border border-white/10 bg-slate-950/70 p-4"
+              >
                 <div className="flex items-center justify-between">
-                  <span className="truncate text-sm font-bold text-white">{strat.name}</span>
+                  <span className="truncate text-sm font-bold text-white">
+                    {strat.name}
+                  </span>
                   <span
                     className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase ${
                       strat.positionOpen
