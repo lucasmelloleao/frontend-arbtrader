@@ -48,7 +48,7 @@ const LINKS: readonly SidebarLink[] = [
     habilitado: true,
   },
   { href: "/dashboard/exchanges", label: "Exchange", icon: Wallet, habilitado: true },
-  { href: "/dashboard/forex-arb", label: "Arbitragem Forex", icon: Globe, habilitado: true },
+  { href: "/dashboard/forex-arb", label: "Scalping Forex", icon: Globe, habilitado: true },
   { href: "/dashboard/hyperliquid", label: "Hyperliquid Arb", icon: Waves, habilitado: false },
   {
     href: "/dashboard/hyperliquid-mm",

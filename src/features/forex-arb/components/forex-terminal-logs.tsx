@@ -11,12 +11,12 @@ const ANSI_ESCAPE = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*[mK]`, "g");
 
 /**
  * Terminal de logs do robô Forex: liga/desliga, alterna entre processos
- * (forex-arb / forex-scanner), auto-refresh a cada 7s, seleção de linhas e
+ * (forex-scalper / forex-arb / forex-scanner), auto-refresh a cada 7s, seleção de linhas e
  * download. O fetch é via Server Action `buscarLogs`.
  */
 export function ForexTerminalLogs(): React.ReactNode {
   const [showLogs, setShowLogs] = useState(false);
-  const [selectedBot, setSelectedBot] = useState<"forex-arb" | "forex-scanner">("forex-arb");
+  const [selectedBot, setSelectedBot] = useState<"forex-scalp-executor" | "forex-scalp-scanner" | "forex-arb" | "forex-scanner">("forex-scalp-executor");
   const [logs, setLogs] = useState<{ id: number; texto: string }[]>([]);
   const nextLogId = useRef(0);
   const [loading, setLoading] = useState(false);
@@ -28,6 +28,15 @@ export function ForexTerminalLogs(): React.ReactNode {
 
   const normalizar = (linhas: readonly string[]): { id: number; texto: string }[] =>
     linhas.map((linha) => ({ id: nextLogId.current++, texto: linha.replace(ANSI_ESCAPE, "") }));
+
+  const getBotLabel = (bot: string) => {
+    switch (bot) {
+      case "forex-scalp-scanner": return "Scalp Scanner";
+      case "forex-scalp-executor": return "Scalp Executor";
+      case "forex-arb": return "Arbitragem";
+      default: return "Scanner";
+    }
+  };
 
   // Fetch inicial ao ligar/trocar bot/linhas
   useEffect(() => {
@@ -126,18 +135,18 @@ export function ForexTerminalLogs(): React.ReactNode {
         </div>
         {showLogs ? (
           <div className="flex items-center gap-2">
-            {(["forex-arb", "forex-scanner"] as const).map((bot) => (
+            {(["forex-scalp-executor", "forex-scalp-scanner", "forex-arb", "forex-scanner"] as const).map((bot) => (
               <button
                 key={bot}
                 type="button"
-                onClick={() => setSelectedBot(bot)}
+                onClick={() => setSelectedBot(bot as any)}
                 className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-all ${
                   selectedBot === bot
                     ? "border-indigo-500/40 bg-indigo-600/20 text-indigo-300"
                     : "border-slate-800 bg-slate-900 text-slate-400 hover:text-white"
                 }`}
               >
-                {bot === "forex-arb" ? "Robô Principal" : "Scanner"}
+                {getBotLabel(bot)}
               </button>
             ))}
           </div>
@@ -149,7 +158,7 @@ export function ForexTerminalLogs(): React.ReactNode {
           <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-2.5 text-xs text-slate-400">
             <div className="flex items-center gap-3">
               <span className="rounded border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 font-mono text-indigo-400">
-                {selectedBot === "forex-arb" ? "Robô Principal" : "Scanner"}
+                {getBotLabel(selectedBot)}
               </span>
               <button
                 type="button"
