@@ -311,7 +311,14 @@ export function ForexArbBoard({
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-                            <span>cTrader ID: {leg.orderId ? (leg.orderId.startsWith("Order") ? leg.orderId : `#${leg.orderId}`) : "—"}</span>
+                            <span>
+                              cTrader ID:{" "}
+                              {leg.orderId
+                                ? leg.orderId.startsWith("Order")
+                                  ? leg.orderId
+                                  : `#${leg.orderId}`
+                                : "—"}
+                            </span>
                             <span>
                               Volume:{" "}
                               {leg.amount

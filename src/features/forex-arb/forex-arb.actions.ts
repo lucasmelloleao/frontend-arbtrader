@@ -125,8 +125,8 @@ export async function fecharTodasPosicoes(): Promise<MutacaoResult> {
 }
 
 /**
-  * Apaga todas as operações e estratégias Forex do histórico do usuário (DELETE /forex-arb/trades).
-  */
+ * Apaga todas as operações e estratégias Forex do histórico do usuário (DELETE /forex-arb/trades).
+ */
 export async function deletarTodasOperacoes(): Promise<MutacaoResult> {
   try {
     await apiClient(kyServer, API_ENDPOINTS.forexArb.limparTrades, undefined, {
