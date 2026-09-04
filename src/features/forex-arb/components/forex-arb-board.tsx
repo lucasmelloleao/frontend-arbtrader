@@ -220,36 +220,53 @@ export function ForexArbBoard({
               </button>
             </div>
           ) : null}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             {abertas.length === 0 ? (
               <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
                 Nenhuma posição aberta. As oportunidades lucrativas serão executadas automaticamente.
               </div>
             ) : (
-              abertas.map((strat) => (
-              <div
-                key={strat.id}
-                className="rounded-xl border border-emerald-500/30 bg-slate-950/70 p-5"
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-base font-extrabold text-white">{strat.name}</h3>
-                    <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-400">
-                      <span className="rounded-md border border-indigo-500/30 bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-indigo-300">
-                        {strat.type}
-                      </span>
-                      {strat.exchangeId}
+              abertas.map((strat) => {
+                const livePnl = strat.pnl || 0;
+                const livePct = strat.pnlPct || 0;
+                const isLucro = livePnl >= 0;
+
+                return (
+                  <div
+                    key={strat.id}
+                    className={`rounded-xl border p-5 ${
+                      isLucro
+                        ? "border-emerald-500/40 bg-emerald-950/20"
+                        : "border-rose-500/40 bg-rose-950/20"
+                    }`}
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-extrabold text-white">{strat.name}</h3>
+                        <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-400">
+                          <span className="rounded-md border border-indigo-500/30 bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-indigo-300">
+                            {strat.type}
+                          </span>
+                          {strat.exchangeId}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div
+                          className={`font-mono text-base font-black ${
+                            isLucro ? "text-emerald-400" : "text-rose-400"
+                          }`}
+                        >
+                          {isLucro ? "+" : ""}${livePnl.toFixed(2)} USD
+                        </div>
+                        <div
+                          className={`font-mono text-[11px] font-bold ${
+                            isLucro ? "text-emerald-300" : "text-rose-300"
+                          }`}
+                        >
+                          ({isLucro ? "+" : ""}{livePct.toFixed(3)}%)
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-mono text-lg font-black text-emerald-400">
-                      {fmtPct(strat.expectedProfitPct)}
-                    </div>
-                    <div className="text-[11px] text-slate-500">
-                      {fmtUsd(strat.positionSize || strat.tradeSize)}
-                    </div>
-                  </div>
-                </div>
                 <div className="mb-4 space-y-2">
                   {strat.legs.map((leg) => (
                     <div key={`${leg.side}-${leg.symbol}`} className="rounded-lg border border-white/5 bg-slate-900/60 p-2.5 space-y-1">
@@ -298,9 +315,11 @@ export function ForexArbBoard({
                     <Power className="h-3.5 w-3.5" aria-hidden="true" /> Encerrar Agora
                   </button>
                 </div>
+                </div>
               </div>
-            ))
-          )}
+            );
+          })
+        )}
           </div>
         </div>
       ) : null}

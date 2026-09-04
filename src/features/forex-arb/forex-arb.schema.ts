@@ -56,6 +56,7 @@ const forexArbStrategySchema = pipe(
     positionSize: optional(number()),
     status: optional(string()),
     pnl: optional(number()),
+    pnlPct: optional(number()),
     closedAt: optional(nullable(string())),
     peakProfitPct: optional(number()),
     lastLegPrices: optional(object({})),
