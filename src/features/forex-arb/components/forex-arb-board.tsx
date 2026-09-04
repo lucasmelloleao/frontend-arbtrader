@@ -108,6 +108,8 @@ export function ForexArbBoard({
       return;
     }
     executar(() => deletarStrategy(strat.id));
+  };
+
   const confirmarFecharTodas = (): void => {
     if (!confirm(`Deseja realmente ZERAR TODAS as ${abertas.length} posições abertas agora?`)) {
       return;
