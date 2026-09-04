@@ -10,7 +10,7 @@
 
   "plugins": ["typescript", "unicorn", "oxc", "react", "nextjs", "import", "promise", "jsx-a11y"],
 
-  "jsPlugins": ["./tooling/oxlint-rules/index.ts"],
+  "jsPlugins": ["./tooling/oxlint-rules/index.js"],
 
   "env": {
     "builtin": true,

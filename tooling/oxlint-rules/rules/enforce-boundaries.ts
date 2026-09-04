@@ -95,11 +95,9 @@ const enforceBoundaries = {
     },
     messages: {
       reversedDirection:
-        "Import direction violation: '{{from}}' cannot import from '{{to}}'. " +
-        "Layers must flow app → features → lib → shared.",
+        "Import direction violation: '{{from}}' cannot import from '{{to}}'. Layers must flow app → features → lib → shared.",
       crossFeature:
-        "Cross-feature import: a feature must not import from a sibling feature. " +
-        "Move shared code to shared/ instead.",
+        "Cross-feature import: a feature must not import from a sibling feature. Move shared code to shared/ instead.",
     },
   },
 

@@ -7,7 +7,7 @@
     "dev": "bun --bun next dev -p 8080",
     "build": "bun --bun next typegen && tsc --noEmit && bun --bun next build",
     "start": "bun --bun next start",
-    "lint": "oxlint --disable-nested-config --type-aware",
+    "lint": "bun build tooling/oxlint-rules/index.ts --outfile tooling/oxlint-rules/index.js --target node && oxlint --disable-nested-config --type-aware",
     "lint:fix": "oxlint --fix --disable-nested-config --type-aware",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",

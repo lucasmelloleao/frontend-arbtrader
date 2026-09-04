@@ -164,7 +164,10 @@ export function ForexSettingsPanel({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-amber-400 font-semibold" htmlFor="fx-min-profit">
+              <label
+                className="mb-1 block text-xs text-amber-400 font-semibold"
+                htmlFor="fx-min-profit"
+              >
                 Retorno Mínimo (%) - Filtro Scanner
               </label>
               <input
