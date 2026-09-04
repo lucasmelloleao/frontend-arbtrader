@@ -164,8 +164,8 @@ export function ForexSettingsPanel({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-min-profit">
-                Retorno Mínimo (%)
+              <label className="mb-1 block text-xs text-amber-400 font-semibold" htmlFor="fx-min-profit">
+                Retorno Mínimo (%) - Filtro Scanner
               </label>
               <input
                 id="fx-min-profit"
@@ -173,7 +173,7 @@ export function ForexSettingsPanel({
                 step="0.01"
                 value={formAtual.minProfitPct}
                 onChange={(e) => atualizar("minProfitPct", Number(e.target.value))}
-                className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
+                className="w-full rounded border border-amber-500/30 bg-slate-900 px-2 py-1 text-amber-400 font-bold"
               />
             </div>
             <div>
