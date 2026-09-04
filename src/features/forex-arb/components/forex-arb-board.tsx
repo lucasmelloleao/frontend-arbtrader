@@ -315,7 +315,6 @@ export function ForexArbBoard({
                     <Power className="h-3.5 w-3.5" aria-hidden="true" /> Encerrar Agora
                   </button>
                 </div>
-                </div>
               </div>
             );
           })
