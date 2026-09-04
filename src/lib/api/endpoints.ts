@@ -78,6 +78,7 @@ export const API_ENDPOINTS = {
     settings: "api/v1/forex-arb/settings",
     ctraderCredentials: "api/v1/forex-arb/ctrader-credentials",
     fechar: "api/v1/forex-arb/close",
+    fecharTodas: "api/v1/forex-arb/close-all",
     logs: "api/v1/forex-arb/logs",
   },
 
