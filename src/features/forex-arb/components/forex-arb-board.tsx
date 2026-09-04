@@ -6,7 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Plus, Power, TrendingUp, X } from "lucide-react";
 
 import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strategy-form";
-import { deletarStrategy, fecharPosicao } from "@/features/forex-arb/forex-arb.actions";
+import { deletarStrategy, fecharPosicao, fecharTodasPosicoes } from "@/features/forex-arb/forex-arb.actions";
 import type {
   ForexArbLeg,
   ForexArbStrategy,
@@ -108,6 +108,11 @@ export function ForexArbBoard({
       return;
     }
     executar(() => deletarStrategy(strat.id));
+  const confirmarFecharTodas = (): void => {
+    if (!confirm(`Deseja realmente ZERAR TODAS as ${abertas.length} posições abertas agora?`)) {
+      return;
+    }
+    executar(() => fecharTodasPosicoes());
   };
 
   return (
@@ -200,13 +205,26 @@ export function ForexArbBoard({
 
       {/* Em aberto */}
       {aba === "open" ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {abertas.length === 0 ? (
-            <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
-              Nenhuma posição aberta. As oportunidades lucrativas serão executadas automaticamente.
+        <div className="space-y-4">
+          {abertas.length > 0 ? (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={confirmarFecharTodas}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
+              >
+                <Power className="h-4 w-4" aria-hidden="true" /> Fechar Todas as Posições ({abertas.length})
+              </button>
             </div>
-          ) : (
-            abertas.map((strat) => (
+          ) : null}
+          <div className="grid gap-4 md:grid-cols-2">
+            {abertas.length === 0 ? (
+              <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
+                Nenhuma posição aberta. As oportunidades lucrativas serão executadas automaticamente.
+              </div>
+            ) : (
+              abertas.map((strat) => (
               <div
                 key={strat.id}
                 className="rounded-xl border border-emerald-500/30 bg-slate-950/70 p-5"
@@ -261,6 +279,7 @@ export function ForexArbBoard({
               </div>
             ))
           )}
+          </div>
         </div>
       ) : null}
 

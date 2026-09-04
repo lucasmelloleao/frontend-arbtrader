@@ -108,3 +108,18 @@ export async function deletarStrategy(id: string): Promise<MutacaoResult> {
   revalidatePath("/dashboard/forex-arb");
   return { ok: true };
 }
+
+/**
+ * Encerra TODAS as posições abertas no Forex (POST /forex-arb/close-all).
+ */
+export async function fecharTodasPosicoes(): Promise<MutacaoResult> {
+  try {
+    await apiClient(kyServer, API_ENDPOINTS.forexArb.fecharTodas, undefined, {
+      method: "post",
+    });
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+  revalidatePath("/dashboard/forex-arb");
+  return { ok: true };
+}
