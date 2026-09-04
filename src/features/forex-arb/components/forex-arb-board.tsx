@@ -27,7 +27,7 @@ type ForexArbBoardProps = {
   exchangeKeys: readonly { id: string; exchangeId: string; nome: string }[];
 };
 
-const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
+const _fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
 const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(3)}%`;
 
 /** Badge de uma perna da arbitragem (COMPRA/VENDA). */
