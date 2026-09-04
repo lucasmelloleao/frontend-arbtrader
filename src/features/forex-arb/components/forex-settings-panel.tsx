@@ -5,10 +5,7 @@ import { useState, useTransition } from "react";
 
 import { Save, Wallet } from "lucide-react";
 
-import {
-  salvarSettings,
-  type MutacaoResult,
-} from "@/features/forex-arb/forex-arb.actions";
+import { salvarSettings, type MutacaoResult } from "@/features/forex-arb/forex-arb.actions";
 import type {
   AtualizarForexSettingsInput,
   ForexArbSettings,
@@ -53,10 +50,7 @@ export function ForexSettingsPanel({
     allowedExchanges: [],
   };
 
-  const executar = (
-    acao: () => Promise<MutacaoResult>,
-    mensagemSucesso: string,
-  ): void => {
+  const executar = (acao: () => Promise<MutacaoResult>, mensagemSucesso: string): void => {
     setErro(null);
     setSucesso(null);
     startTransition(async () => {
@@ -78,18 +72,13 @@ export function ForexSettingsPanel({
     setEditando(false);
   };
 
-  const atualizar = (
-    campo: keyof AtualizarForexSettingsInput,
-    valor: unknown,
-  ): void => {
+  const atualizar = (campo: keyof AtualizarForexSettingsInput, valor: unknown): void => {
     setForm((prev) => ({ ...(prev ?? atuais), [campo]: valor }));
   };
 
   const alternarCorretora = (ex: string): void => {
     const atual = form?.allowedExchanges ?? atuais.allowedExchanges;
-    const proximo = atual.includes(ex)
-      ? atual.filter((a) => a !== ex)
-      : [...atual, ex];
+    const proximo = atual.includes(ex) ? atual.filter((a) => a !== ex) : [...atual, ex];
     atualizar("allowedExchanges", proximo);
   };
 
@@ -101,12 +90,9 @@ export function ForexSettingsPanel({
         <div className="flex items-center gap-3">
           <Wallet className="h-5 w-5 text-indigo-400" aria-hidden="true" />
           <div>
-            <h3 className="text-sm font-bold text-white">
-              Configurações da Arbitragem Forex
-            </h3>
+            <h3 className="text-sm font-bold text-white">Configurações da Arbitragem Forex</h3>
             <p className="text-xs text-slate-400">
-              Trade Size: <b className="text-white">${formAtual.tradeSize}</b> |
-              Retorno Mín.:{" "}
+              Trade Size: <b className="text-white">${formAtual.tradeSize}</b> | Retorno Mín.:{" "}
               <b className="text-emerald-400">{formAtual.minProfitPct}%</b>
             </p>
           </div>
@@ -162,10 +148,7 @@ export function ForexSettingsPanel({
         <div className="mt-4 border-t border-white/10 pt-4">
           <div className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label
-                className="mb-1 block text-xs text-slate-500"
-                htmlFor="fx-trade-size"
-              >
+              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-trade-size">
                 Trade Size (USDT)
               </label>
               <input
@@ -177,10 +160,7 @@ export function ForexSettingsPanel({
               />
             </div>
             <div>
-              <label
-                className="mb-1 block text-xs text-slate-500"
-                htmlFor="fx-min-profit"
-              >
+              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-min-profit">
                 Retorno Mínimo (%)
               </label>
               <input
@@ -188,34 +168,24 @@ export function ForexSettingsPanel({
                 type="number"
                 step="0.01"
                 value={formAtual.minProfitPct}
-                onChange={(e) =>
-                  atualizar("minProfitPct", Number(e.target.value))
-                }
+                onChange={(e) => atualizar("minProfitPct", Number(e.target.value))}
                 className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
               />
             </div>
             <div>
-              <label
-                className="mb-1 block text-xs text-slate-500"
-                htmlFor="fx-min-volume"
-              >
+              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-min-volume">
                 Volume Mínimo 24h (USDT)
               </label>
               <input
                 id="fx-min-volume"
                 type="number"
                 value={formAtual.minVolume24hUSD}
-                onChange={(e) =>
-                  atualizar("minVolume24hUSD", Number(e.target.value))
-                }
+                onChange={(e) => atualizar("minVolume24hUSD", Number(e.target.value))}
                 className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
               />
             </div>
             <div>
-              <label
-                className="mb-1 block text-xs text-slate-500"
-                htmlFor="fx-scan-interval"
-              >
+              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-scan-interval">
                 Ciclo de Scan (min)
               </label>
               <input
@@ -223,34 +193,24 @@ export function ForexSettingsPanel({
                 type="number"
                 min="1"
                 value={Math.round((formAtual.scanIntervalMs || 60000) / 60000)}
-                onChange={(e) =>
-                  atualizar("scanIntervalMs", Number(e.target.value) * 60000)
-                }
+                onChange={(e) => atualizar("scanIntervalMs", Number(e.target.value) * 60000)}
                 className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
               />
             </div>
             <div>
-              <label
-                className="mb-1 block text-xs text-slate-500"
-                htmlFor="fx-max-loss"
-              >
+              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-max-loss">
                 Max Perda Diária (USDT)
               </label>
               <input
                 id="fx-max-loss"
                 type="number"
                 value={formAtual.maxDailyLoss}
-                onChange={(e) =>
-                  atualizar("maxDailyLoss", Number(e.target.value))
-                }
+                onChange={(e) => atualizar("maxDailyLoss", Number(e.target.value))}
                 className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
               />
             </div>
             <div>
-              <label
-                className="mb-1 block text-xs text-slate-500"
-                htmlFor="fx-slippage"
-              >
+              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-slippage">
                 Max Slippage (%)
               </label>
               <input
@@ -258,17 +218,12 @@ export function ForexSettingsPanel({
                 type="number"
                 step="0.01"
                 value={formAtual.maxSlippagePct}
-                onChange={(e) =>
-                  atualizar("maxSlippagePct", Number(e.target.value))
-                }
+                onChange={(e) => atualizar("maxSlippagePct", Number(e.target.value))}
                 className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
               />
             </div>
             <div>
-              <label
-                className="mb-1 block text-xs text-emerald-400 font-semibold"
-                htmlFor="fx-tp"
-              >
+              <label className="mb-1 block text-xs text-emerald-400 font-semibold" htmlFor="fx-tp">
                 Take Profit (%)
               </label>
               <input
@@ -276,9 +231,7 @@ export function ForexSettingsPanel({
                 type="number"
                 step="0.01"
                 value={formAtual.takeProfitPct ?? 0.1}
-                onChange={(e) =>
-                  atualizar("takeProfitPct", Number(e.target.value))
-                }
+                onChange={(e) => atualizar("takeProfitPct", Number(e.target.value))}
                 className="w-full rounded border border-emerald-500/30 bg-slate-900 px-2 py-1 text-emerald-400 font-bold"
               />
             </div>
@@ -294,17 +247,12 @@ export function ForexSettingsPanel({
                 type="number"
                 step="0.005"
                 value={formAtual.trailingStopPct ?? 0.01}
-                onChange={(e) =>
-                  atualizar("trailingStopPct", Number(e.target.value))
-                }
+                onChange={(e) => atualizar("trailingStopPct", Number(e.target.value))}
                 className="w-full rounded border border-cyan-500/30 bg-slate-900 px-2 py-1 text-cyan-400 font-bold"
               />
             </div>
             <div>
-              <label
-                className="mb-1 block text-xs text-rose-400 font-semibold"
-                htmlFor="fx-sl"
-              >
+              <label className="mb-1 block text-xs text-rose-400 font-semibold" htmlFor="fx-sl">
                 Stop Loss (%)
               </label>
               <input
@@ -312,16 +260,12 @@ export function ForexSettingsPanel({
                 type="number"
                 step="0.01"
                 value={formAtual.stopLossPct ?? 0.1}
-                onChange={(e) =>
-                  atualizar("stopLossPct", Number(e.target.value))
-                }
+                onChange={(e) => atualizar("stopLossPct", Number(e.target.value))}
                 className="w-full rounded border border-rose-500/30 bg-slate-900 px-2 py-1 text-rose-400 font-bold"
               />
             </div>
             <div>
-              <span className="mb-1 block text-xs text-slate-500">
-                Execução Automática
-              </span>
+              <span className="mb-1 block text-xs text-slate-500">Execução Automática</span>
               <label className="flex cursor-pointer items-center gap-2 text-slate-200">
                 <input
                   type="checkbox"
@@ -333,17 +277,13 @@ export function ForexSettingsPanel({
               </label>
             </div>
             <div>
-              <span className="mb-1 block text-xs text-slate-500">
-                Tipos de Arbitragem
-              </span>
+              <span className="mb-1 block text-xs text-slate-500">Tipos de Arbitragem</span>
               <div className="flex gap-4">
                 <label className="flex cursor-pointer items-center gap-2 text-slate-200">
                   <input
                     type="checkbox"
                     checked={formAtual.triangularEnabled}
-                    onChange={(e) =>
-                      atualizar("triangularEnabled", e.target.checked)
-                    }
+                    onChange={(e) => atualizar("triangularEnabled", e.target.checked)}
                     className="rounded border-slate-600 bg-slate-800"
                   />
                   Triangular
@@ -352,9 +292,7 @@ export function ForexSettingsPanel({
                   <input
                     type="checkbox"
                     checked={formAtual.simpleEnabled}
-                    onChange={(e) =>
-                      atualizar("simpleEnabled", e.target.checked)
-                    }
+                    onChange={(e) => atualizar("simpleEnabled", e.target.checked)}
                     className="rounded border-slate-600 bg-slate-800"
                   />
                   Simples
