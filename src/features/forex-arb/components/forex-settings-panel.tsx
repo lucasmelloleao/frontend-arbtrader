@@ -48,7 +48,7 @@ export function ForexSettingsPanel({
     autoExecute: true,
     simpleEnabled: true,
     triangularEnabled: true,
-    allowedExchanges: [] as string[],
+    allowedExchanges: [],
     takeProfitPct: 0.1,
     stopLossPct: 0.1,
     trailingStopPct: 0.01,
