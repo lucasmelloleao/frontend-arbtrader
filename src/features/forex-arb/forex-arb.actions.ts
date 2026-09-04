@@ -123,3 +123,18 @@ export async function fecharTodasPosicoes(): Promise<MutacaoResult> {
   revalidatePath("/dashboard/forex-arb");
   return { ok: true };
 }
+
+/**
+  * Apaga todas as operações e estratégias Forex do histórico do usuário (DELETE /forex-arb/trades).
+  */
+export async function deletarTodasOperacoes(): Promise<MutacaoResult> {
+  try {
+    await apiClient(kyServer, API_ENDPOINTS.forexArb.limparTrades, undefined, {
+      method: "delete",
+    });
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+  revalidatePath("/dashboard/forex-arb");
+  return { ok: true };
+}

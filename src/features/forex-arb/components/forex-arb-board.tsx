@@ -3,11 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { Plus, Power, TrendingUp, X } from "lucide-react";
+import { Plus, Power, Trash2, TrendingUp, X } from "lucide-react";
 
 import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strategy-form";
 import {
   deletarStrategy,
+  deletarTodasOperacoes,
   fecharPosicao,
   fecharTodasPosicoes,
 } from "@/features/forex-arb/forex-arb.actions";
@@ -120,6 +121,17 @@ export function ForexArbBoard({
     executar(() => fecharTodasPosicoes());
   };
 
+  const confirmarDeletarTodas = (): void => {
+    if (
+      !confirm(
+        "Deseja realmente apagar TODAS as estratégias e o histórico de operações do banco de dados para recomeçar?",
+      )
+    ) {
+      return;
+    }
+    executar(() => deletarTodasOperacoes());
+  };
+
   return (
     <div className="space-y-4">
       {/* Criação manual */}
@@ -130,7 +142,16 @@ export function ForexArbBoard({
           onFechar={() => setCriando(false)}
         />
       ) : (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={confirmarDeletarTodas}
+            disabled={isPending}
+            className="inline-flex items-center gap-2 rounded-lg bg-red-950/40 border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-900/60 disabled:opacity-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Limpar Banco/Histórico
+          </button>
+
           <button
             type="button"
             onClick={() => setCriando(true)}
@@ -290,7 +311,7 @@ export function ForexArbBoard({
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
-                            <span>Order/Pos ID cTrader: #{leg.orderId || "—"}</span>
+                            <span>cTrader ID: {leg.orderId ? (leg.orderId.startsWith("Order") ? leg.orderId : `#${leg.orderId}`) : "—"}</span>
                             <span>
                               Volume:{" "}
                               {leg.amount
