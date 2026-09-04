@@ -351,37 +351,88 @@ export function ForexArbBoard({
 
       {/* Encerradas */}
       {aba === "closed" ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           {encerradas.length === 0 ? (
             <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
               Nenhuma operação encerrada ainda.
             </div>
           ) : (
-            encerradas.map((trade) => (
-              <div key={trade.id} className="rounded-xl border border-white/10 bg-slate-950/70 p-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-base font-extrabold text-white">
-                      {trade.strategyName || "Arbitragem"}
-                    </h3>
-                    <div className="mt-0.5 text-xs text-slate-400">
-                      {trade.legs.map((l) => l.symbol).join(" → ") || "—"}
+            encerradas.map((trade) => {
+              const isLucro = trade.realizedPnl >= 0;
+              return (
+                <div
+                  key={trade.id}
+                  className={`rounded-xl border p-5 ${
+                    isLucro
+                      ? "border-emerald-500/30 bg-emerald-950/10"
+                      : "border-rose-500/30 bg-rose-950/10"
+                  }`}
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-extrabold text-white">
+                        {trade.strategyName || "Scalping Forex"}
+                      </h3>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                            isLucro
+                              ? "bg-emerald-500/20 text-emerald-300"
+                              : "bg-rose-500/20 text-rose-300"
+                          }`}
+                        >
+                          {isLucro ? "🟢 LUCRO" : "🔴 PREJUÍZO"}
+                        </span>
+                        <span className="text-xs text-slate-400">{trade.exchangeId}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div
+                        className={`font-mono text-base font-black ${
+                          isLucro ? "text-emerald-400" : "text-rose-400"
+                        }`}
+                      >
+                        {isLucro ? "+" : ""}${trade.realizedPnl.toFixed(2)} USD
+                      </div>
                     </div>
                   </div>
-                  <div
-                    className={`font-mono text-lg font-black ${
-                      trade.realizedPnl >= 0 ? "text-emerald-400" : "text-red-400"
-                    }`}
-                  >
-                    {fmtUsd(trade.realizedPnl)}
+
+                  <div className="mb-3 space-y-1.5">
+                    {trade.legs.map((leg) => (
+                      <div
+                        key={`${leg.side}-${leg.symbol}`}
+                        className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
+                      >
+                        <div className="flex items-center justify-between">
+                          <LegBadge leg={leg} />
+                          <span className="font-mono text-slate-300">
+                            Preço: {leg.price || "—"}
+                          </span>
+                        </div>
+                        {leg.orderId ? (
+                          <div className="font-mono text-[10px] text-slate-500">
+                            Order ID cTrader: #{leg.orderId}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+
+                  {trade.reason ? (
+                    <div className="mb-3 rounded bg-slate-900/40 p-2 text-center text-[11px] font-mono text-slate-300 border border-white/5">
+                      <span className="block text-[10px] text-slate-500 font-sans">
+                        Motivo do Fechamento
+                      </span>
+                      {trade.reason}
+                    </div>
+                  ) : null}
+
+                  <div className="flex items-center justify-between border-t border-white/5 pt-2 text-[11px] text-slate-500 font-mono">
+                    <span>Fechada em {new Date(trade.createdAt).toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between border-t border-white/5 pt-2 text-[11px] text-slate-500">
-                  <span>Fechada em {new Date(trade.createdAt).toLocaleString()}</span>
-                  {trade.reason ? <span className="text-amber-300/80">{trade.reason}</span> : null}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       ) : null}
