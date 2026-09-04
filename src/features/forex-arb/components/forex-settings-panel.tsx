@@ -35,8 +35,9 @@ export function ForexSettingsPanel({
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
 
-  const atuais = settings ?? {
+  const atuais: ForexArbSettings = settings ?? {
     isScanningEnabled: false,
+    lastScannedAt: null,
     tradeSize: 100,
     minProfitPct: 0.05,
     minVolume24hUSD: 50000,
@@ -47,7 +48,10 @@ export function ForexSettingsPanel({
     autoExecute: true,
     simpleEnabled: true,
     triangularEnabled: true,
-    allowedExchanges: [],
+    allowedExchanges: [] as string[],
+    takeProfitPct: 0.1,
+    stopLossPct: 0.1,
+    trailingStopPct: 0.01,
   };
 
   const executar = (acao: () => Promise<MutacaoResult>, mensagemSucesso: string): void => {
