@@ -76,9 +76,9 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
             <Globe className="h-6 w-6 text-indigo-400" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white">Arbitragem Forex</h1>
+            <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Scalping Forex</h1>
             <p className="text-sm text-slate-400">
-              Arbitragem simples e triangular dentro da corretora
+              Estratégia de Scalping em tempo real via RSI, EMA5/EMA15 e cTrader Open API
             </p>
           </div>
         </div>
