@@ -290,8 +290,14 @@ export function ForexArbBoard({
                     <span className="font-bold text-emerald-400">+0.10%</span>
                   </div>
                   <div>
-                    <span className="block text-[10px] text-slate-500">Trailing Gatilho</span>
-                    <span className="font-bold text-cyan-400">+0.01%</span>
+                    <span className="block text-[10px] text-slate-500">Trailing Stop</span>
+                    {strat.isTrailingActive ? (
+                      <span className="inline-flex items-center gap-1 font-extrabold text-emerald-400">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" /> ATIVADO
+                      </span>
+                    ) : (
+                      <span className="font-bold text-slate-400">+0.01%</span>
+                    )}
                   </div>
                   <div>
                     <span className="block text-[10px] text-slate-500">Stop Loss</span>
