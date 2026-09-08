@@ -1,0 +1,4 @@
+interface:
+  display_name: "Orquestrar trabalho"
+  short_description: "Planeje, delegue e revise trabalho em PRs"
+  default_prompt: "Use $orquestrar para conduzir uma demanda do briefing ao PR com worktrees, agentes especializados e gates explícitos."
