@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { Plus, Power, Trash2, TrendingUp, X, XCircle } from "lucide-react";
+import { Activity, ArrowUpRight, Lock, Plus, Power, ShieldCheck, Trash2, TrendingUp, X, XCircle } from "lucide-react";
 
 import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strategy-form";
 import {
@@ -369,25 +369,69 @@ export function ForexArbBoard({
                       ))}
                     </div>
 
-                    <div className="mb-3 grid grid-cols-3 gap-2 rounded-lg bg-slate-900/40 p-2 text-center text-[11px] font-mono">
-                      <div>
-                        <span className="block text-[10px] text-slate-500">Take Profit</span>
-                        <span className="font-bold text-emerald-400">+0.10%</span>
+                    {/* Status em Tempo Real e Trailing Stop Monitor */}
+                    <div className="mb-3 space-y-2">
+                      <div
+                        className={`rounded-lg border p-2.5 transition-all ${
+                          strat.trailingActive
+                            ? "border-emerald-500/40 bg-emerald-950/30 text-emerald-300 shadow-sm shadow-emerald-500/10"
+                            : "border-slate-700/50 bg-slate-900/50 text-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-xs font-bold">
+                          <div className="flex items-center gap-1.5">
+                            {strat.trailingActive ? (
+                              <span className="flex h-2 w-2 relative">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                            ) : (
+                              <Activity className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
+                            )}
+                            <span className="font-mono uppercase tracking-wider text-[11px]">
+                              {strat.trailingActive ? "Trailing Stop Ativado" : "Monitoramento Ativo"}
+                            </span>
+                          </div>
+                          {strat.trailingActive ? (
+                            <span className="inline-flex items-center gap-1 rounded bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-emerald-300 border border-emerald-500/30">
+                              <Lock className="h-3 w-3" /> PISO TRAVADO: +${strat.trailingFloorUsd.toFixed(2)} USD
+                            </span>
+                          ) : (
+                            <span className="font-mono text-[10px] text-slate-400">
+                              Gatilho: +${strat.trailingActivationUsd.toFixed(2)} USD
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-1 text-[11px] font-mono text-slate-300">
+                          {strat.currentAction || (strat.trailingActive ? "Protegendo lucro e acompanhando subida do preço" : "Aguardando gatilho de trailing")}
+                        </div>
                       </div>
-                      <div>
-                        <span className="block text-[10px] text-slate-500">Trailing Stop</span>
-                        {strat.isTrailingActive ? (
-                          <span className="inline-flex items-center gap-1 font-extrabold text-emerald-400">
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />{" "}
-                            ATIVADO
+
+                      <div className="grid grid-cols-4 gap-1.5 rounded-lg bg-slate-900/60 border border-white/5 p-2 text-center text-[10px] font-mono">
+                        <div>
+                          <span className="block text-[9px] text-slate-500">Pico Máximo</span>
+                          <span className="font-bold text-emerald-400">
+                            +${strat.peakProfitUsd > 0 ? strat.peakProfitUsd.toFixed(2) : ((strat.peakProfitPct / 100) * (strat.tradeSize || 50)).toFixed(2)}
                           </span>
-                        ) : (
-                          <span className="font-bold text-slate-400">+0.01%</span>
-                        )}
-                      </div>
-                      <div>
-                        <span className="block text-[10px] text-slate-500">Stop Loss</span>
-                        <span className="font-bold text-rose-400">-0.10%</span>
+                        </div>
+                        <div>
+                          <span className="block text-[9px] text-slate-500">Piso de Saída</span>
+                          <span className={`font-bold ${strat.trailingActive ? "text-emerald-300" : "text-slate-500"}`}>
+                            {strat.trailingActive ? `+$${strat.trailingFloorUsd.toFixed(2)}` : "—"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-[9px] text-slate-500">Preço Fechamento</span>
+                          <span className={`font-bold ${strat.trailingFloorPrice ? "text-amber-300" : "text-slate-500"}`}>
+                            {strat.trailingFloorPrice ? strat.trailingFloorPrice.toFixed(4) : (strat.trailingActive ? `+$${strat.trailingFloorUsd.toFixed(2)}` : "—")}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="block text-[9px] text-slate-500">Distância Trail</span>
+                          <span className="font-bold text-slate-300">
+                            ${strat.trailingDistanceUsd.toFixed(2)}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
