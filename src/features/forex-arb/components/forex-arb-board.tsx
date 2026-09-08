@@ -420,15 +420,17 @@ export function ForexArbBoard({
                             +$
                             {strat.peakProfitUsd > 0
                               ? strat.peakProfitUsd.toFixed(2)
-                              : ((strat.peakProfitPct / 100) * (strat.tradeSize || 50)).toFixed(2)}
+                              : Math.max(0, strat.pnl).toFixed(2)}
                           </span>
                         </div>
                         <div>
                           <span className="block text-[9px] text-slate-500">Piso de Saída</span>
                           <span
-                            className={`font-bold ${strat.trailingActive ? "text-emerald-300" : "text-slate-500"}`}
+                            className={`font-bold ${strat.trailingActive && strat.trailingFloorUsd > 0 ? "text-emerald-300" : "text-slate-500"}`}
                           >
-                            {strat.trailingActive ? `+$${strat.trailingFloorUsd.toFixed(2)}` : "—"}
+                            {strat.trailingActive && strat.trailingFloorUsd > 0
+                              ? `+$${strat.trailingFloorUsd.toFixed(2)}`
+                              : "—"}
                           </span>
                         </div>
                         <div>
