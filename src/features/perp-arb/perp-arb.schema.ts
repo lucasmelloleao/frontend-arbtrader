@@ -235,6 +235,18 @@ const perpArbTradeSchema = pipe(
     amount: optional(nullable(number())),
     status: string(),
     pnl: optional(nullable(number())),
+    tradingFees: optional(nullable(number())),
+    netPnl: optional(nullable(number())),
+    feeDetails: optional(
+      nullable(
+        object({
+          spotOpenFee: optional(nullable(number())),
+          perpOpenFee: optional(nullable(number())),
+          spotCloseFee: optional(nullable(number())),
+          perpCloseFee: optional(nullable(number())),
+        }),
+      ),
+    ),
     fundingCount: optional(nullable(number())),
     reason: optional(nullable(string())),
     openedAt: optional(nullable(string())),
@@ -264,6 +276,9 @@ const perpArbTradeSchema = pipe(
     amount: entrada.amount ?? 0,
     status: entrada.status,
     pnl: entrada.pnl ?? 0,
+    tradingFees: entrada.tradingFees ?? null,
+    netPnl: entrada.netPnl ?? null,
+    feeDetails: entrada.feeDetails ?? null,
     fundingCount: entrada.fundingCount ?? 0,
     reason: entrada.reason ?? null,
     openedAt: entrada.openedAt ?? null,

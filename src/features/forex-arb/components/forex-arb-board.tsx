@@ -3,14 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { Plus, Power, Trash2, TrendingUp, X } from "lucide-react";
+import { Power, Trash2, TrendingUp, X, XCircle } from "lucide-react";
 
-import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strategy-form";
 import {
   deletarStrategy,
   deletarTodasOperacoes,
   fecharPosicao,
   fecharTodasPosicoes,
+  voidClosePosicao,
 } from "@/features/forex-arb/forex-arb.actions";
 import type {
   ForexArbLeg,
@@ -76,7 +76,6 @@ export function ForexArbBoard({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [aba, setAba] = useState<"open" | "closed" | "opportunities">("opportunities");
-  const [criando, setCriando] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -132,16 +131,19 @@ export function ForexArbBoard({
     executar(() => deletarTodasOperacoes());
   };
 
+  const confirmarVoidClose = (strat: ForexArbStrategy): void => {
+    if (
+      !confirm(
+        `Marcar "${strat.name}" como encerrada pela corretora? Nenhuma ordem será enviada na cTrader.`,
+      )
+    ) {
+      return;
+    }
+    executar(() => voidClosePosicao(strat.id));
+  };
+
   return (
     <div className="space-y-4">
-      {/* Criação manual */}
-      {criando ? (
-        <ForexStrategyForm
-          exchangeIds={exchangeIds}
-          exchangeKeys={exchangeKeys}
-          onFechar={() => setCriando(false)}
-        />
-      ) : (
         <div className="flex justify-end gap-2">
           <button
             type="button"
@@ -151,16 +153,7 @@ export function ForexArbBoard({
           >
             <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Limpar Banco/Histórico
           </button>
-
-          <button
-            type="button"
-            onClick={() => setCriando(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" /> Criar Estratégia
-          </button>
         </div>
-      )}
 
       {/* Abas */}
       <div className="flex gap-2 border-b border-white/10 pb-3">
@@ -320,10 +313,24 @@ export function ForexArbBoard({
                                 : "—"}
                             </span>
                             <span>
-                              Volume:{" "}
-                              {leg.amount
-                                ? (leg.amount / 100).toFixed(2) + " Lote(s)"
-                                : "0.01 Lote"}
+                              Volume real:{" "}
+                              {(() => {
+                                const raw =
+                                  leg.volume && leg.volume > 0
+                                    ? leg.volume
+                                    : leg.amount && leg.amount > 0
+                                      ? leg.amount
+                                      : strat.positionVolume && strat.positionVolume > 0
+                                        ? strat.positionVolume
+                                        : strat.tradeSize;
+                                const l = raw >= 100000 ? (raw === 100000 ? 0.01 : raw / 100000) : raw >= 1000 ? raw / 100000 : raw <= 100 ? raw / 10000 : raw / 100;
+                                const formattedLote = l < 0.01 ? "0.01" : l.toFixed(2);
+                                return `${formattedLote} lote`;
+                              })()}
+                            </span>
+                            <span>
+                              Valor Aporte: $
+                              {(strat.tradeSize || (leg.price ? (leg.volume || leg.amount || 1000) * leg.price / 100000 : 50)).toFixed(2)} USD
                             </span>
                           </div>
                         </div>
@@ -359,14 +366,26 @@ export function ForexArbBoard({
                           ? new Date(strat.positionOpenedAt).toLocaleTimeString()
                           : "—"}
                       </div>
-                      <button
-                        type="button"
-                        disabled={isPending}
-                        onClick={() => confirmarFechar(strat)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
-                      >
-                        <Power className="h-3.5 w-3.5" aria-hidden="true" /> Encerrar Agora
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => confirmarFechar(strat)}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
+                          title="Encerrar posição enviando ordens para cTrader"
+                        >
+                          <Power className="h-3.5 w-3.5" aria-hidden="true" /> Encerrar Agora
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => confirmarVoidClose(strat)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/50 bg-slate-700/80 px-3 py-1.5 text-xs font-bold text-slate-300 transition-colors hover:bg-slate-600 hover:text-white disabled:opacity-50"
+                          title="Marcar como encerrada pela corretora (sem enviar ordens na cTrader)"
+                        >
+                          <XCircle className="h-3.5 w-3.5" aria-hidden="true" /> Encerrada pela Corretora
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -446,6 +465,10 @@ export function ForexArbBoard({
                             Order ID cTrader: #{leg.orderId}
                           </div>
                         ) : null}
+                        <div className="flex justify-between font-mono text-[10px] text-slate-400">
+                          <span>Volume: {leg.volume ?? leg.amount ?? 0}</span>
+                          <span>Valor: ${(leg.amountUsd ?? 0).toFixed(2)} USD</span>
+                        </div>
                       </div>
                     ))}
                   </div>

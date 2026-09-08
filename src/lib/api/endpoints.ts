@@ -79,8 +79,17 @@ export const API_ENDPOINTS = {
     ctraderCredentials: "api/v1/forex-arb/ctrader-credentials",
     fechar: "api/v1/forex-arb/close",
     fecharTodas: "api/v1/forex-arb/close-all",
+    voidClose: "api/v1/forex-arb/void-close",
     limparTrades: "api/v1/forex-arb/trades",
     logs: "api/v1/forex-arb/logs",
+  },
+
+  /** Arbitragem por Latência (cTrader -> MEXC). */
+  latencyArb: {
+    settings: "api/v1/latency-arb/settings",
+    trades: "api/v1/latency-arb/trades",
+    close: "api/v1/latency-arb/close",
+    logs: "api/v1/latency-arb/logs",
   },
 
   /** Arbitragem em prediction markets (Polymarket). */

@@ -25,6 +25,7 @@ import {
   deletarStrategy,
   fecharStrategy,
   voidCloseStrategy,
+  type MutacaoResult,
 } from "@/features/perp-arb/perp-arb.actions";
 import type { AtualizarStrategyInput, PerpArbStrategy } from "@/features/perp-arb/perp-arb.schema";
 
@@ -102,9 +103,12 @@ export function StrategyCard({ strategy, onEditar }: StrategyCardProps): React.R
   const dailyLossPct =
     strategy.maxDailyLoss > 0 ? (strategy.dailyLossAccum / strategy.maxDailyLoss) * 100 : 0;
 
-  const executar = (acao: () => Promise<{ ok: boolean }>): void => {
+  const executar = (acao: () => Promise<MutacaoResult>): void => {
     startTransition(async () => {
-      await acao();
+      const res = await acao();
+      if (!res.ok) {
+        alert(res.erro);
+      }
       router.refresh();
     });
   };
