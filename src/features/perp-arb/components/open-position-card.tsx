@@ -9,6 +9,7 @@ import {
   aumentarAporte,
   fecharStrategy,
   voidCloseStrategy,
+  type MutacaoResult,
 } from "@/features/perp-arb/perp-arb.actions";
 import type { PerpArbStrategy, PerpArbTrade } from "@/features/perp-arb/perp-arb.schema";
 import {
@@ -42,16 +43,32 @@ type OpenPositionCardProps = {
   liveSpotCoins: readonly LiveSpotCoin[];
 };
 
-function formatElapsed(openedAt: string): string {
-  const diff = Math.max(0, Date.now() - new Date(openedAt).getTime());
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  if (days > 0) return `${days}d ${hours % 24}h ${minutes % 60}m`;
-  if (hours > 0) return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
-  if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
-  return `${seconds}s`;
+function ElapsedBadge({ openedAt }: { openedAt: string }): React.ReactNode {
+  const [elapsedStr, setElapsedStr] = useState("");
+
+  useEffect(() => {
+    const updateElapsed = (): void => {
+      if (!openedAt) {
+        setElapsedStr("—");
+        return;
+      }
+      const diff = Math.max(0, Date.now() - new Date(openedAt).getTime());
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      if (days > 0) setElapsedStr(`${days}d ${hours % 24}h ${minutes % 60}m`);
+      else if (hours > 0) setElapsedStr(`${hours}h ${minutes % 60}m ${seconds % 60}s`);
+      else if (minutes > 0) setElapsedStr(`${minutes}m ${seconds % 60}s`);
+      else setElapsedStr(`${seconds}s`);
+    };
+
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
+    return () => clearInterval(interval);
+  }, [openedAt]);
+
+  return <span>⏱️ Aberto há {elapsedStr || "—"}</span>;
 }
 
 /** Contagem regressiva para o próximo funding (epochs de 4h). */
@@ -131,7 +148,6 @@ export function OpenPositionCard({
     .at(0);
 
   const openedAt = s.positionOpenedAt ?? (openTrade === undefined ? "" : openTrade.createdAt);
-  const elapsedStr = formatElapsed(openedAt);
 
   // Entrada FIXA da posição: prioriza o trade de abertura (preço histórico de
   // execução); senão o preço ao vivo da corretora; por último o valor gravado.
@@ -275,17 +291,25 @@ export function OpenPositionCard({
     fundingRate: h.fundingRate !== undefined ? h.fundingRate : null,
   }));
 
-  const estimatedTradingFees = positionSize * 0.0012;
+  const openSpotFee = Number(openTrade?.feeDetails?.spotOpenFee ?? (positionSize * 0.0010));
+  const openPerpFee = Number(openTrade?.feeDetails?.perpOpenFee ?? (positionSize * 0.0008));
+  const closeSpotFeeEstimate = positionSize * 0.0010;
+  const closePerpFeeEstimate = positionSize * 0.0008;
+  const estimatedTradingFees = openSpotFee + openPerpFee + closeSpotFeeEstimate + closePerpFeeEstimate;
+
   const totalUnrealizedPnL = marketPnL + fundingCollected;
   const netProfitPostFees = totalUnrealizedPnL - estimatedTradingFees;
-  const unrealizedPct = positionSize > 0 ? (totalUnrealizedPnL / positionSize) * 100 : 0;
+  const unrealizedPct = positionSize > 0 ? (netProfitPostFees / positionSize) * 100 : 0;
 
   const currentFundingVal = s.currentFundingRate;
   const currentApr = (currentFundingVal ?? 0) * 3 * 365;
 
-  const executar = (acao: () => Promise<{ ok: boolean }>): void => {
+  const executar = (acao: () => Promise<MutacaoResult>): void => {
     startTransition(async () => {
-      await acao();
+      const res = await acao();
+      if (!res.ok) {
+        alert(res.erro);
+      }
       router.refresh();
     });
   };
@@ -338,7 +362,7 @@ export function OpenPositionCard({
         </div>
         <div className="flex items-center gap-2">
           <span className="rounded-md border border-indigo-500/30 bg-indigo-500/20 px-2.5 py-1 text-xs font-bold text-indigo-300">
-            ⏱️ Aberto há {elapsedStr}
+            <ElapsedBadge openedAt={openedAt} />
           </span>
           <button
             type="button"

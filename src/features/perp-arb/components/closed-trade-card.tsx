@@ -129,14 +129,22 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
   const openTimeMs = openedAtRaw !== null ? new Date(openedAtRaw).getTime() : 0;
   const durationMs = openTimeMs > 0 ? Math.max(0, closeTime - openTimeMs) : 0;
   const durationHours = durationMs > 0 ? durationMs / 3600000 : 0;
+  const computedGrossPnl = (spotPnL ?? 0) + (perpPnL ?? 0) + fundingCollected;
+  const feesVal = trade.tradingFees ?? (amount * 0.0036);
+  const netPnlVal = trade.netPnl !== null && trade.netPnl !== undefined 
+    ? trade.netPnl 
+    : (computedGrossPnl - feesVal);
+
+  const isNetProfit = isClose && netPnlVal >= 0;
+  const netPnlPct = amount > 0 ? (netPnlVal / amount) * 100 : 0;
   const realizedApr =
-    amount > 0 && durationHours >= 0.01 ? (pnlVal / amount) * (8760 / durationHours) * 100 : null;
+    amount > 0 && durationHours >= 0.01 ? (netPnlVal / amount) * (8760 / durationHours) * 100 : null;
 
   return (
     <div
       className={`flex flex-col justify-between rounded-xl border p-5 shadow-lg ${
         isClose
-          ? isProfit
+          ? isNetProfit
             ? "border-emerald-500/40 bg-emerald-950/20"
             : "border-red-500/40 bg-red-950/20"
           : "border-indigo-500/30 bg-slate-900"
@@ -175,24 +183,24 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
           </div>
           <div
             className={`flex flex-col justify-between rounded-xl border p-3.5 ${
-              isProfit
+              isNetProfit
                 ? "border-emerald-500/40 bg-emerald-950/25"
                 : "border-red-500/40 bg-red-950/25"
             }`}
           >
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-              🏁 Valor Final
+              🏁 Valor Final Real
             </span>
             <div className="mt-1 text-xl font-black text-white sm:text-2xl">
-              ${(amount + pnlVal).toFixed(2)}{" "}
+              ${(amount + netPnlVal).toFixed(2)}{" "}
               <span className="text-xs font-normal text-slate-400">USDT</span>
             </div>
             {isClose ? (
               <div
-                className={`mt-1 text-xs font-extrabold ${isProfit ? "text-emerald-400" : "text-red-400"}`}
+                className={`mt-1 text-xs font-extrabold ${isNetProfit ? "text-emerald-400" : "text-red-400"}`}
               >
-                {isProfit ? "+" : ""}${pnlVal.toFixed(4)} ({isProfit ? "+" : ""}
-                {pnlPct.toFixed(2)}%)
+                {isNetProfit ? "+" : ""}${netPnlVal.toFixed(4)} ({isNetProfit ? "+" : ""}
+                {netPnlPct.toFixed(2)}%)
               </div>
             ) : (
               <span className="mt-1 font-mono text-xs text-slate-400">Concluído</span>
@@ -251,6 +259,24 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
             </button>
             <span className="font-mono font-bold text-cyan-300">
               +{fundingCollected.toFixed(4)} USDT
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-white/5 pt-1.5">
+            <span className="inline-flex items-center gap-1 rounded border border-amber-500/30 bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-300" title="Taxas de Corretagem (Taker Fees Spot + Perp)">
+              💸 Taxas da Corretora
+            </span>
+            <span className="font-mono font-bold text-amber-300">
+              -${(trade.tradingFees ?? (amount * 0.0036)).toFixed(4)} USDT
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-white/10 pt-2 text-xs font-black">
+            <span className="uppercase text-slate-200">
+              🎯 Lucro Líquido Real:
+            </span>
+            <span className={`font-mono ${((trade.netPnl ?? (pnlVal - (amount * 0.0036))) >= 0) ? "text-emerald-400" : "text-red-400"}`}>
+              {fmtUsd(trade.netPnl ?? (pnlVal - (amount * 0.0036)))} USDT
             </span>
           </div>
         </div>
