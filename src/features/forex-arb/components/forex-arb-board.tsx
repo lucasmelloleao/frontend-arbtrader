@@ -82,7 +82,7 @@ export function ForexArbBoard({
   useEffect(() => {
     const interval = setInterval(() => {
       router.refresh();
-    }, 1000); // Atualização a cada 1 segundo
+    }, 2000); // Atualização a cada 2 segundos
     return () => clearInterval(interval);
   }, [router]);
 
