@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { Power, Trash2, TrendingUp, X, XCircle } from "lucide-react";
+import { Plus, Power, Trash2, TrendingUp, X, XCircle } from "lucide-react";
 
+import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strategy-form";
 import {
   deletarStrategy,
   deletarTodasOperacoes,
@@ -76,6 +77,7 @@ export function ForexArbBoard({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [aba, setAba] = useState<"open" | "closed" | "opportunities">("opportunities");
+  const [criando, setCriando] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -144,16 +146,31 @@ export function ForexArbBoard({
 
   return (
     <div className="space-y-4">
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={confirmarDeletarTodas}
-            disabled={isPending}
-            className="inline-flex items-center gap-2 rounded-lg bg-red-950/40 border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-900/60 disabled:opacity-50"
-          >
-            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Limpar Banco/Histórico
-          </button>
-        </div>
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setCriando(true)}
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-500"
+        >
+          <Plus className="h-3.5 w-3.5" aria-hidden="true" /> Nova Estratégia
+        </button>
+        <button
+          type="button"
+          onClick={confirmarDeletarTodas}
+          disabled={isPending}
+          className="inline-flex items-center gap-2 rounded-lg bg-red-950/40 border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-900/60 disabled:opacity-50"
+        >
+          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Limpar Banco/Histórico
+        </button>
+      </div>
+
+      {criando ? (
+        <ForexStrategyForm
+          exchangeIds={exchangeIds}
+          exchangeKeys={exchangeKeys}
+          onFechar={() => setCriando(false)}
+        />
+      ) : null}
 
       {/* Abas */}
       <div className="flex gap-2 border-b border-white/10 pb-3">
@@ -323,14 +340,29 @@ export function ForexArbBoard({
                                       : strat.positionVolume && strat.positionVolume > 0
                                         ? strat.positionVolume
                                         : strat.tradeSize;
-                                const l = raw >= 100000 ? (raw === 100000 ? 0.01 : raw / 100000) : raw >= 1000 ? raw / 100000 : raw <= 100 ? raw / 10000 : raw / 100;
+                                const l =
+                                  raw >= 100000
+                                    ? raw === 100000
+                                      ? 0.01
+                                      : raw / 100000
+                                    : raw >= 1000
+                                      ? raw / 100000
+                                      : raw <= 100
+                                        ? raw / 10000
+                                        : raw / 100;
                                 const formattedLote = l < 0.01 ? "0.01" : l.toFixed(2);
                                 return `${formattedLote} lote`;
                               })()}
                             </span>
                             <span>
                               Valor Aporte: $
-                              {(strat.tradeSize || (leg.price ? (leg.volume || leg.amount || 1000) * leg.price / 100000 : 50)).toFixed(2)} USD
+                              {(
+                                strat.tradeSize ||
+                                (leg.price
+                                  ? ((leg.volume || leg.amount || 1000) * leg.price) / 100000
+                                  : 50)
+                              ).toFixed(2)}{" "}
+                              USD
                             </span>
                           </div>
                         </div>
@@ -383,7 +415,8 @@ export function ForexArbBoard({
                           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/50 bg-slate-700/80 px-3 py-1.5 text-xs font-bold text-slate-300 transition-colors hover:bg-slate-600 hover:text-white disabled:opacity-50"
                           title="Marcar como encerrada pela corretora (sem enviar ordens na cTrader)"
                         >
-                          <XCircle className="h-3.5 w-3.5" aria-hidden="true" /> Encerrada pela Corretora
+                          <XCircle className="h-3.5 w-3.5" aria-hidden="true" /> Encerrada pela
+                          Corretora
                         </button>
                       </div>
                     </div>

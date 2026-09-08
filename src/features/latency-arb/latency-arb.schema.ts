@@ -6,7 +6,6 @@ import {
   number,
   object,
   optional,
-  pipe,
   string,
 } from "valibot";
 
@@ -18,7 +17,7 @@ export const latencySettingsSchema = object({
   tradeSize: optional(number(), 100),
   minTriggerPips: optional(number(), 1.5),
   maxLagMs: optional(number(), 500),
-  minProfitUsd: optional(number(), 0.10),
+  minProfitUsd: optional(number(), 0.1),
   maxDailyLoss: optional(number(), 10),
   autoExecute: optional(boolean(), false),
   takeProfitPct: optional(number(), 0.5),
@@ -29,7 +28,7 @@ export const latencySettingsSchema = object({
 
 export type LatencySettings = InferOutput<typeof latencySettingsSchema>;
 
-export const latencyTradeSchema = object({
+const latencyTradeSchema = object({
   _id: string(),
   strategyName: optional(string()),
   symbol: string(),
@@ -53,3 +52,7 @@ export const latencyTradeSchema = object({
 
 export type LatencyTrade = InferOutput<typeof latencyTradeSchema>;
 export const latencyTradeListSchema = array(latencyTradeSchema);
+
+export const latencyLogsSchema = object({
+  logs: optional(array(string()), []),
+});

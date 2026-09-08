@@ -37,10 +37,7 @@ const fmtP = (valor: number): string => (valor < 0.1 ? valor.toFixed(6) : valor.
 export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): React.ReactNode {
   const [showFunding, setShowFunding] = useState(false);
   const isClose = trade.type === "close_hedge";
-  const pnlVal = trade.pnl;
-  const isProfit = isClose && pnlVal >= 0;
   const amount = trade.amount;
-  const pnlPct = amount > 0 ? (pnlVal / amount) * 100 : 0;
 
   // Trade de abertura correspondente
   const matchingOpenTrade = allTrades.find(
@@ -69,13 +66,14 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
       : fundingTrades.reduce((acc, t) => acc + t.pnl, 0);
   const fundingCount = fundingTrades.length;
 
-  // Lista de colheitas do extrato (modal): uma entrada por trade de funding
-  // acumulado no período da operação.
-  const harvests: readonly FundingHarvest[] = fundingTrades.map((t) => ({
-    amount: t.pnl,
-    timestamp: t.createdAt,
-    fundingRate: t.fundingRate,
-  }));
+  const harvests: readonly FundingHarvest[] = fundingTrades.map((t) => {
+    const item: FundingHarvest = {
+      amount: t.pnl,
+      timestamp: t.createdAt,
+      fundingRate: t.fundingRate,
+    };
+    return item;
+  });
 
   // Entrada: preço do trade de abertura (ou do próprio close quando o shape
   // legado gravava os preços de entrada no close). Saída: campos novos do
@@ -130,15 +128,15 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
   const durationMs = openTimeMs > 0 ? Math.max(0, closeTime - openTimeMs) : 0;
   const durationHours = durationMs > 0 ? durationMs / 3600000 : 0;
   const computedGrossPnl = (spotPnL ?? 0) + (perpPnL ?? 0) + fundingCollected;
-  const feesVal = trade.tradingFees ?? (amount * 0.0036);
-  const netPnlVal = trade.netPnl !== null && trade.netPnl !== undefined 
-    ? trade.netPnl 
-    : (computedGrossPnl - feesVal);
+  const feesVal = trade.tradingFees ?? amount * 0.0036;
+  const netPnlVal = trade.netPnl !== null ? trade.netPnl : computedGrossPnl - feesVal;
 
   const isNetProfit = isClose && netPnlVal >= 0;
   const netPnlPct = amount > 0 ? (netPnlVal / amount) * 100 : 0;
   const realizedApr =
-    amount > 0 && durationHours >= 0.01 ? (netPnlVal / amount) * (8760 / durationHours) * 100 : null;
+    amount > 0 && durationHours >= 0.01
+      ? (netPnlVal / amount) * (8760 / durationHours) * 100
+      : null;
 
   return (
     <div
@@ -263,20 +261,21 @@ export function ClosedTradeCard({ trade, allTrades }: ClosedTradeCardProps): Rea
           </div>
 
           <div className="flex items-center justify-between border-t border-white/5 pt-1.5">
-            <span className="inline-flex items-center gap-1 rounded border border-amber-500/30 bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-300" title="Taxas de Corretagem (Taker Fees Spot + Perp)">
+            <span
+              className="inline-flex items-center gap-1 rounded border border-amber-500/30 bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-300"
+              title="Taxas de Corretagem (Taker Fees Spot + Perp)"
+            >
               💸 Taxas da Corretora
             </span>
             <span className="font-mono font-bold text-amber-300">
-              -${(trade.tradingFees ?? (amount * 0.0036)).toFixed(4)} USDT
+              -${(trade.tradingFees ?? amount * 0.0036).toFixed(4)} USDT
             </span>
           </div>
 
           <div className="flex items-center justify-between border-t border-white/10 pt-2 text-xs font-black">
-            <span className="uppercase text-slate-200">
-              🎯 Lucro Líquido Real:
-            </span>
-            <span className={`font-mono ${((trade.netPnl ?? (pnlVal - (amount * 0.0036))) >= 0) ? "text-emerald-400" : "text-red-400"}`}>
-              {fmtUsd(trade.netPnl ?? (pnlVal - (amount * 0.0036)))} USDT
+            <span className="uppercase text-slate-200">🎯 Lucro Líquido Real:</span>
+            <span className={`font-mono ${netPnlVal >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+              {fmtUsd(netPnlVal)} USDT
             </span>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
 import {
+  latencyLogsSchema,
   latencySettingsSchema,
   latencyTradeListSchema,
   type LatencySettings,
@@ -13,10 +14,15 @@ import {
 
 export async function buscarLatencySettings(): Promise<LatencySettings | null> {
   try {
-    const res = await apiClient(kyServer, API_ENDPOINTS.latencyArb.settings, latencySettingsSchema, {
-      method: "get",
-    });
-    if (res) return res;
+    const res = await apiClient(
+      kyServer,
+      API_ENDPOINTS.latencyArb.settings,
+      latencySettingsSchema,
+      {
+        method: "get",
+      },
+    );
+    return res;
   } catch (err) {
     console.error("Erro ao buscar latency settings:", err);
   }
@@ -25,7 +31,7 @@ export async function buscarLatencySettings(): Promise<LatencySettings | null> {
     tradeSize: 100,
     minTriggerPips: 1.5,
     maxLagMs: 500,
-    minProfitUsd: 0.10,
+    minProfitUsd: 0.1,
     maxDailyLoss: 10,
     autoExecute: false,
     takeProfitPct: 0.5,
@@ -35,7 +41,9 @@ export async function buscarLatencySettings(): Promise<LatencySettings | null> {
   };
 }
 
-export async function atualizarLatencySettings(entrada: Partial<LatencySettings>): Promise<{ ok: boolean; erro?: string }> {
+export async function atualizarLatencySettings(
+  entrada: Partial<LatencySettings>,
+): Promise<{ ok: boolean; erro?: string }> {
   try {
     await apiClient(kyServer, API_ENDPOINTS.latencyArb.settings, undefined, {
       method: "post",
@@ -71,14 +79,18 @@ export async function fecharLatencyTrade(id: string): Promise<{ ok: boolean; err
   }
 }
 
-export async function buscarLatencyLogs(): Promise<{ ok: true; logs: string[] } | { ok: false; erro: string }> {
+export async function buscarLatencyLogs(): Promise<
+  { ok: true; logs: string[] } | { ok: false; erro: string }
+> {
   try {
-    const data = await apiClient(kyServer, API_ENDPOINTS.latencyArb.logs, undefined, {
+    const data = await apiClient(kyServer, API_ENDPOINTS.latencyArb.logs, latencyLogsSchema, {
       method: "get",
     });
-    const logs = (data as any)?.logs || (data as any)?.data?.logs || [];
-    return { ok: true, logs };
+    return { ok: true, logs: data.logs };
   } catch (error: unknown) {
-    return { ok: false, erro: error instanceof Error ? error.message : "Erro ao buscar logs de latência" };
+    return {
+      ok: false,
+      erro: error instanceof Error ? error.message : "Erro ao buscar logs de latência",
+    };
   }
 }

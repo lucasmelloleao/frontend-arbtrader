@@ -291,11 +291,12 @@ export function OpenPositionCard({
     fundingRate: h.fundingRate !== undefined ? h.fundingRate : null,
   }));
 
-  const openSpotFee = Number(openTrade?.feeDetails?.spotOpenFee ?? (positionSize * 0.0010));
-  const openPerpFee = Number(openTrade?.feeDetails?.perpOpenFee ?? (positionSize * 0.0008));
-  const closeSpotFeeEstimate = positionSize * 0.0010;
+  const openSpotFee = openTrade?.feeDetails?.spotOpenFee ?? positionSize * 0.001;
+  const openPerpFee = openTrade?.feeDetails?.perpOpenFee ?? positionSize * 0.0008;
+  const closeSpotFeeEstimate = positionSize * 0.001;
   const closePerpFeeEstimate = positionSize * 0.0008;
-  const estimatedTradingFees = openSpotFee + openPerpFee + closeSpotFeeEstimate + closePerpFeeEstimate;
+  const estimatedTradingFees =
+    openSpotFee + openPerpFee + closeSpotFeeEstimate + closePerpFeeEstimate;
 
   const totalUnrealizedPnL = marketPnL + fundingCollected;
   const netProfitPostFees = totalUnrealizedPnL - estimatedTradingFees;

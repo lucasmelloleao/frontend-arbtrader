@@ -50,3 +50,4 @@ srcantigo/
 # Sem aspas: em .gitignore aspas são literais e o padrão não casa.
 $COMMANDCODE_SCRATCHPAD/
 .vercel
+tooling/oxlint-rules/index.js

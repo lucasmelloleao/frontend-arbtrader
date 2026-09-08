@@ -1,14 +1,14 @@
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { LatencyArbDashboard } from "@/features/latency-arb/components/latency-arb-dashboard";
-import { buscarLatencySettings, buscarLatencyTrades } from "@/features/latency-arb/latency-arb.actions";
+import {
+  buscarLatencySettings,
+  buscarLatencyTrades,
+} from "@/features/latency-arb/latency-arb.actions";
 
 async function LatencyArbCarregado(): Promise<React.ReactNode> {
   await cookies();
-  const [settings, trades] = await Promise.all([
-    buscarLatencySettings(),
-    buscarLatencyTrades(),
-  ]);
+  const [settings, trades] = await Promise.all([buscarLatencySettings(), buscarLatencyTrades()]);
 
   return <LatencyArbDashboard settings={settings} trades={trades} />;
 }

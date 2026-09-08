@@ -4,6 +4,7 @@
     "src/app/**/*.{ts,tsx}",
     "tooling/agent-hooks/*.ts",
     "tooling/*.ts",
+    "tooling/oxlint-rules/index.ts",
     "integracoes/coderabbit/cr-comments.ts"
   ],
   "project": ["src/**/*.{ts,tsx}", "src/**/*.css", "tooling/**/*.ts", "test/**/*.ts", "*.{ts,mjs}"],

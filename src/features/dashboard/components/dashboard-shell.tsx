@@ -50,7 +50,12 @@ const LINKS: readonly SidebarLink[] = [
   },
   { href: "/dashboard/exchanges", label: "Exchange", icon: Wallet, habilitado: true },
   { href: "/dashboard/forex-arb", label: "Scalping Forex", icon: Globe, habilitado: true },
-  { href: "/dashboard/latency-arb", label: "Latency Arb (cTrader -> MEXC)", icon: Timer, habilitado: true },
+  {
+    href: "/dashboard/latency-arb",
+    label: "Latency Arb (cTrader -> MEXC)",
+    icon: Timer,
+    habilitado: true,
+  },
   { href: "/dashboard/hyperliquid", label: "Hyperliquid Arb", icon: Waves, habilitado: false },
   {
     href: "/dashboard/hyperliquid-mm",

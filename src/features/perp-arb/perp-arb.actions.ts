@@ -63,23 +63,8 @@ export async function buscarPortfolioLive(): Promise<PortfolioLiveResult> {
     return {
       ok: true,
       dados: {
-        positions: data.positions.map((p) => ({
-          symbol: p.symbol,
-          entryPrice: p.entryPrice,
-          markPrice: p.markPrice,
-          bidPrice: p.bidPrice,
-          askPrice: p.askPrice,
-          liquidationPrice: p.liquidationPrice,
-          leverage: p.leverage,
-          unrealizedPnl: p.unrealizedPnl,
-          spotSymbol: p.spotSymbol,
-        })),
-        spotCoins: data.spotCoins.map((c) => ({
-          asset: c.asset,
-          price: c.price,
-          bidPrice: c.bidPrice,
-          askPrice: c.askPrice,
-        })),
+        positions: data.positions,
+        spotCoins: data.spotCoins,
       },
     };
   } catch (error: unknown) {
