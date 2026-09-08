@@ -418,9 +418,9 @@ export function ForexArbBoard({
                           <span className="block text-[9px] text-slate-500">Pico Máximo</span>
                           <span className="font-bold text-emerald-400">
                             +$
-                            {strat.peakProfitUsd > 0
-                              ? strat.peakProfitUsd.toFixed(2)
-                              : Math.max(0, strat.pnl).toFixed(2)}
+                            {Math.max(strat.peakProfitUsd, strat.pnl > 0 ? strat.pnl : 0).toFixed(
+                              2,
+                            )}
                           </span>
                         </div>
                         <div>
