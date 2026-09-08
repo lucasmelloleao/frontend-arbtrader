@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { Activity, ArrowUpRight, Lock, Plus, Power, ShieldCheck, Trash2, TrendingUp, X, XCircle } from "lucide-react";
+import { Activity, Lock, Plus, Power, Trash2, TrendingUp, X, XCircle } from "lucide-react";
 
 import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strategy-form";
 import {
@@ -382,19 +382,22 @@ export function ForexArbBoard({
                           <div className="flex items-center gap-1.5">
                             {strat.trailingActive ? (
                               <span className="flex h-2 w-2 relative">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                               </span>
                             ) : (
                               <Activity className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
                             )}
                             <span className="font-mono uppercase tracking-wider text-[11px]">
-                              {strat.trailingActive ? "Trailing Stop Ativado" : "Monitoramento Ativo"}
+                              {strat.trailingActive
+                                ? "Trailing Stop Ativado"
+                                : "Monitoramento Ativo"}
                             </span>
                           </div>
                           {strat.trailingActive ? (
                             <span className="inline-flex items-center gap-1 rounded bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-emerald-300 border border-emerald-500/30">
-                              <Lock className="h-3 w-3" /> PISO TRAVADO: +${strat.trailingFloorUsd.toFixed(2)} USD
+                              <Lock className="h-3 w-3" /> PISO TRAVADO: +$
+                              {strat.trailingFloorUsd.toFixed(2)} USD
                             </span>
                           ) : (
                             <span className="font-mono text-[10px] text-slate-400">
@@ -403,7 +406,10 @@ export function ForexArbBoard({
                           )}
                         </div>
                         <div className="mt-1 text-[11px] font-mono text-slate-300">
-                          {strat.currentAction || (strat.trailingActive ? "Protegendo lucro e acompanhando subida do preço" : "Aguardando gatilho de trailing")}
+                          {strat.currentAction ||
+                            (strat.trailingActive
+                              ? "Protegendo lucro e acompanhando subida do preço"
+                              : "Aguardando gatilho de trailing")}
                         </div>
                       </div>
 
@@ -411,19 +417,30 @@ export function ForexArbBoard({
                         <div>
                           <span className="block text-[9px] text-slate-500">Pico Máximo</span>
                           <span className="font-bold text-emerald-400">
-                            +${strat.peakProfitUsd > 0 ? strat.peakProfitUsd.toFixed(2) : ((strat.peakProfitPct / 100) * (strat.tradeSize || 50)).toFixed(2)}
+                            +$
+                            {strat.peakProfitUsd > 0
+                              ? strat.peakProfitUsd.toFixed(2)
+                              : ((strat.peakProfitPct / 100) * (strat.tradeSize || 50)).toFixed(2)}
                           </span>
                         </div>
                         <div>
                           <span className="block text-[9px] text-slate-500">Piso de Saída</span>
-                          <span className={`font-bold ${strat.trailingActive ? "text-emerald-300" : "text-slate-500"}`}>
+                          <span
+                            className={`font-bold ${strat.trailingActive ? "text-emerald-300" : "text-slate-500"}`}
+                          >
                             {strat.trailingActive ? `+$${strat.trailingFloorUsd.toFixed(2)}` : "—"}
                           </span>
                         </div>
                         <div>
                           <span className="block text-[9px] text-slate-500">Preço Fechamento</span>
-                          <span className={`font-bold ${strat.trailingFloorPrice ? "text-amber-300" : "text-slate-500"}`}>
-                            {strat.trailingFloorPrice ? strat.trailingFloorPrice.toFixed(4) : (strat.trailingActive ? `+$${strat.trailingFloorUsd.toFixed(2)}` : "—")}
+                          <span
+                            className={`font-bold ${strat.trailingFloorPrice ? "text-amber-300" : "text-slate-500"}`}
+                          >
+                            {strat.trailingFloorPrice
+                              ? strat.trailingFloorPrice.toFixed(4)
+                              : strat.trailingActive
+                                ? `+$${strat.trailingFloorUsd.toFixed(2)}`
+                                : "—"}
                           </span>
                         </div>
                         <div>
