@@ -76,7 +76,7 @@ export function ForexArbBoard({
 }: ForexArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [aba, setAba] = useState<"open" | "closed" | "opportunities">("opportunities");
+  const [aba, setAba] = useState<"open" | "closed" | "opportunities">("open");
   const [criando, setCriando] = useState(false);
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export function ForexArbBoard({
   }, [router]);
 
   const abertas = strategies.filter((s) => s.positionOpen);
-  const encerradas = trades.filter((t) => t.type === "close" && t.status === "executed");
+  const encerradas = trades.filter((t) => t.type !== "opportunity_found");
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
     startTransition(async () => {
@@ -292,7 +292,7 @@ export function ForexArbBoard({
                     const sym = primaryLeg.symbol;
                     const isGoldPair = sym.includes("XAU");
                     const isJpyPair = sym.includes("JPY");
-                    const units =
+                    const rawUnits =
                       primaryLeg.amount && primaryLeg.amount > 0
                         ? primaryLeg.amount
                         : primaryLeg.volume && primaryLeg.volume > 0
@@ -301,12 +301,20 @@ export function ForexArbBoard({
                             ? strat.positionVolume
                             : strat.tradeSize || 1000;
 
+                    const lotesReais = isGoldPair
+                      ? rawUnits
+                      : rawUnits >= 1000
+                        ? rawUnits / 100000
+                        : rawUnits;
+                    const numLotes001 = Math.max(1, Math.round(lotesReais / 0.01));
+                    const comm = (isGoldPair ? 0.08 : 0.06) * numLotes001;
+
                     if (isGoldPair) {
-                      livePnl = diff * units;
+                      livePnl = diff * rawUnits - comm;
                     } else if (isJpyPair && currentPrice > 0) {
-                      livePnl = (diff * units) / currentPrice;
+                      livePnl = (diff * rawUnits) / currentPrice - comm;
                     } else {
-                      livePnl = diff * units;
+                      livePnl = diff * rawUnits - comm;
                     }
                   }
                 }
@@ -594,11 +602,35 @@ export function ForexArbBoard({
                       >
                         {isLucro ? "+" : ""}${trade.realizedPnl.toFixed(2)} USD
                       </div>
-                      {trade.commission ? (
-                        <div className="font-mono text-[10px] font-semibold text-rose-300/80">
-                          Taxa/Comissão: -${Math.abs(trade.commission).toFixed(2)} USD
-                        </div>
-                      ) : null}
+                      <div className="font-mono text-[10px] font-bold text-slate-400">
+                        P&L Líquido Real
+                      </div>
+                      <div className="font-mono text-[10px] font-semibold text-rose-300/90 mt-0.5">
+                        {(() => {
+                          const primaryLeg = trade.legs[0];
+                          const sym = primaryLeg.symbol || "";
+                          const isGold = sym.includes("XAU");
+                          const vol =
+                            primaryLeg.amount ||
+                            primaryLeg.volume ||
+                            trade.amount ||
+                            trade.volume ||
+                            1000;
+                          const lotesReais = isGold
+                            ? vol >= 100
+                              ? vol / 100
+                              : vol * 0.01
+                            : vol >= 1000
+                              ? vol / 100000
+                              : vol;
+                          const numLotes001 = Math.max(1, Math.round(lotesReais / 0.01));
+                          const commReal =
+                            trade.commission && Math.abs(trade.commission) > 0
+                              ? Math.abs(trade.commission)
+                              : (isGold ? 0.08 : 0.06) * numLotes001;
+                          return `Comissões (Entrada+Saída): -$${commReal.toFixed(2)} USD`;
+                        })()}
+                      </div>
                     </div>
                   </div>
 
@@ -608,15 +640,33 @@ export function ForexArbBoard({
                         key={`${leg.side}-${leg.symbol}`}
                         className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-1">
                           <LegBadge leg={leg} />
-                          <span className="font-mono text-slate-300">
-                            Preço: {leg.price || "—"}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-2 font-mono text-slate-300">
+                            <span>
+                              Entrada:{" "}
+                              <strong className="text-slate-200">
+                                {leg.entryPrice ?? leg.price ?? "—"}
+                              </strong>
+                            </span>
+                            {leg.closePrice ? (
+                              <span className="text-emerald-300 font-extrabold bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                                Fechamento: {leg.closePrice}
+                              </span>
+                            ) : (
+                              <span>
+                                Executado:{" "}
+                                <strong className="text-amber-200">{leg.price ?? "—"}</strong>
+                              </span>
+                            )}
+                          </div>
                         </div>
                         {leg.orderId ? (
                           <div className="font-mono text-[10px] text-slate-500">
-                            Order ID cTrader: #{leg.orderId}
+                            Order ID cTrader:{" "}
+                            {leg.orderId.startsWith("#") || leg.orderId.startsWith("Order")
+                              ? leg.orderId
+                              : `#${leg.orderId}`}
                           </div>
                         ) : null}
                         <div className="flex justify-between font-mono text-[10px] text-slate-400">

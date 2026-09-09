@@ -58,7 +58,7 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
   const exchangeIds = exchangesData.map((e) => e.exchangeId);
 
   const abertas = strategiesData.filter((s) => s.positionOpen);
-  const encerradas = tradesData.filter((t) => t.type === "close" && t.status === "executed");
+  const encerradas = tradesData.filter((t) => t.type !== "opportunity_found");
   const totalPnl = encerradas.reduce((acc, t) => acc + t.realizedPnl, 0);
   const melhorOportunidade = opportunitiesData.reduce<ForexArbTrade | null>((melhor, atual) => {
     if (melhor === null || atual.expectedProfitPct > melhor.expectedProfitPct) {
