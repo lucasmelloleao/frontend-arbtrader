@@ -325,7 +325,9 @@ export function ForexArbBoard({
                               </span>
                               {(() => {
                                 const current =
-                                  strat.currentPrice ?? strat.lastLegPrices[leg.symbol];
+                                  leg.currentPrice ??
+                                  strat.currentPrice ??
+                                  strat.lastLegPrices[leg.symbol];
                                 return (
                                   <span className="text-amber-300 font-extrabold bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
                                     Preço Atual: {current ? current : "Obtendo cotação..."}

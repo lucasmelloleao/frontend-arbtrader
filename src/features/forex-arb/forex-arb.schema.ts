@@ -25,6 +25,7 @@ const forexLegSchema = object({
   symbol: string(),
   side: string(),
   price: nullable(number()),
+  currentPrice: optional(nullable(number())),
   amount: optional(nullable(number())),
   volume: optional(nullable(number())),
   amountUsd: optional(nullable(number())),
