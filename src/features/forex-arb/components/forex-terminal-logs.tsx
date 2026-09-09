@@ -11,6 +11,8 @@ const ANSI_ESCAPE = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*[mK]`, "g");
 
 function getBotLabel(bot: string): string {
   switch (bot) {
+    case "forex-scalper":
+      return "Scalper HFT / Trailing";
     case "forex-scalp-scanner":
       return "Scalp Scanner";
     case "forex-scalp-executor":
@@ -30,8 +32,8 @@ function getBotLabel(bot: string): string {
 export function ForexTerminalLogs(): React.ReactNode {
   const [showLogs, setShowLogs] = useState(false);
   const [selectedBot, setSelectedBot] = useState<
-    "forex-scalp-executor" | "forex-scalp-scanner" | "forex-arb" | "forex-scanner"
-  >("forex-scalp-executor");
+    "forex-scalper" | "forex-scalp-executor" | "forex-scalp-scanner" | "forex-arb" | "forex-scanner"
+  >("forex-scalper");
   const [logs, setLogs] = useState<{ id: number; texto: string }[]>([]);
   const nextLogId = useRef(0);
   const [loading, setLoading] = useState(false);
@@ -145,7 +147,7 @@ export function ForexTerminalLogs(): React.ReactNode {
         {showLogs ? (
           <div className="flex items-center gap-2">
             {(
-              ["forex-scalp-executor", "forex-scalp-scanner", "forex-arb", "forex-scanner"] as const
+              ["forex-scalper", "forex-scalp-scanner", "forex-scalp-executor", "forex-arb", "forex-scanner"] as const
             ).map((bot) => (
               <button
                 key={bot}
