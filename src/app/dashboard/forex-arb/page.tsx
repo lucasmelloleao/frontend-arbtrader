@@ -1,4 +1,3 @@
-
 import { Suspense } from "react";
 
 import { Globe } from "lucide-react";
