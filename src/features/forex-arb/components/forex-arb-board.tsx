@@ -267,8 +267,50 @@ export function ForexArbBoard({
               </div>
             ) : (
               abertas.map((strat) => {
-                const livePnl = strat.pnl || 0;
-                const livePct = strat.pnlPct || 0;
+                const primaryLeg = strat.legs[0];
+                const currentPrice =
+                  primaryLeg.currentPrice ??
+                  strat.currentPrice ??
+                  strat.lastLegPrices[primaryLeg.symbol];
+
+                let livePnl = strat.pnl || 0;
+                let livePct = strat.pnlPct || 0;
+
+                // Se temos o preço atual e o preço de entrada da perna, calcula matematicamente em tempo real
+                if (currentPrice && primaryLeg.price && primaryLeg.price > 0) {
+                  const sideUpper = (primaryLeg.side || "BUY").toUpperCase();
+                  const diff =
+                    sideUpper === "BUY"
+                      ? currentPrice - primaryLeg.price
+                      : primaryLeg.price - currentPrice;
+                  const calculatedPct = (diff / primaryLeg.price) * 100;
+                  if (!livePct || livePct === 0) {
+                    livePct = calculatedPct;
+                  }
+
+                  if (livePnl === 0) {
+                    const sym = primaryLeg.symbol;
+                    const isGoldPair = sym.includes("XAU");
+                    const isJpyPair = sym.includes("JPY");
+                    const units =
+                      primaryLeg.amount && primaryLeg.amount > 0
+                        ? primaryLeg.amount
+                        : primaryLeg.volume && primaryLeg.volume > 0
+                          ? primaryLeg.volume
+                          : strat.positionVolume && strat.positionVolume > 0
+                            ? strat.positionVolume
+                            : strat.tradeSize || 1000;
+
+                    if (isGoldPair) {
+                      livePnl = diff * units;
+                    } else if (isJpyPair && currentPrice > 0) {
+                      livePnl = (diff * units) / currentPrice;
+                    } else {
+                      livePnl = diff * units;
+                    }
+                  }
+                }
+
                 const isLucro = livePnl >= 0;
 
                 return (
