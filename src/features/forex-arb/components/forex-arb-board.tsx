@@ -321,7 +321,7 @@ export function ForexArbBoard({
                                 Entrada: <strong className="text-slate-200">{leg.price ? leg.price : "—"}</strong>
                               </span>
                               {(() => {
-                                const current = strat.currentPrice ?? strat.lastLegPrices?.[leg.symbol];
+                                const current = strat.currentPrice ?? strat.lastLegPrices[leg.symbol];
                                 if (!current) return null;
                                 return (
                                   <span className="text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
