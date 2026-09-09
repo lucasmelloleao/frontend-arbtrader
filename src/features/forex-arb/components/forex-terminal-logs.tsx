@@ -147,7 +147,13 @@ export function ForexTerminalLogs(): React.ReactNode {
         {showLogs ? (
           <div className="flex items-center gap-2">
             {(
-              ["forex-scalper", "forex-scalp-scanner", "forex-scalp-executor", "forex-arb", "forex-scanner"] as const
+              [
+                "forex-scalper",
+                "forex-scalp-scanner",
+                "forex-scalp-executor",
+                "forex-arb",
+                "forex-scanner",
+              ] as const
             ).map((bot) => (
               <button
                 key={bot}
