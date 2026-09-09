@@ -316,9 +316,20 @@ export function ForexArbBoard({
                         >
                           <div className="flex items-center justify-between">
                             <LegBadge leg={leg} />
-                            <span className="font-mono text-xs font-bold text-slate-300">
-                              Preço Entrada: {leg.price ? leg.price : "—"}
-                            </span>
+                            <div className="flex items-center gap-3 font-mono text-xs">
+                              <span className="text-slate-400">
+                                Entrada: <strong className="text-slate-200">{leg.price ? leg.price : "—"}</strong>
+                              </span>
+                              {(() => {
+                                const current = strat.currentPrice || (strat.lastLegPrices as any)?.[leg.symbol];
+                                if (!current) return null;
+                                return (
+                                  <span className="text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                    Atual: {current}
+                                  </span>
+                                );
+                              })()}
+                            </div>
                           </div>
                           <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
                             <span>
