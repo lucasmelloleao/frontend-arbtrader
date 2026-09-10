@@ -86,6 +86,35 @@ export function ForexSettingsPanel({
     atualizar("allowedExchanges", proximo);
   };
 
+  const pares = ["EUR/USD", "GBP/USD", "USD/JPY", "XAU/USD"] as const;
+
+  // Exibe o perfil por par. Segue esta prioridade:
+  // 1) Em edição: valor local do form (reflete o que o usuário está editando agora).
+  // 2) Fora de edição: perfil efetivo resolvido pelo backend (defaults + override),
+  //    para mostrar o valor real que o robô utiliza, nunca "padrão" vazio.
+  // 3) Fallback: override cru do banco.
+  const perfilPar = (sym: string): Record<string, unknown> => {
+    const local = form?.symbolProfiles?.[sym];
+    if (editando && local && Object.keys(local).length > 0) return local as Record<string, unknown>;
+    const resolved = atuais.resolvedSymbolProfiles?.[sym];
+    if (resolved && Object.keys(resolved).length > 0) return resolved as Record<string, unknown>;
+    return (formAtual.symbolProfiles?.[sym] ?? {}) as Record<string, unknown>;
+  };
+
+  const atualizarPar = (sym: string, campo: string, valor: unknown): void => {
+    const atual = (form?.symbolProfiles ?? atuais.symbolProfiles ?? {}) as Record<
+      string,
+      Record<string, unknown>
+    >;
+    const perfil = { ...(atual[sym] ?? {}) } as Record<string, unknown>;
+    if (valor === undefined || valor === null) {
+      delete perfil[campo];
+    } else {
+      perfil[campo] = valor;
+    }
+    atualizar("symbolProfiles", { ...atual, [sym]: perfil });
+  };
+
   const formAtual = form ?? atuais;
 
   return (
@@ -106,7 +135,10 @@ export function ForexSettingsPanel({
             <button
               type="button"
               onClick={() => {
-                setForm(atuais);
+                // Inicia a edição a partir dos perfis efetivos (defaults + override),
+                // para o usuário ver os valores reais que o robô utiliza.
+                const base = atuais.resolvedSymbolProfiles ?? atuais.symbolProfiles ?? {};
+                setForm({ ...atuais, symbolProfiles: { ...base } });
                 setEditando(true);
               }}
               className="rounded-lg border border-indigo-500/40 bg-indigo-600/20 px-3 py-2 text-xs font-bold text-indigo-300 transition-colors hover:bg-indigo-600 hover:text-white"
@@ -305,6 +337,135 @@ export function ForexSettingsPanel({
                   Simples
                 </label>
               </div>
+            </div>
+          </div>
+
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <span className="mb-3 block text-xs text-slate-400">
+              Configurações por Par (scalping)
+            </span>
+            <div className="space-y-3">
+              {pares.map((sym) => {
+                const p = perfilPar(sym);
+                const ativo = p.enabled !== false;
+                return (
+                  <div
+                    key={sym}
+                    className="rounded-lg border border-white/10 bg-slate-900/50 p-3"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-sm font-bold text-white">{sym}</span>
+                      <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={ativo}
+                          onChange={(e) => atualizarPar(sym, "enabled", e.target.checked)}
+                          className="rounded border-slate-600 bg-slate-800"
+                        />
+                        Ativo
+                      </label>
+                    </div>
+                    {ativo ? (
+                      <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
+                        <div>
+                          <label className="mb-1 block text-slate-500">TP (%)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={(p.takeProfitPct as number) ?? ""}
+                            placeholder="padrão"
+                            onChange={(e) =>
+                              atualizarPar(sym, "takeProfitPct", e.target.value === "" ? null : Number(e.target.value))
+                            }
+                            className="w-full rounded border border-emerald-500/30 bg-slate-900 px-2 py-1 text-emerald-400"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-slate-500">SL (%)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={(p.stopLossPct as number) ?? ""}
+                            placeholder="padrão"
+                            onChange={(e) =>
+                              atualizarPar(sym, "stopLossPct", e.target.value === "" ? null : Number(e.target.value))
+                            }
+                            className="w-full rounded border border-rose-500/30 bg-slate-900 px-2 py-1 text-rose-400"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-slate-500">Trailing Ativa (US$)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={(p.trailingActivationUsd as number) ?? ""}
+                            placeholder="padrão"
+                            onChange={(e) =>
+                              atualizarPar(sym, "trailingActivationUsd", e.target.value === "" ? null : Number(e.target.value))
+                            }
+                            className="w-full rounded border border-cyan-500/30 bg-slate-900 px-2 py-1 text-cyan-400"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-slate-500">Trailing Dist. (US$)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={(p.trailingDistanceUsd as number) ?? ""}
+                            placeholder="padrão"
+                            onChange={(e) =>
+                              atualizarPar(sym, "trailingDistanceUsd", e.target.value === "" ? null : Number(e.target.value))
+                            }
+                            className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-slate-500">Lote (unid.)</label>
+                          <input
+                            type="number"
+                            step="100"
+                            min="1"
+                            value={(p.defaultTradeSize as number) ?? ""}
+                            placeholder="padrão"
+                            onChange={(e) =>
+                              atualizarPar(sym, "defaultTradeSize", e.target.value === "" ? null : Number(e.target.value))
+                            }
+                            className="w-full rounded border border-amber-500/30 bg-slate-900 px-2 py-1 text-amber-300 font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-slate-500">Spread Máx (%)</label>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={(p.maxSpreadPct as number) ?? ""}
+                            placeholder="padrão"
+                            onChange={(e) =>
+                              atualizarPar(sym, "maxSpreadPct", e.target.value === "" ? null : Number(e.target.value))
+                            }
+                            className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-slate-500">Exigir M5</label>
+                          <select
+                            value={p.requireM5Trend === false ? "false" : "true"}
+                            onChange={(e) => atualizarPar(sym, "requireM5Trend", e.target.value === "true")}
+                            className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
+                          >
+                            <option value="true">Sim</option>
+                            <option value="false">Não</option>
+                          </select>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs italic text-slate-600">
+                        Par desativado — não abrirá novas posições.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

@@ -13,11 +13,16 @@ import {
   fecharTodasPosicoes,
   voidClosePosicao,
 } from "@/features/forex-arb/forex-arb.actions";
-import type {
-  ForexArbLeg,
-  ForexArbStrategy,
-  ForexArbTrade,
+import {
+  forexArbLivePricesSchema,
+  type ForexArbLeg,
+  type ForexArbLivePrices,
+  type ForexArbStrategy,
+  type ForexArbTrade,
 } from "@/features/forex-arb/forex-arb.schema";
+import { apiClient } from "@/lib/api/client";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import { kyClient } from "@/lib/api/ky.client";
 
 type ForexArbBoardProps = {
   strategies: readonly ForexArbStrategy[];
@@ -32,7 +37,13 @@ type ForexArbBoardProps = {
 const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(3)}%`;
 
 /** Badge de uma perna da arbitragem (COMPRA/VENDA). */
-function LegBadge({ leg }: { leg: ForexArbLeg }): React.ReactNode {
+function LegBadge({
+  leg,
+  showPrice = true,
+}: {
+  leg: ForexArbLeg;
+  showPrice?: boolean;
+}): React.ReactNode {
   const ehCompra = leg.side === "buy";
   return (
     <span
@@ -43,7 +54,9 @@ function LegBadge({ leg }: { leg: ForexArbLeg }): React.ReactNode {
       }`}
     >
       {ehCompra ? "COMPRA" : "VENDA"} {leg.symbol}
-      {leg.price !== null ? <span className="font-mono text-slate-400">@{leg.price}</span> : null}
+      {showPrice && leg.price !== null ? (
+        <span className="font-mono text-slate-400">@{leg.price}</span>
+      ) : null}
     </span>
   );
 }
@@ -78,6 +91,7 @@ export function ForexArbBoard({
   const [isPending, startTransition] = useTransition();
   const [aba, setAba] = useState<"open" | "closed" | "opportunities">("open");
   const [criando, setCriando] = useState(false);
+  const [livePrices, setLivePrices] = useState<ForexArbLivePrices>({});
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -86,8 +100,30 @@ export function ForexArbBoard({
     return () => clearInterval(interval);
   }, [router]);
 
+  useEffect(() => {
+    let ativo = true;
+    const buscar = async () => {
+      try {
+        const data = await apiClient(
+          kyClient,
+          API_ENDPOINTS.forexArb.livePrices,
+          forexArbLivePricesSchema,
+        );
+        if (ativo) setLivePrices(data);
+      } catch {
+        // Sem conexão/preço: mantém o último valor e tenta de novo.
+      }
+    };
+    buscar();
+    const interval = setInterval(buscar, 1000);
+    return () => {
+      ativo = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   const abertas = strategies.filter((s) => s.positionOpen);
-  const encerradas = trades.filter((t) => t.type !== "opportunity_found");
+  const encerradas = trades.filter((t) => t.type === "close");
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
     startTransition(async () => {
@@ -268,13 +304,38 @@ export function ForexArbBoard({
             ) : (
               abertas.map((strat) => {
                 const primaryLeg = strat.legs[0];
+                const liveMid = livePrices[primaryLeg.symbol]?.mid;
                 const currentPrice =
+                  liveMid ??
                   primaryLeg.currentPrice ??
                   strat.currentPrice ??
                   strat.lastLegPrices[primaryLeg.symbol];
 
                 let livePnl = strat.pnl || 0;
                 let livePct = strat.pnlPct || 0;
+
+                const sym = primaryLeg.symbol;
+                const isGoldPair = sym.includes("XAU");
+                const isJpyPair = sym.includes("JPY");
+                const rawUnits =
+                  primaryLeg.amount && primaryLeg.amount > 0
+                    ? primaryLeg.amount
+                    : primaryLeg.volume && primaryLeg.volume > 0
+                      ? primaryLeg.volume
+                      : strat.positionVolume && strat.positionVolume > 0
+                        ? strat.positionVolume
+                        : strat.tradeSize || 1000;
+
+                // Comissão estimada por lote (mesma regra do backend).
+                const lotesReais = isGoldPair
+                  ? rawUnits >= 100
+                    ? rawUnits / 100
+                    : rawUnits * 0.01
+                  : rawUnits >= 1000
+                    ? rawUnits / 100000
+                    : rawUnits;
+                const numLotes001 = Math.max(1, Math.round(lotesReais / 0.01));
+                const comm = (isGoldPair ? 0.08 : 0.06) * numLotes001;
 
                 // Se temos o preço atual e o preço de entrada da perna, calcula matematicamente em tempo real
                 if (currentPrice && primaryLeg.price && primaryLeg.price > 0) {
@@ -284,37 +345,26 @@ export function ForexArbBoard({
                       ? currentPrice - primaryLeg.price
                       : primaryLeg.price - currentPrice;
                   const calculatedPct = (diff / primaryLeg.price) * 100;
-                  if (!livePct || livePct === 0) {
-                    livePct = calculatedPct;
+
+                  let grossPnl: number | null = null;
+                  if (isGoldPair) {
+                    grossPnl = diff * rawUnits;
+                  } else if (isJpyPair && currentPrice > 0) {
+                    grossPnl = (diff * rawUnits) / currentPrice;
+                  } else {
+                    grossPnl = diff * rawUnits;
                   }
 
-                  if (livePnl === 0) {
-                    const sym = primaryLeg.symbol;
-                    const isGoldPair = sym.includes("XAU");
-                    const isJpyPair = sym.includes("JPY");
-                    const rawUnits =
-                      primaryLeg.amount && primaryLeg.amount > 0
-                        ? primaryLeg.amount
-                        : primaryLeg.volume && primaryLeg.volume > 0
-                          ? primaryLeg.volume
-                          : strat.positionVolume && strat.positionVolume > 0
-                            ? strat.positionVolume
-                            : strat.tradeSize || 1000;
-
-                    const lotesReais = isGoldPair
-                      ? rawUnits
-                      : rawUnits >= 1000
-                        ? rawUnits / 100000
-                        : rawUnits;
-                    const numLotes001 = Math.max(1, Math.round(lotesReais / 0.01));
-                    const comm = (isGoldPair ? 0.08 : 0.06) * numLotes001;
-
-                    if (isGoldPair) {
-                      livePnl = diff * rawUnits - comm;
-                    } else if (isJpyPair && currentPrice > 0) {
-                      livePnl = (diff * rawUnits) / currentPrice - comm;
-                    } else {
-                      livePnl = diff * rawUnits - comm;
+                  // Com preço ao vivo, recalcula sempre para acompanhar o tick.
+                  if (liveMid) {
+                    livePnl = grossPnl - comm;
+                    livePct = calculatedPct;
+                  } else {
+                    if (!livePct || livePct === 0) {
+                      livePct = calculatedPct;
+                    }
+                    if (livePnl === 0) {
+                      livePnl = grossPnl - comm;
                     }
                   }
                 }
@@ -365,7 +415,7 @@ export function ForexArbBoard({
                           className="rounded-lg border border-white/5 bg-slate-900/60 p-2.5 space-y-1"
                         >
                           <div className="flex items-center justify-between">
-                            <LegBadge leg={leg} />
+                            <LegBadge leg={leg} showPrice={false} />
                             <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
                               <span className="text-slate-400">
                                 Entrada:{" "}
@@ -375,12 +425,17 @@ export function ForexArbBoard({
                               </span>
                               {(() => {
                                 const current =
+                                  livePrices[leg.symbol]?.mid ??
                                   leg.currentPrice ??
                                   strat.currentPrice ??
                                   strat.lastLegPrices[leg.symbol];
+                                const currentFormatted =
+                                  typeof current === "number"
+                                    ? current.toFixed(5)
+                                    : current;
                                 return (
                                   <span className="text-amber-300 font-extrabold bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
-                                    Preço Atual: {current ? current : "Obtendo cotação..."}
+                                    Preço Atual: {currentFormatted ?? "Obtendo cotação..."}
                                   </span>
                                 );
                               })()}
@@ -419,16 +474,6 @@ export function ForexArbBoard({
                                 const formattedLote = l < 0.01 ? "0.01" : l.toFixed(2);
                                 return `${formattedLote} lote`;
                               })()}
-                            </span>
-                            <span>
-                              Valor Aporte: $
-                              {(
-                                strat.tradeSize ||
-                                (leg.price
-                                  ? ((leg.volume || leg.amount || 1000) * leg.price) / 100000
-                                  : 50)
-                              ).toFixed(2)}{" "}
-                              USD
                             </span>
                           </div>
                         </div>
@@ -635,28 +680,24 @@ export function ForexArbBoard({
                   </div>
 
                   <div className="mb-3 space-y-1.5">
-                    {trade.legs.map((leg) => (
+                    {trade.legs.map((leg, idx) => (
                       <div
-                        key={`${leg.side}-${leg.symbol}`}
+                        key={`${leg.side}-${leg.symbol}-${idx}`}
                         className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-1">
-                          <LegBadge leg={leg} />
+                          <LegBadge leg={leg} showPrice={false} />
                           <div className="flex flex-wrap items-center gap-2 font-mono text-slate-300">
-                            <span>
-                              Entrada:{" "}
-                              <strong className="text-slate-200">
-                                {leg.entryPrice ?? leg.price ?? "—"}
-                              </strong>
-                            </span>
-                            {leg.closePrice ? (
-                              <span className="text-emerald-300 font-extrabold bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                                Fechamento: {leg.closePrice}
+                            {idx === 0 ? (
+                              <span>
+                                Entrada:{" "}
+                                <strong className="text-slate-200">
+                                  {leg.entryPrice ?? leg.price ?? "—"}
+                                </strong>
                               </span>
                             ) : (
-                              <span>
-                                Executado:{" "}
-                                <strong className="text-amber-200">{leg.price ?? "—"}</strong>
+                              <span className="text-emerald-300 font-extrabold bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                                Fechamento: {leg.closePrice ?? leg.price ?? "—"}
                               </span>
                             )}
                           </div>

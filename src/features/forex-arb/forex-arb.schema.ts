@@ -199,6 +199,24 @@ export const forexArbTradeListSchema = array(forexArbTradeSchema);
 /** Lista de oportunidades (data do GET — mesmo shape do trade). */
 export const forexArbOpportunityListSchema = array(forexArbTradeSchema);
 
+/** Perfil de configuração por par (overrides do `symbolProfiles`). */
+const forexSymbolProfileSchema = object({
+  enabled: optional(boolean()),
+  maxSpreadPct: optional(number()),
+  trailingActivationUsd: optional(number()),
+  trailingDistanceUsd: optional(number()),
+  minFeeProtectionUsd: optional(number()),
+  minEmaDeltaRatio: optional(number()),
+  minAtrRatio: optional(number()),
+  defaultTradeSize: optional(number()),
+  takeProfitPct: optional(number()),
+  stopLossPct: optional(number()),
+  requireM5Trend: optional(boolean()),
+});
+
+/** Tipo do perfil por par. */
+export type ForexSymbolProfile = InferOutput<typeof forexSymbolProfileSchema>;
+
 /**
  * Configurações do robô Forex. Espelha o contrato do `GET /forex-arb/settings`.
  */
@@ -219,6 +237,10 @@ export const forexArbSettingsSchema = object({
   takeProfitPct: optional(number()),
   stopLossPct: optional(number()),
   trailingStopPct: optional(number()),
+  symbolProfiles: optional(record(string(), forexSymbolProfileSchema)),
+  // Perfis efetivos por par (defaults do código + override do banco), usados pela
+  // UI para exibir os valores reais que o robô utiliza (em vez de "padrão").
+  resolvedSymbolProfiles: optional(record(string(), forexSymbolProfileSchema)),
 });
 
 /** Tipo das configurações. */
@@ -243,6 +265,10 @@ const atualizarForexSettingsSchema = object({
   takeProfitPct: optional(number()),
   stopLossPct: optional(number()),
   trailingStopPct: optional(number()),
+  symbolProfiles: optional(record(string(), forexSymbolProfileSchema)),
+  // Perfis efetivos por par (defaults do código + override do banco), usados pela
+  // UI para exibir os valores reais que o robô utiliza (em vez de "padrão").
+  resolvedSymbolProfiles: optional(record(string(), forexSymbolProfileSchema)),
 });
 
 /** Payload de atualização das configurações. */
@@ -278,3 +304,16 @@ export const forexArbLogsSchema = object({
 
 /** Tipo dos logs. */
 export type ForexArbLogs = InferOutput<typeof forexArbLogsSchema>;
+
+/** Preço ao vivo por símbolo (data do GET /forex-arb/live-prices). */
+export const forexArbLivePricesSchema = record(
+  string(),
+  object({
+    bid: number(),
+    ask: number(),
+    mid: number(),
+  }),
+);
+
+/** Tipo dos preços ao vivo. */
+export type ForexArbLivePrices = InferOutput<typeof forexArbLivePricesSchema>;
