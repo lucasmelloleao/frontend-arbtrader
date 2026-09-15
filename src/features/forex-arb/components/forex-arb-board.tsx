@@ -616,6 +616,16 @@ export function ForexArbBoard({
                           {isLucro ? "🟢 LUCRO" : "🔴 PREJUÍZO"}
                         </span>
                         <span className="text-xs text-slate-400">{trade.exchangeId}</span>
+                        {trade.id ? (
+                          <span className="rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 font-mono text-[10px] text-slate-400">
+                            Trade ID: {trade.id}
+                          </span>
+                        ) : null}
+                        {trade.strategyId ? (
+                          <span className="rounded border border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0.5 font-mono text-[10px] text-indigo-300">
+                            Strat ID: {trade.strategyId}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                     <div className="text-right">
