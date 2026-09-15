@@ -86,7 +86,9 @@ export function ForexArbBoard({
 }: ForexArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [aba, setAba] = useState<"open" | "closed" | "opportunities">("open");
+  const [aba, setAba] = useState<"open" | "closed" | "opportunities">(
+    opportunities.length > 0 ? "opportunities" : "open",
+  );
   const [criando, setCriando] = useState(false);
   const [livePrices, setLivePrices] = useState<ForexArbLivePrices>({});
 
