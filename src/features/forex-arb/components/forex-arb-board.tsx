@@ -303,18 +303,18 @@ export function ForexArbBoard({
               </div>
             ) : (
               abertas.map((strat) => {
-                const primaryLeg = strat.legs[0];
-                const liveMid = livePrices[primaryLeg.symbol]?.mid;
+                const primaryLeg = strat.legs?.[0] || { symbol: "—", side: "BUY", price: 0 };
+                const sym = primaryLeg.symbol || "—";
+                const liveMid = livePrices[sym]?.mid;
                 const currentPrice =
                   liveMid ??
                   primaryLeg.currentPrice ??
                   strat.currentPrice ??
-                  strat.lastLegPrices[primaryLeg.symbol];
+                  (strat.lastLegPrices ? strat.lastLegPrices[sym] : undefined);
 
                 let livePnl = strat.pnl || 0;
                 let livePct = strat.pnlPct || 0;
 
-                const sym = primaryLeg.symbol;
                 const isGoldPair = sym.includes("XAU");
                 const isJpyPair = sym.includes("JPY");
                 const rawUnits =
@@ -334,8 +334,8 @@ export function ForexArbBoard({
                   : rawUnits >= 1000
                     ? rawUnits / 100000
                     : rawUnits;
-                const numLotes001 = Math.max(1, Math.round(lotesReais / 0.01));
-                const comm = (isGoldPair ? 0.08 : 0.06) * numLotes001;
+                const numLotes001 = lotesReais / 0.01;
+                const comm = Number(((isGoldPair ? 0.09 : 0.06) * numLotes001).toFixed(2));
 
                 // Se temos o preço atual e o preço de entrada da perna, calcula matematicamente em tempo real
                 if (currentPrice && primaryLeg.price && primaryLeg.price > 0) {
@@ -652,7 +652,7 @@ export function ForexArbBoard({
                       </div>
                       <div className="font-mono text-[10px] font-semibold text-rose-300/90 mt-0.5">
                         {(() => {
-                          const primaryLeg = trade.legs[0];
+                          const primaryLeg = trade.legs?.[0] || { symbol: "" };
                           const sym = primaryLeg.symbol || "";
                           const isGold = sym.includes("XAU");
                           const vol =
@@ -668,11 +668,11 @@ export function ForexArbBoard({
                             : vol >= 1000
                               ? vol / 100000
                               : vol;
-                          const numLotes001 = Math.max(1, Math.round(lotesReais / 0.01));
+                          const numLotes001 = lotesReais / 0.01;
                           const commReal =
                             trade.commission && Math.abs(trade.commission) > 0
                               ? Math.abs(trade.commission)
-                              : (isGold ? 0.08 : 0.06) * numLotes001;
+                              : Number(((isGold ? 0.09 : 0.06) * numLotes001).toFixed(2));
                           return `Comissões (Entrada+Saída): -$${commReal.toFixed(2)} USD`;
                         })()}
                       </div>
@@ -759,7 +759,7 @@ export function ForexArbBoard({
                   </span>
                 </div>
                 <div className="mt-1 font-mono text-[11px] text-slate-500">
-                  {strat.legs.map((l) => l.symbol).join(" → ")}
+                  {(strat.legs || []).map((l) => l.symbol || "—").join(" → ")}
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <span className="rounded border border-indigo-500/30 bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-indigo-300">
