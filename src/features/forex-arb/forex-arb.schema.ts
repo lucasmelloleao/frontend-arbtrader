@@ -45,7 +45,7 @@ const forexArbStrategySchema = pipe(
   object({
     _id: optional(string()),
     id: optional(string()),
-    name: string(),
+    name: optional(string()),
     exchangeId: optional(string()),
     exchangeKeyId: optional(string()),
     type: string(),
@@ -88,7 +88,7 @@ const forexArbStrategySchema = pipe(
   }),
   transform((entrada) => ({
     id: entrada.id ?? entrada._id ?? "",
-    name: entrada.name,
+    name: entrada.name ?? "Estratégia Forex",
     exchangeId: entrada.exchangeId ?? "",
     exchangeKeyId: entrada.exchangeKeyId ?? "",
     type: entrada.type,
