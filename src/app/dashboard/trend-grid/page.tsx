@@ -1,6 +1,5 @@
 import { Suspense } from "react";
-
-import { Globe } from "lucide-react";
+import { Layers } from "lucide-react";
 
 import { ForexArbBoard } from "@/features/forex-arb/components/forex-arb-board";
 import { ForexScannerButton } from "@/features/forex-arb/components/forex-scanner-button";
@@ -22,17 +21,7 @@ import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
 
-/**
- * Carrega estratégias, trades, oportunidades, configurações, status do robô e
- * corretoras do backend e monta a tela de Arbitragem Forex. Separado da página
- * porque ler o cookie (dentro do `kyServer`) torna a subárvore dinâmica — fica
- * sob `<Suspense>` (streaming, sempre fresco).
- *
- * Cada chamada é capturada individualmente: se um endpoint demorar/estourar o
- * timeout, a seção correspondente mostra estado vazio/aviso em vez de derrubar
- * a página inteira.
- */
-async function ForexArbCarregado(): Promise<React.ReactNode> {
+async function TrendGridCarregado(): Promise<React.ReactNode> {
   const [strategies, trades, opportunities, settings, botStatus, exchanges] =
     await Promise.allSettled([
       apiClient(kyServer, API_ENDPOINTS.forexArb.listarStrategies, forexArbStrategyListSchema),
@@ -57,40 +46,34 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
   const exchangesData = exchanges.status === "fulfilled" ? exchanges.value : [];
   const exchangeIds = exchangesData.map((e) => e.exchangeId);
 
-  const scalpingStrategies = strategiesData.filter(
-    (s) => !s.isGrid && !s.name.includes("TrendGrid") && !(s.gridLevelsCount > 0),
+  // Filtra exclusivamente as estratégias e trades do Trend Grid Bot
+  const gridStrategies = strategiesData.filter(
+    (s) => s.isGrid || s.name.includes("TrendGrid") || s.gridLevelsCount > 0,
   );
-  const scalpingTrades = tradesData.filter(
+  const gridTrades = tradesData.filter(
     (t) =>
-      !t.strategyName.includes("TrendGrid") &&
-      !(typeof t.reason === "string" && t.reason.includes("grid")),
+      t.strategyName.includes("TrendGrid") ||
+      (typeof t.reason === "string" && t.reason.includes("grid")),
   );
 
-  const abertas = scalpingStrategies.filter((s) => s.positionOpen);
-  const encerradas = scalpingTrades.filter((t) => t.type === "close");
+  const abertas = gridStrategies.filter((s) => s.positionOpen);
+  const encerradas = gridTrades.filter((t) => t.type === "close");
   const totalPnl = encerradas.reduce((acc, t) => acc + t.realizedPnl, 0);
-  const melhorOportunidade = opportunitiesData.reduce<ForexArbTrade | null>((melhor, atual) => {
-    if (melhor === null || atual.expectedProfitPct > melhor.expectedProfitPct) {
-      return atual;
-    }
-    return melhor;
-  }, null);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/20 p-2.5">
-            <Globe className="h-6 w-6 text-indigo-400" aria-hidden="true" />
+          <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/20 p-2.5">
+            <Layers className="h-6 w-6 text-cyan-400" aria-hidden="true" />
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
-              Scalping Forex Quant HFT
+              Trend Grid Bot (cTrader)
             </h1>
             <p className="text-sm text-slate-400">
-              Estratégia de Scalping Quantitativo: Microestrutura, Hurst Exponent, Z-Score Dinâmico
-              & Kelly Fracionário
+              Motor de Piramidagem a Favor da Tendência & Trailing Stop Global em USD
             </p>
           </div>
         </div>
@@ -98,13 +81,13 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
           <span
             className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-bold ${
               botData !== null && botData.isOnline
-                ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
+                ? "border-cyan-500/30 bg-cyan-500/15 text-cyan-300"
                 : "border-red-500/30 bg-red-500/15 text-red-300"
             }`}
           >
             <span
               className={`h-2 w-2 rounded-full ${
-                botData !== null && botData.isOnline ? "animate-pulse bg-emerald-400" : "bg-red-400"
+                botData !== null && botData.isOnline ? "animate-pulse bg-cyan-400" : "bg-red-400"
               }`}
             />
             Robô {botData !== null && botData.isOnline ? "ONLINE" : "OFFLINE"}
@@ -118,17 +101,15 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
         abertas={abertas.length}
         encerradas={encerradas.length}
         totalPnl={totalPnl}
-        melhorOportunidadePct={
-          melhorOportunidade !== null ? melhorOportunidade.expectedProfitPct : null
-        }
+        melhorOportunidadePct={null}
       />
 
       <ForexSettingsPanel settings={settingsData} exchangeIds={exchangeIds} />
 
       <ForexArbBoard
-        strategies={scalpingStrategies}
-        trades={scalpingTrades}
-        opportunities={opportunitiesData}
+        strategies={gridStrategies}
+        trades={gridTrades}
+        opportunities={[]}
         exchangeIds={exchangeIds}
         exchangeKeys={exchangesData}
       />
@@ -138,17 +119,11 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
   );
 }
 
-/**
- * Arbitragem Forex (simples e triangular via cTrader/FIX): estatísticas,
- * operações em aberto/encerradas, oportunidades, configurações, credenciais
- * cTrader e terminal de logs. Leitura é RSC paralela; mutações são Server
- * Actions com `revalidatePath`.
- */
-export default function ForexArbPage(): React.ReactNode {
+export default function TrendGridPage(): React.ReactNode {
   return (
     <div className="space-y-6">
-      <Suspense fallback={<p className="text-sm text-slate-500">Carregando arbitragem forex...</p>}>
-        <ForexArbCarregado />
+      <Suspense fallback={<p className="text-sm text-slate-500">Carregando Trend Grid Bot...</p>}>
+        <TrendGridCarregado />
       </Suspense>
     </div>
   );

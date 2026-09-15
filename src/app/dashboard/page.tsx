@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { AuditExchangePanel } from "@/features/perp-arb/components/audit-exchange-panel";
+import { ConsultaProcessoTJPRPanel } from "@/features/portfolio/components/consulta-processo-tjpr-panel";
 import { CorretorasTable } from "@/features/portfolio/components/corretoras-table";
 import { EvolucaoGrafico } from "@/features/portfolio/components/evolucao-grafico";
 import { MoedasSpotTable } from "@/features/portfolio/components/moedas-spot-table";
@@ -66,6 +67,11 @@ async function PortfolioCarregado(): Promise<React.ReactNode> {
       {/* Auditoria de trades por corretora */}
       <div>
         <AuditExchangePanel />
+      </div>
+
+      {/* Consulta Processual TJPR (Datajud) */}
+      <div>
+        <ConsultaProcessoTJPRPanel />
       </div>
 
       {/* Rodapé */}

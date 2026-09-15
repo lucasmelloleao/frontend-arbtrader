@@ -3,26 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { Activity, Lock, Plus, Power, Trash2, TrendingUp, X, XCircle } from "lucide-react";
+import { Activity, Lock, Plus, Power, Trash2, X, XCircle } from "lucide-react";
 
 import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strategy-form";
 import {
+  buscarCotacoesAoVivo,
   deletarStrategy,
   deletarTodasOperacoes,
   fecharPosicao,
   fecharTodasPosicoes,
   voidClosePosicao,
 } from "@/features/forex-arb/forex-arb.actions";
-import {
-  forexArbLivePricesSchema,
-  type ForexArbLeg,
-  type ForexArbLivePrices,
-  type ForexArbStrategy,
-  type ForexArbTrade,
+import type {
+  ForexArbLeg,
+  ForexArbLivePrices,
+  ForexArbStrategy,
+  ForexArbTrade,
 } from "@/features/forex-arb/forex-arb.schema";
-import { apiClient } from "@/lib/api/client";
-import { API_ENDPOINTS } from "@/lib/api/endpoints";
-import { kyClient } from "@/lib/api/ky.client";
 
 type ForexArbBoardProps = {
   strategies: readonly ForexArbStrategy[];
@@ -102,20 +99,14 @@ export function ForexArbBoard({
 
   useEffect(() => {
     let ativo = true;
-    const buscar = async () => {
-      try {
-        const data = await apiClient(
-          kyClient,
-          API_ENDPOINTS.forexArb.livePrices,
-          forexArbLivePricesSchema,
-        );
-        if (ativo) setLivePrices(data);
-      } catch {
-        // Sem conexão/preço: mantém o último valor e tenta de novo.
-      }
+    const buscar = async (): Promise<void> => {
+      const data = await buscarCotacoesAoVivo();
+      if (ativo && data !== null) setLivePrices(data);
     };
-    buscar();
-    const interval = setInterval(buscar, 1000);
+    void buscar();
+    const interval = setInterval(() => {
+      void buscar();
+    }, 1000);
     return () => {
       ativo = false;
       clearInterval(interval);
@@ -248,17 +239,13 @@ export function ForexArbBoard({
         <div className="space-y-3">
           {opportunities.length === 0 ? (
             <div className="rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
-              <TrendingUp className="mx-auto mb-3 h-8 w-8 opacity-40" aria-hidden="true" />
-              Nenhuma oportunidade detectada ainda. Inicie o scanner e aguarde o próximo ciclo.
+              Nenhuma oportunidade encontrada no scanner.
             </div>
           ) : (
             opportunities.map((opp) => (
-              <div key={opp.id} className="rounded-xl border border-white/10 bg-slate-950/70 p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+              <div key={opp.id} className="rounded-xl border border-white/10 bg-slate-900/60 p-4">
+                <div className="flex items-center justify-between">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-md border border-indigo-500/30 bg-indigo-500/15 px-2 py-0.5 text-[11px] font-bold uppercase text-indigo-300">
-                      {opp.type}
-                    </span>
                     <span className="text-xs text-slate-400">{opp.exchangeId}</span>
                     <LegsChain legs={opp.legs} />
                   </div>
@@ -303,14 +290,10 @@ export function ForexArbBoard({
               </div>
             ) : (
               abertas.map((strat) => {
-                const primaryLeg = strat.legs?.[0] || { symbol: "—", side: "BUY", price: 0 };
+                const primaryLeg = strat.legs[0] || { symbol: "—", side: "BUY", price: 0 };
                 const sym = primaryLeg.symbol || "—";
                 const liveMid = livePrices[sym]?.mid;
-                const currentPrice =
-                  liveMid ??
-                  primaryLeg.currentPrice ??
-                  strat.currentPrice ??
-                  (strat.lastLegPrices ? strat.lastLegPrices[sym] : undefined);
+                const currentPrice = liveMid;
 
                 let livePnl = strat.pnl || 0;
                 let livePct = strat.pnlPct || 0;
@@ -424,18 +407,12 @@ export function ForexArbBoard({
                                 </strong>
                               </span>
                               {(() => {
-                                const current =
-                                  livePrices[leg.symbol]?.mid ??
-                                  leg.currentPrice ??
-                                  strat.currentPrice ??
-                                  strat.lastLegPrices[leg.symbol];
+                                const current = livePrices[leg.symbol]?.mid;
                                 const currentFormatted =
-                                  typeof current === "number"
-                                    ? current.toFixed(5)
-                                    : current;
+                                  typeof current === "number" ? current.toFixed(5) : current;
                                 return (
                                   <span className="text-amber-300 font-extrabold bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
-                                    Preço Atual: {currentFormatted ?? "Obtendo cotação..."}
+                                    Preço Atual: {currentFormatted}
                                   </span>
                                 );
                               })()}
@@ -652,7 +629,7 @@ export function ForexArbBoard({
                       </div>
                       <div className="font-mono text-[10px] font-semibold text-rose-300/90 mt-0.5">
                         {(() => {
-                          const primaryLeg = trade.legs?.[0] || { symbol: "" };
+                          const primaryLeg = trade.legs[0] || { symbol: "" };
                           const sym = primaryLeg.symbol || "";
                           const isGold = sym.includes("XAU");
                           const vol =
@@ -680,15 +657,15 @@ export function ForexArbBoard({
                   </div>
 
                   <div className="mb-3 space-y-1.5">
-                    {trade.legs.map((leg, idx) => (
+                    {trade.legs.map((leg, legIdx) => (
                       <div
-                        key={`${leg.side}-${leg.symbol}-${idx}`}
+                        key={`${leg.side}-${leg.symbol}-${leg.entryPrice ?? leg.price ?? leg.orderId ?? ""}`}
                         className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-1">
                           <LegBadge leg={leg} showPrice={false} />
                           <div className="flex flex-wrap items-center gap-2 font-mono text-slate-300">
-                            {idx === 0 ? (
+                            {legIdx === 0 ? (
                               <span>
                                 Entrada:{" "}
                                 <strong className="text-slate-200">
@@ -759,7 +736,7 @@ export function ForexArbBoard({
                   </span>
                 </div>
                 <div className="mt-1 font-mono text-[11px] text-slate-500">
-                  {(strat.legs || []).map((l) => l.symbol || "—").join(" → ")}
+                  {strat.legs.map((l) => l.symbol || "—").join(" → ")}
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <span className="rounded border border-indigo-500/30 bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-bold uppercase text-indigo-300">

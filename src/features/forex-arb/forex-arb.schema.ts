@@ -218,9 +218,6 @@ const forexSymbolProfileSchema = object({
   requireM5Trend: optional(boolean()),
 });
 
-/** Tipo do perfil por par. */
-export type ForexSymbolProfile = InferOutput<typeof forexSymbolProfileSchema>;
-
 /**
  * Configurações do robô Forex. Espelha o contrato do `GET /forex-arb/settings`.
  */
@@ -277,8 +274,6 @@ const atualizarForexSettingsSchema = object({
   stepPips: optional(number()),
   trailingPips: optional(number()),
   maxGridLevels: optional(number()),
-  stopLossPct: optional(number()),
-  trailingStopPct: optional(number()),
   symbolProfiles: optional(record(string(), forexSymbolProfileSchema)),
   // Perfis efetivos por par (defaults do código + override do banco), usados pela
   // UI para exibir os valores reais que o robô utiliza (em vez de "padrão").

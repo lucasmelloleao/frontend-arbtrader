@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  forexArbLivePricesSchema,
   forexArbLogsSchema,
   type AtualizarForexSettingsInput,
   type CriarForexStrategyInput,
@@ -42,6 +43,20 @@ export async function buscarLogs(process: string, lines: number): Promise<LogsRe
     return { ok: true, logs: data.logs };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+}
+
+/**
+ * Busca as cotações ao vivo no servidor (GET /forex-arb/live-prices).
+ */
+export async function buscarCotacoesAoVivo(): Promise<Record<
+  string,
+  { bid: number; ask: number; mid: number }
+> | null> {
+  try {
+    return await apiClient(kyServer, API_ENDPOINTS.forexArb.livePrices, forexArbLivePricesSchema);
+  } catch {
+    return null;
   }
 }
 

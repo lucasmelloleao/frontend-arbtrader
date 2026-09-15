@@ -2424,6 +2424,14 @@ components:
           type: array
           items:
             type: string
+        gridEnabled:
+          type: boolean
+        stepPips:
+          type: number
+        trailingPips:
+          type: number
+        maxGridLevels:
+          type: number
     ForexArbSettingsUpdateRequest:
       type: object
       properties:
@@ -2442,6 +2450,14 @@ components:
         maxDailyLoss:
           type: number
         maxSlippagePct:
+          type: number
+        gridEnabled:
+          type: boolean
+        stepPips:
+          type: number
+        trailingPips:
+          type: number
+        maxGridLevels:
           type: number
         autoExecute:
           type: boolean

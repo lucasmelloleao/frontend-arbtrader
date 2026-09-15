@@ -11,6 +11,8 @@ const ANSI_ESCAPE = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*[mK]`, "g");
 
 function getBotLabel(bot: string): string {
   switch (bot) {
+    case "forex-trend-grid":
+      return "Trend Grid Bot";
     case "forex-scalper":
       return "Scalper HFT / Trailing";
     case "forex-scalp-scanner":
@@ -26,14 +28,19 @@ function getBotLabel(bot: string): string {
 
 /**
  * Terminal de logs do robô Forex: liga/desliga, alterna entre processos
- * (forex-scalper / forex-arb / forex-scanner), auto-refresh a cada 7s, seleção de linhas e
+ * (forex-trend-grid / forex-scalper / forex-arb / forex-scanner), auto-refresh a cada 7s, seleção de linhas e
  * download. O fetch é via Server Action `buscarLogs`.
  */
 export function ForexTerminalLogs(): React.ReactNode {
   const [showLogs, setShowLogs] = useState(false);
   const [selectedBot, setSelectedBot] = useState<
-    "forex-scalper" | "forex-scalp-executor" | "forex-scalp-scanner" | "forex-arb" | "forex-scanner"
-  >("forex-scalper");
+    | "forex-trend-grid"
+    | "forex-scalper"
+    | "forex-scalp-executor"
+    | "forex-scalp-scanner"
+    | "forex-arb"
+    | "forex-scanner"
+  >("forex-trend-grid");
   const [logs, setLogs] = useState<{ id: number; texto: string }[]>([]);
   const nextLogId = useRef(0);
   const [loading, setLoading] = useState(false);
@@ -148,6 +155,7 @@ export function ForexTerminalLogs(): React.ReactNode {
           <div className="flex items-center gap-2">
             {(
               [
+                "forex-trend-grid",
                 "forex-scalper",
                 "forex-scalp-scanner",
                 "forex-scalp-executor",

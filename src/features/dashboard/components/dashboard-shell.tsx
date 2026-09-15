@@ -13,6 +13,7 @@ import {
   Globe,
   HelpCircle,
   History,
+  Layers,
   LayoutDashboard,
   Menu,
   ShieldAlert,
@@ -50,6 +51,12 @@ const LINKS: readonly SidebarLink[] = [
   },
   { href: "/dashboard/exchanges", label: "Exchange", icon: Wallet, habilitado: true },
   { href: "/dashboard/forex-arb", label: "Scalping Forex", icon: Globe, habilitado: true },
+  {
+    href: "/dashboard/trend-grid",
+    label: "Trend Grid Bot (cTrader)",
+    icon: Layers,
+    habilitado: true,
+  },
   {
     href: "/dashboard/latency-arb",
     label: "Latency Arb (cTrader -> MEXC)",
@@ -155,7 +162,7 @@ export function DashboardShell({
             if (!link.habilitado) {
               return (
                 <button
-                  key={link.href}
+                  key={link.label}
                   type="button"
                   disabled
                   title={isCollapsed ? `${link.label} (em breve)` : undefined}
@@ -177,7 +184,7 @@ export function DashboardShell({
 
             return (
               <Link
-                key={link.href}
+                key={link.label}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
                 title={isCollapsed ? link.label : undefined}
