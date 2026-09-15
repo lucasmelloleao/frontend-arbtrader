@@ -58,11 +58,15 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
   const exchangeIds = exchangesData.map((e) => e.exchangeId);
 
   const scalpingStrategies = strategiesData.filter(
-    (s) => !s.isGrid && !s.name.includes("TrendGrid") && !(s.gridLevelsCount > 0),
+    (s) =>
+      !s.isGrid &&
+      s.type !== "trend_grid" &&
+      !(typeof s.name === "string" && s.name.includes("TrendGrid")) &&
+      !(s.gridLevelsCount > 0),
   );
   const scalpingTrades = tradesData.filter(
     (t) =>
-      !t.strategyName.includes("TrendGrid") &&
+      !(typeof t.strategyName === "string" && t.strategyName.includes("TrendGrid")) &&
       !(typeof t.reason === "string" && t.reason.includes("grid")),
   );
 

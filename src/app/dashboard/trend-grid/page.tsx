@@ -48,11 +48,15 @@ async function TrendGridCarregado(): Promise<React.ReactNode> {
 
   // Filtra exclusivamente as estratégias e trades do Trend Grid Bot
   const gridStrategies = strategiesData.filter(
-    (s) => s.isGrid || s.name.includes("TrendGrid") || s.gridLevelsCount > 0,
+    (s) =>
+      s.isGrid ||
+      s.type === "trend_grid" ||
+      (typeof s.name === "string" && s.name.includes("TrendGrid")) ||
+      s.gridLevelsCount > 0,
   );
   const gridTrades = tradesData.filter(
     (t) =>
-      t.strategyName.includes("TrendGrid") ||
+      (typeof t.strategyName === "string" && t.strategyName.includes("TrendGrid")) ||
       (typeof t.reason === "string" && t.reason.includes("grid")),
   );
 
