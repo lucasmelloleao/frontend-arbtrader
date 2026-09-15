@@ -601,33 +601,35 @@ export function ForexArbBoard({
                   }`}
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-extrabold text-white">
-                        {trade.strategyName || "Scalping Forex"}
-                      </h3>
-                      <div className="mt-1 flex items-center gap-2">
-                        <span
-                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
-                            isLucro
-                              ? "bg-emerald-500/20 text-emerald-300"
-                              : "bg-rose-500/20 text-rose-300"
-                          }`}
-                        >
-                          {isLucro ? "🟢 LUCRO" : "🔴 PREJUÍZO"}
-                        </span>
-                        <span className="text-xs text-slate-400">{trade.exchangeId}</span>
-                        {trade.id ? (
-                          <span className="rounded border border-slate-700 bg-slate-900 px-1.5 py-0.5 font-mono text-[10px] text-slate-400">
-                            Trade ID: {trade.id}
-                          </span>
-                        ) : null}
-                        {trade.strategyId ? (
-                          <span className="rounded border border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0.5 font-mono text-[10px] text-indigo-300">
-                            Strat ID: {trade.strategyId}
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
+                    {(() => {
+                      const firstLegWithId = trade.legs.find((l) => l.orderId);
+                      const rawId = firstLegWithId?.orderId || trade.id;
+                      const displayId = rawId ? rawId.replace(/^(#|Order\s*)/i, "") : null;
+                      return (
+                        <div>
+                          <h3 className="text-sm font-extrabold text-white">
+                            {trade.strategyName || "Scalping Forex"}
+                          </h3>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <span
+                              className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                                isLucro
+                                  ? "bg-emerald-500/20 text-emerald-300"
+                                  : "bg-rose-500/20 text-rose-300"
+                              }`}
+                            >
+                              {isLucro ? "🟢 LUCRO" : "🔴 PREJUÍZO"}
+                            </span>
+                            <span className="text-xs text-slate-400">{trade.exchangeId}</span>
+                            {displayId ? (
+                              <span className="rounded border border-amber-500/30 bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-amber-300">
+                                cTrader ID: #{displayId}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     <div className="text-right">
                       <div
                         className={`font-mono text-base font-black ${
