@@ -108,6 +108,7 @@ export const API_ENDPOINTS = {
     voidClose: "api/v1/prediction-arb/void-close",
     manualScan: "api/v1/prediction-arb/manual-scan",
     logs: "api/v1/prediction-arb/logs",
+    limparTrades: "api/v1/prediction-arb/trades",
   },
 
   /** Consulta Processual TJPR / Datajud */

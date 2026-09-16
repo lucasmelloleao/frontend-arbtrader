@@ -172,3 +172,18 @@ export async function buscarLogsPrediction(lines = 150): Promise<PredictionLogsR
     };
   }
 }
+
+/**
+ * Limpa todo o histórico de operações e estratégias da Polymarket (DELETE /prediction-arb/trades).
+ */
+export async function limparHistoricoPrediction(): Promise<MutacaoResult> {
+  try {
+    await apiClient(kyServer, API_ENDPOINTS.predictionArb.limparTrades, undefined, {
+      method: "delete",
+    });
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+  revalidatePath("/dashboard/polymarket-arb");
+  return { ok: true };
+}

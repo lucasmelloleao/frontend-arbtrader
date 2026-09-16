@@ -47,14 +47,11 @@ export function PredictionArbBoard({
     return () => clearInterval(interval);
   }, [router]);
 
-  const abertas = strategies.filter((s) => s.positionOpen);
-  const monitorando = strategies.filter((s) => !s.positionOpen);
-  // Só trades reais (executed). Simulated = dry-run, não é operação de verdade.
-  // Inclui mm_quote (cotações do market maker) para o usuário enxergar quantas
-  // vezes o robô cotou sem preencher — observabilidade do comportamento do MM.
-  const encerradas = trades.filter(
-    (t) => t.status === "executed" || (t.type === "mm_quote" && t.status === "open"),
-  );
+  const cutoffDate = new Date("2026-09-15T00:00:00.000Z");
+  const filteredStrategies = strategies.filter((s) => !s.createdAt || new Date(s.createdAt) >= cutoffDate);
+
+  const abertas = filteredStrategies.filter((s) => s.positionOpen);
+  const monitorando = filteredStrategies.filter((s) => !s.positionOpen);
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
     startTransition(async () => {
@@ -118,7 +115,6 @@ export function PredictionArbBoard({
           [
             { key: "open", label: "Posições Abertas", count: abertas.length },
             { key: "monitored", label: "Monitorando", count: monitorando.length },
-            { key: "closed", label: "Histórico de Trades", count: encerradas.length },
           ] as const
         ).map((tab) => (
           <button

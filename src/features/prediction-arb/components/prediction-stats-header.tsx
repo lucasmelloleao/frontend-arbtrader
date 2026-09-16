@@ -26,7 +26,7 @@ export function PredictionStatsHeader({
   const totalEntradaUsd = summary?.totalEntradaUsd ?? 0;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {/* Saldo Disponível (deposit wallet on-chain) */}
       <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 shadow-lg">
         <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
@@ -65,16 +65,6 @@ export function PredictionStatsHeader({
         </div>
         <div className="mt-2 font-mono text-2xl font-black text-white">{abertasCount}</div>
         <div className="mt-1 text-[11px] text-slate-500">Pares YES/NO em monitoramento</div>
-      </div>
-
-      {/* Operações Encerradas */}
-      <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 shadow-lg">
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
-          <span>Operações Encerradas</span>
-          <CheckCircle2 className="h-4 w-4 text-cyan-400" aria-hidden="true" />
-        </div>
-        <div className="mt-2 font-mono text-2xl font-black text-white">{operacoesEncerradas}</div>
-        <div className="mt-1 text-[11px] text-slate-500">Arbitragens completadas</div>
       </div>
 
       {/* APR Estimado */}
