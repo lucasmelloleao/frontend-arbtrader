@@ -37,6 +37,18 @@ export function PredictionSettingsPanel({
   const [minWatchCertaintyProb, setMinWatchCertaintyProb] = useState(
     settings?.minWatchCertaintyProb ?? 0.9,
   );
+  const [maxEntrySecondsBeforeExpiry5mAlt, setMaxEntrySecondsBeforeExpiry5mAlt] = useState(
+    settings?.maxEntrySecondsBeforeExpiry5mAlt ?? 60,
+  );
+  const [maxEntrySecondsBeforeExpiry5mMaj, setMaxEntrySecondsBeforeExpiry5mMaj] = useState(
+    settings?.maxEntrySecondsBeforeExpiry5mMaj ?? 120,
+  );
+  const [maxEntrySecondsBeforeExpiry15mAlt, setMaxEntrySecondsBeforeExpiry15mAlt] = useState(
+    settings?.maxEntrySecondsBeforeExpiry15mAlt ?? 120,
+  );
+  const [maxEntrySecondsBeforeExpiry15mMaj, setMaxEntrySecondsBeforeExpiry15mMaj] = useState(
+    settings?.maxEntrySecondsBeforeExpiry15mMaj ?? 300,
+  );
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -56,6 +68,10 @@ export function PredictionSettingsPanel({
         maxDailyLoss,
         minHighCertaintyProb,
         minWatchCertaintyProb,
+        maxEntrySecondsBeforeExpiry5mAlt,
+        maxEntrySecondsBeforeExpiry5mMaj,
+        maxEntrySecondsBeforeExpiry15mAlt,
+        maxEntrySecondsBeforeExpiry15mMaj,
       });
 
       if (res.ok) {
@@ -259,20 +275,108 @@ export function PredictionSettingsPanel({
                 htmlFor="min-watch-input"
                 className="block text-xs font-semibold text-slate-300"
               >
-                Limiar Radar / Observação (ex: 0.90 = 90%)
+                Limiar do Radar (ex: 0.90 = 90%)
               </label>
               <input
                 id="min-watch-input"
                 type="number"
                 step="0.01"
                 min="0.50"
-                max="0.98"
+                max="0.95"
                 value={minWatchCertaintyProb}
                 onChange={(e) => setMinWatchCertaintyProb(Number(e.target.value))}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
               />
               <p className="mt-1 text-[10px] text-slate-500">
-                Entra no radar de alta prioridade sem enviar ordem até atingir a certeza de entrada.
+                Piso de probabilidade para registrar e acompanhar o mercado.
+              </p>
+            </div>
+
+            {/* Janela Entrada Altcoins 5m */}
+            <div>
+              <label
+                htmlFor="t5m-alt-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Janela 5m Altcoins (segundos)
+              </label>
+              <input
+                id="t5m-alt-input"
+                type="number"
+                min={10}
+                max={300}
+                value={maxEntrySecondsBeforeExpiry5mAlt}
+                onChange={(e) => setMaxEntrySecondsBeforeExpiry5mAlt(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Segundos finais para disparar em SOL, DOGE, XRP (5m).
+              </p>
+            </div>
+
+            {/* Janela Entrada Majors 5m */}
+            <div>
+              <label
+                htmlFor="t5m-maj-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Janela 5m BTC/ETH (segundos)
+              </label>
+              <input
+                id="t5m-maj-input"
+                type="number"
+                min={10}
+                max={300}
+                value={maxEntrySecondsBeforeExpiry5mMaj}
+                onChange={(e) => setMaxEntrySecondsBeforeExpiry5mMaj(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Segundos finais para disparar em BTC e ETH (5m).
+              </p>
+            </div>
+
+            {/* Janela Entrada Altcoins 15m */}
+            <div>
+              <label
+                htmlFor="t15m-alt-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Janela 15m Altcoins (segundos)
+              </label>
+              <input
+                id="t15m-alt-input"
+                type="number"
+                min={10}
+                max={600}
+                value={maxEntrySecondsBeforeExpiry15mAlt}
+                onChange={(e) => setMaxEntrySecondsBeforeExpiry15mAlt(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Segundos finais para disparar em SOL, DOGE, XRP (15m).
+              </p>
+            </div>
+
+            {/* Janela Entrada Majors 15m */}
+            <div>
+              <label
+                htmlFor="t15m-maj-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Janela 15m BTC/ETH (segundos)
+              </label>
+              <input
+                id="t15m-maj-input"
+                type="number"
+                min={10}
+                max={600}
+                value={maxEntrySecondsBeforeExpiry15mMaj}
+                onChange={(e) => setMaxEntrySecondsBeforeExpiry15mMaj(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Segundos finais para disparar em BTC e ETH (15m).
               </p>
             </div>
 

@@ -127,6 +127,10 @@ export const predictionArbSettingsSchema = object({
   targetProfitPct: fallback(number(), 1.0),
   minHighCertaintyProb: fallback(number(), 0.95),
   minWatchCertaintyProb: fallback(number(), 0.9),
+  maxEntrySecondsBeforeExpiry5mAlt: fallback(number(), 60),
+  maxEntrySecondsBeforeExpiry5mMaj: fallback(number(), 120),
+  maxEntrySecondsBeforeExpiry15mAlt: fallback(number(), 120),
+  maxEntrySecondsBeforeExpiry15mMaj: fallback(number(), 300),
   allowedMarkets: fallback(array(string()), []),
   scanIntervalMs: fallback(number(), 60000),
 });
@@ -183,6 +187,10 @@ const atualizarPredictionSettingsInputSchema = object({
   targetProfitPct: optional(number()),
   minHighCertaintyProb: optional(number()),
   minWatchCertaintyProb: optional(number()),
+  maxEntrySecondsBeforeExpiry5mAlt: optional(number()),
+  maxEntrySecondsBeforeExpiry5mMaj: optional(number()),
+  maxEntrySecondsBeforeExpiry15mAlt: optional(number()),
+  maxEntrySecondsBeforeExpiry15mMaj: optional(number()),
   allowedMarkets: optional(array(string())),
   scanIntervalMs: optional(number()),
 });
