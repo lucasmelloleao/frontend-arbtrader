@@ -56,7 +56,7 @@ export function PredictionArbBoard({
   const abertas = filteredStrategies.filter((s) => s.positionOpen);
   const monitorando = filteredStrategies.filter((s) => !s.positionOpen);
   const encerradas = filteredTrades.filter(
-    (t) => t.status === "executed" || (t.type === "mm_quote" && t.status === "open"),
+    (t) => t.type === "close_pair" && t.status === "executed",
   );
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
