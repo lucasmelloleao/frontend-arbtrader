@@ -19,7 +19,7 @@ type PredictionHarvestButtonProps = {
  */
 export function PredictionHarvestButton({
   allowLiveTrading,
-  isOnline,
+  isOnline: _isOnline,
 }: PredictionHarvestButtonProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
