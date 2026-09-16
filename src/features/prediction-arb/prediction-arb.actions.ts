@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
-import type {
-  AtualizarPredictionSettingsInput,
-  CriarPredictionStrategyInput,
+import {
+  type AtualizarPredictionSettingsInput,
+  type CriarPredictionStrategyInput,
+  predictionArbLogsSchema,
 } from "@/features/prediction-arb/prediction-arb.schema";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
@@ -144,4 +145,25 @@ export async function executarManualScan(): Promise<MutacaoResult> {
   }
   revalidatePath("/dashboard/polymarket-arb");
   return { ok: true };
+}
+
+/** Linhas de log do robô prediction-arb. */
+export type PredictionLogsResult = { ok: true; logs: string[] } | { ok: false; erro: string };
+
+/**
+ * Busca as linhas de log do robô Polymarket (GET /prediction-arb/logs).
+ */
+export async function buscarLogsPrediction(lines = 150): Promise<PredictionLogsResult> {
+  try {
+    const data = await apiClient(kyServer, API_ENDPOINTS.predictionArb.logs, predictionArbLogsSchema, {
+      method: "get",
+      searchParams: { process: "prediction-arb", lines },
+    });
+    return { ok: true, logs: data.logs };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
+    };
+  }
 }

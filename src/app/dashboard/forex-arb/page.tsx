@@ -135,6 +135,7 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
         opportunities={opportunitiesData}
         exchangeIds={exchangeIds}
         exchangeKeys={exchangesData}
+        botType="scalping"
       />
 
       <ForexTerminalLogs />

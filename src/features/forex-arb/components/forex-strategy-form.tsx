@@ -260,13 +260,13 @@ export function ForexStrategyForm({
                 type="text"
                 className={CAMPO_CLASS}
                 placeholder="Símbolo (ex: EURUSD)"
-                value={leg.symbol}
+                value={leg.symbol ?? ""}
                 onChange={(e) => atualizarLeg(leg.legKey, "symbol", e.target.value)}
               />
               <select
                 className={`${CAMPO_CLASS} appearance-none`}
-                value={leg.side}
-                onChange={(e) => atualizarLeg(leg.legKey, "side", e.target.value)}
+                value={leg.side ?? "buy"}
+                onChange={(e) => atualizarLeg(leg.legKey, "side", e.target.value as "buy" | "sell")}
               >
                 <option value="buy">COMPRA</option>
                 <option value="sell">VENDA</option>

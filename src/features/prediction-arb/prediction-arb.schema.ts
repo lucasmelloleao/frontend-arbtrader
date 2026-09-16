@@ -142,6 +142,16 @@ export const predictionArbBotStatusSchema = object({
 
 export type PredictionArbBotStatus = InferOutput<typeof predictionArbBotStatusSchema>;
 
+/** Logs do robô prediction-arb (GET /prediction-arb/logs). */
+export const predictionArbLogsSchema = object({
+  process: fallback(string(), "prediction-arb"),
+  linesCount: fallback(number(), 0),
+  logs: fallback(array(string()), []),
+  timestamp: fallback(string(), ""),
+});
+
+export type PredictionArbLogs = InferOutput<typeof predictionArbLogsSchema>;
+
 /** Input de criação manual de estratégia. */
 const criarPredictionStrategyInputSchema = object({
   slug: pipe(

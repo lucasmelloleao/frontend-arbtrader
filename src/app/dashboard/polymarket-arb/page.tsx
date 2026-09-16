@@ -7,6 +7,7 @@ import { PredictionHarvestButton } from "@/features/prediction-arb/components/pr
 import { PredictionScannerButton } from "@/features/prediction-arb/components/prediction-scanner-button";
 import { PredictionSettingsPanel } from "@/features/prediction-arb/components/prediction-settings-panel";
 import { PredictionStatsHeader } from "@/features/prediction-arb/components/prediction-stats-header";
+import { PredictionTerminalLogs } from "@/features/prediction-arb/components/prediction-terminal-logs";
 import {
   predictionArbBotStatusSchema,
   predictionArbSettingsSchema,
@@ -102,6 +103,8 @@ async function PolymarketArbCarregado(): Promise<React.ReactNode> {
       />
 
       <PredictionSettingsPanel settings={settingsData} />
+
+      <PredictionTerminalLogs />
 
       <PredictionArbBoard
         strategies={strategiesData}

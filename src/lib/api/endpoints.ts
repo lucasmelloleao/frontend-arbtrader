@@ -107,6 +107,7 @@ export const API_ENDPOINTS = {
     aumentar: "api/v1/prediction-arb/increase",
     voidClose: "api/v1/prediction-arb/void-close",
     manualScan: "api/v1/prediction-arb/manual-scan",
+    logs: "api/v1/prediction-arb/logs",
   },
 
   /** Consulta Processual TJPR / Datajud */

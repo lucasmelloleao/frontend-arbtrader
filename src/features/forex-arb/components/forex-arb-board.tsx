@@ -29,6 +29,7 @@ type ForexArbBoardProps = {
   exchangeIds: readonly string[];
   /** Chaves cadastradas (id + exchangeId + nome). */
   exchangeKeys: readonly { id: string; exchangeId: string; nome: string }[];
+  botType?: "trend_grid" | "scalping";
 };
 
 const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(3)}%`;
@@ -63,7 +64,7 @@ function LegsChain({ legs }: { legs: readonly ForexArbLeg[] }): React.ReactNode 
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       {legs.map((leg, i) => (
-        <span key={`${leg.side}-${leg.symbol}`} className="flex items-center gap-1.5">
+        <span key={`${leg.side}-${leg.symbol}-${i}`} className="flex items-center gap-1.5">
           <LegBadge leg={leg} />
           {i < legs.length - 1 ? <span className="text-slate-600">→</span> : null}
         </span>
@@ -83,6 +84,7 @@ export function ForexArbBoard({
   opportunities,
   exchangeIds,
   exchangeKeys,
+  botType,
 }: ForexArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -94,21 +96,27 @@ export function ForexArbBoard({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      router.refresh();
-    }, 2000); // Atualização a cada 2 segundos
+      startTransition(() => {
+        router.refresh();
+      });
+    }, 5000); // Atualização do servidor a cada 5 segundos em background
     return () => clearInterval(interval);
   }, [router]);
 
   useEffect(() => {
     let ativo = true;
     const buscar = async (): Promise<void> => {
-      const data = await buscarCotacoesAoVivo();
-      if (ativo && data !== null) setLivePrices(data);
+      try {
+        const data = await buscarCotacoesAoVivo();
+        if (ativo && data !== null) setLivePrices(data);
+      } catch (e) {
+        // Ignora falha silenciosamente durante troca de rotas ou queda de rede
+      }
     };
     void buscar();
     const interval = setInterval(() => {
       void buscar();
-    }, 1000);
+    }, 2000);
     return () => {
       ativo = false;
       clearInterval(interval);
@@ -302,14 +310,15 @@ export function ForexArbBoard({
 
                 const isGoldPair = sym.includes("XAU");
                 const isJpyPair = sym.includes("JPY");
-                const rawUnits =
-                  primaryLeg.amount && primaryLeg.amount > 0
-                    ? primaryLeg.amount
-                    : primaryLeg.volume && primaryLeg.volume > 0
-                      ? primaryLeg.volume
-                      : strat.positionVolume && strat.positionVolume > 0
-                        ? strat.positionVolume
-                        : strat.tradeSize || 1000;
+                const volField = primaryLeg.volume || strat.positionVolume || strat.tradeSize || 0.01;
+                const amtField = primaryLeg.amount || strat.positionSize || 0;
+                // Se amtField for em unidades (ex: 100000 para 1 lote, ou 1000 para 0.01 lote):
+                // Se volField for em lotes (ex: 1000.00 lote vindo de erro anterior no backend, ou 0.01 lote normal):
+                let contractUnits = amtField > 0 ? amtField : volField * 100000;
+                if (contractUnits > 10000000) { // Se estiver inflado (ex: 1000 lotes * 100000 = 100.000.000)
+                  contractUnits = contractUnits / 100000;
+                }
+                const rawUnits = contractUnits;
 
                 // Comissão estimada por lote (mesma regra do backend).
                 const lotesReais = isGoldPair
@@ -394,9 +403,9 @@ export function ForexArbBoard({
                       </div>
                     </div>
                     <div className="mb-4 space-y-2">
-                      {strat.legs.map((leg) => (
+                      {strat.legs.map((leg, legIdx) => (
                         <div
-                          key={`${leg.side}-${leg.symbol}`}
+                          key={`${leg.side}-${leg.symbol}-${leg.orderId || leg.price || legIdx}`}
                           className="rounded-lg border border-white/5 bg-slate-900/60 p-2.5 space-y-1"
                         >
                           <div className="flex items-center justify-between">
@@ -409,9 +418,10 @@ export function ForexArbBoard({
                                 </strong>
                               </span>
                               {(() => {
-                                const current = livePrices[leg.symbol]?.mid;
+                                const symKey = leg.symbol || "";
+                                const current = livePrices[symKey]?.mid || (strat.currentPrice && strat.currentPrice > 0 ? strat.currentPrice : null);
                                 const currentFormatted =
-                                  typeof current === "number" ? current.toFixed(5) : current;
+                                  typeof current === "number" ? current.toFixed(5) : "—";
                                 return (
                                   <span className="text-amber-300 font-extrabold bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
                                     Preço Atual: {currentFormatted}
@@ -439,18 +449,14 @@ export function ForexArbBoard({
                                       ? leg.amount
                                       : strat.positionVolume && strat.positionVolume > 0
                                         ? strat.positionVolume
-                                        : strat.tradeSize;
+                                        : strat.tradeSize || 0.01;
                                 const l =
-                                  raw >= 100000
-                                    ? raw === 100000
-                                      ? 0.01
-                                      : raw / 100000
+                                  raw <= 10
+                                    ? raw
                                     : raw >= 1000
                                       ? raw / 100000
-                                      : raw <= 100
-                                        ? raw / 10000
-                                        : raw / 100;
-                                const formattedLote = l < 0.01 ? "0.01" : l.toFixed(2);
+                                      : raw / 100;
+                                const formattedLote = l.toFixed(2);
                                 return `${formattedLote} lote`;
                               })()}
                             </span>
@@ -673,7 +679,7 @@ export function ForexArbBoard({
                   <div className="mb-3 space-y-1.5">
                     {trade.legs.map((leg, legIdx) => (
                       <div
-                        key={`${leg.side}-${leg.symbol}-${leg.entryPrice ?? leg.price ?? leg.orderId ?? ""}`}
+                        key={`${leg.side}-${leg.symbol}-${leg.entryPrice ?? leg.price ?? leg.orderId ?? legIdx}-${legIdx}`}
                         className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-1">
