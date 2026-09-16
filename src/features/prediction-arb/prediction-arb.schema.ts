@@ -44,6 +44,7 @@ const predictionArbStrategySchema = object({
   liquidity: fallback(number(), 0),
   oneHourPriceChange: fallback(number(), 0),
   openInterest: fallback(number(), 0),
+  segundosParaVencer: fallback(number(), 0),
   minutosParaVencer: fallback(number(), 0),
   // Mark-to-market da posição
   bidYesAtual: fallback(number(), 0),

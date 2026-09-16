@@ -318,7 +318,18 @@ export function PredictionArbBoard({
                         Vence em
                       </span>
                       <div className="font-mono font-bold text-white">
-                        {strat.minutosParaVencer > 0 ? `${strat.minutosParaVencer}min` : "Vencido"}
+                        {strat.segundosParaVencer > 0 ? (
+                          strat.segundosParaVencer <= 180 ? (
+                            <span className="text-amber-400 font-black">
+                              {Math.floor(strat.segundosParaVencer / 60)}m{" "}
+                              {String(strat.segundosParaVencer % 60).padStart(2, "0")}s
+                            </span>
+                          ) : (
+                            `${Math.ceil(strat.segundosParaVencer / 60)}min`
+                          )
+                        ) : (
+                          <span className="text-rose-400 font-bold">Vencido</span>
+                        )}
                       </div>
                     </div>
                   </div>
