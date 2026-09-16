@@ -48,7 +48,9 @@ export function PredictionArbBoard({
   }, [router]);
 
   const cutoffDate = new Date("2026-09-15T00:00:00.000Z");
-  const filteredStrategies = strategies.filter((s) => !s.createdAt || new Date(s.createdAt) >= cutoffDate);
+  const filteredStrategies = strategies.filter(
+    (s) => !s.createdAt || new Date(s.createdAt) >= cutoffDate,
+  );
   const filteredTrades = trades.filter((t) => !t.createdAt || new Date(t.createdAt) >= cutoffDate);
 
   const abertas = filteredStrategies.filter((s) => s.positionOpen);
