@@ -49,9 +49,13 @@ export function PredictionArbBoard({
 
   const cutoffDate = new Date("2026-09-15T00:00:00.000Z");
   const filteredStrategies = strategies.filter((s) => !s.createdAt || new Date(s.createdAt) >= cutoffDate);
+  const filteredTrades = trades.filter((t) => !t.createdAt || new Date(t.createdAt) >= cutoffDate);
 
   const abertas = filteredStrategies.filter((s) => s.positionOpen);
   const monitorando = filteredStrategies.filter((s) => !s.positionOpen);
+  const encerradas = filteredTrades.filter(
+    (t) => t.status === "executed" || (t.type === "mm_quote" && t.status === "open"),
+  );
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
     startTransition(async () => {
@@ -115,6 +119,7 @@ export function PredictionArbBoard({
           [
             { key: "open", label: "Posições Abertas", count: abertas.length },
             { key: "monitored", label: "Monitorando", count: monitorando.length },
+            { key: "closed", label: "Histórico de Trades", count: encerradas.length },
           ] as const
         ).map((tab) => (
           <button
@@ -426,7 +431,86 @@ export function PredictionArbBoard({
         </div>
       ) : null}
 
-
+      {/* Aba: Histórico de Trades */}
+      {aba === "closed" ? (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {encerradas.length === 0 ? (
+            <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
+              <TrendingUp className="mx-auto mb-3 h-8 w-8 opacity-40" aria-hidden="true" />
+              Nenhum trade encerrado registrado a partir de 15/09/2026.
+            </div>
+          ) : (
+            encerradas.map((t, idx) => (
+              <div
+                key={t.id || `${t.slug}-${idx}`}
+                className="rounded-xl border border-white/10 bg-slate-950/70 p-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h4 className="text-sm font-bold text-white">{t.question || t.slug}</h4>
+                    <div className="mt-0.5 text-xs text-slate-400 font-mono">
+                      {t.type === "close_pair"
+                        ? "Encerrada"
+                        : t.type === "mm_quote"
+                          ? t.orderIds.length > 0
+                            ? "Cotação MM (ordem enviada)"
+                            : "Cotação MM (sem ordem)"
+                          : "Aberta"}{" "}
+                      | {new Date(t.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                  <div
+                    className={`text-right font-mono text-base font-black ${
+                      t.pnl > 0
+                        ? "text-emerald-400"
+                        : t.pnl < 0
+                          ? "text-rose-400"
+                          : "text-slate-400"
+                    }`}
+                  >
+                    {fmtUsd(t.pnl)}
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/5 pt-3 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">
+                      Investido
+                    </span>
+                    <div className="mt-0.5 font-mono font-bold text-white">
+                      ${t.investedUsd.toFixed(2)}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">
+                      Realizado
+                    </span>
+                    <div className="mt-0.5 font-mono font-bold text-slate-300">
+                      ${t.realizedUsd.toFixed(2)}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">P/L</span>
+                    <div
+                      className={`mt-0.5 font-mono font-bold ${
+                        t.pnl > 0
+                          ? "text-emerald-400"
+                          : t.pnl < 0
+                            ? "text-rose-400"
+                            : "text-slate-400"
+                      }`}
+                    >
+                      {fmtUsd(t.pnl)}
+                    </div>
+                  </div>
+                </div>
+                {t.reason ? (
+                  <div className="mt-2 text-[10px] text-slate-600">{t.reason}</div>
+                ) : null}
+              </div>
+            ))
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
