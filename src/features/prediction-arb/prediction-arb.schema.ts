@@ -125,6 +125,7 @@ export const predictionArbSettingsSchema = object({
   closeWhenComplete: fallback(boolean(), true),
   targetProfitPct: fallback(number(), 1.0),
   minHighCertaintyProb: fallback(number(), 0.95),
+  minWatchCertaintyProb: fallback(number(), 0.9),
   allowedMarkets: fallback(array(string()), []),
   scanIntervalMs: fallback(number(), 60000),
 });
@@ -180,6 +181,7 @@ const atualizarPredictionSettingsInputSchema = object({
   closeWhenComplete: optional(boolean()),
   targetProfitPct: optional(number()),
   minHighCertaintyProb: optional(number()),
+  minWatchCertaintyProb: optional(number()),
   allowedMarkets: optional(array(string())),
   scanIntervalMs: optional(number()),
 });

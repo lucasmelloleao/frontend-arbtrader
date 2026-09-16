@@ -34,6 +34,9 @@ export function PredictionSettingsPanel({
   const [minHighCertaintyProb, setMinHighCertaintyProb] = useState(
     settings?.minHighCertaintyProb ?? 0.95,
   );
+  const [minWatchCertaintyProb, setMinWatchCertaintyProb] = useState(
+    settings?.minWatchCertaintyProb ?? 0.9,
+  );
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -52,6 +55,7 @@ export function PredictionSettingsPanel({
         closeWhenComplete,
         maxDailyLoss,
         minHighCertaintyProb,
+        minWatchCertaintyProb,
       });
 
       if (res.ok) {
@@ -226,13 +230,13 @@ export function PredictionSettingsPanel({
               />
             </div>
 
-            {/* Certeza Mínima Direcional */}
+            {/* Certeza Mínima Direcional (Entrada) */}
             <div>
               <label
                 htmlFor="min-certainty-input"
                 className="block text-xs font-semibold text-slate-300"
               >
-                Certeza Mínima Direcional (ex: 0.95 = 95%)
+                Certeza Entrada Direcional (ex: 0.95 = 95%)
               </label>
               <input
                 id="min-certainty-input"
@@ -245,7 +249,30 @@ export function PredictionSettingsPanel({
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
               />
               <p className="mt-1 text-[10px] text-slate-500">
-                Probabilidade estimada mínima (0.95 = 95%) para disparo de entrada direcional.
+                Gatilho para envio efetivo da ordem na Polymarket.
+              </p>
+            </div>
+
+            {/* Limiar do Radar (Observação de Perto) */}
+            <div>
+              <label
+                htmlFor="min-watch-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Limiar Radar / Observação (ex: 0.90 = 90%)
+              </label>
+              <input
+                id="min-watch-input"
+                type="number"
+                step="0.01"
+                min="0.50"
+                max="0.98"
+                value={minWatchCertaintyProb}
+                onChange={(e) => setMinWatchCertaintyProb(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Entra no radar de alta prioridade sem enviar ordem até atingir a certeza de entrada.
               </p>
             </div>
 
