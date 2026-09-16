@@ -151,8 +151,6 @@ export const predictionArbLogsSchema = object({
   timestamp: fallback(string(), ""),
 });
 
-export type PredictionArbLogs = InferOutput<typeof predictionArbLogsSchema>;
-
 /** Input de criação manual de estratégia. */
 const criarPredictionStrategyInputSchema = object({
   slug: pipe(
