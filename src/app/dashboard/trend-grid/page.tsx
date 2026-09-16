@@ -21,6 +21,17 @@ import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
 
+function isLikelyGridStrategy(s: ForexArbStrategy): boolean {
+  return (
+    s.isGrid ||
+    s.type === "trend_grid" ||
+    s.name.includes("TrendGrid") ||
+    s.gridLevelsCount > 0 ||
+    s.name.includes("grid") ||
+    s.legs.length > 0
+  );
+}
+
 async function TrendGridCarregado(): Promise<React.ReactNode> {
   const [strategies, trades, opportunities, settings, botStatus, exchanges] =
     await Promise.allSettled([
@@ -46,27 +57,15 @@ async function TrendGridCarregado(): Promise<React.ReactNode> {
   const exchangesData = exchanges.status === "fulfilled" ? exchanges.value : [];
   const exchangeIds = exchangesData.map((e) => e.exchangeId);
 
-  // Filtra exclusivamente as estratégias e trades do Trend Grid Bot
-  const isLikelyGridStrategy = (s: ForexArbStrategy): boolean =>
-    Boolean(
-      s.isGrid ||
-        s.type === "trend_grid" ||
-        (typeof s.name === "string" && s.name.includes("TrendGrid")) ||
-        (s.gridLevelsCount ?? 0) > 0 ||
-        (typeof s.name === "string" && s.name.includes("grid")) ||
-        (s.legs && s.legs.length > 0),
-    );
-
   const gridStrategies = strategiesData.filter(isLikelyGridStrategy);
 
   // Trades: busca por strategyName contendo TrendGrid OU reason contendo grid
   const gridTrades = tradesData.filter(
     (t) =>
-      (typeof t.strategyName === "string" &&
-        (t.strategyName.includes("TrendGrid") ||
-          t.strategyName.includes("grid"))) ||
-      (typeof t.reason === "string" && t.reason.includes("grid")) ||
-      (t.type === "close" && t.legs && t.legs.some((l) => l.side)),
+      t.strategyName.includes("TrendGrid") ||
+      t.strategyName.includes("grid") ||
+      t.reason.includes("grid") ||
+      (t.type === "close" && t.legs.some((l) => l.side)),
   );
 
   const abertas = gridStrategies.filter((s) => s.positionOpen);
