@@ -15,28 +15,38 @@ const ANSI_ESCAPE = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*[mK]`, "g");
  */
 export function PredictionTerminalLogs(): React.ReactNode {
   const [showLogs, setShowLogs] = useState(false);
-  const [selectedProcess, setSelectedProcess] = useState("prediction-arb");
+  const [selectedCoin, setSelectedCoin] = useState("TODOS");
+  const [selectedCategory, setSelectedCategory] = useState("TODOS");
   const [logs, setLogs] = useState<{ id: number; texto: string }[]>([]);
   const nextLogId = useRef(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [logLines, setLogLines] = useState(150);
+  const [logLines, setLogLines] = useState(300);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const PROCESSOS = [
-    { id: "prediction-arb", label: "🎯 Polymarket Prediction Arb" },
-    { id: "perp-arb", label: "⚡ Perp Arbitrage (Hyperliquid)" },
-    { id: "forex-arb", label: "💱 Forex Arbitrage (cTrader)" },
-    { id: "api-server", label: "🌐 API Server Backend" },
-    { id: "scanner", label: "🔍 Market Scanner" },
+  const MOEDAS = [
+    { id: "TODOS", label: "🌐 Todos os Ativos" },
+    { id: "btc", label: "₿ Bitcoin (BTC)" },
+    { id: "eth", label: "Ξ Ethereum (ETH)" },
+    { id: "sol", label: "◎ Solana (SOL)" },
+    { id: "doge", label: "Ð Dogecoin (DOGE)" },
+    { id: "xrp", label: "✕ XRP" },
+  ];
+
+  const CATEGORIAS = [
+    { id: "TODOS", label: "📋 Todas as Etapas" },
+    { id: "ORDEM", label: "🚀 Disparos & Ordens (Taker/Stop)" },
+    { id: "RADAR", label: "⏳ Radar, Timing & Certeza" },
+    { id: "SCAN", label: "🔍 Scan & Varredura" },
+    { id: "RECONCILE", label: "🔁 Reconciliação & Sync" },
+    { id: "ERRO", label: "🚨 Erros & Alertas" },
   ];
 
   const normalizar = (linhas: readonly string[]): { id: number; texto: string }[] =>
     linhas.map((linha) => ({ id: nextLogId.current++, texto: linha.replace(ANSI_ESCAPE, "") }));
 
-  // Fetch inicial ao ligar/trocar linhas/trocar processo
   useEffect(() => {
     if (!showLogs) {
       return undefined;
@@ -46,7 +56,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
       setLoading(true);
       setError(null);
       try {
-        const resultado = await buscarLogsPrediction(logLines, selectedProcess);
+        const resultado = await buscarLogsPrediction(logLines, "prediction-arb");
         if (!ativo) return;
         setLoading(false);
         if (!resultado.ok) {
@@ -65,9 +75,8 @@ export function PredictionTerminalLogs(): React.ReactNode {
     return () => {
       ativo = false;
     };
-  }, [logLines, selectedProcess, showLogs]);
+  }, [logLines, showLogs]);
 
-  // Auto-refresh a cada 7s
   useEffect(() => {
     if (!autoRefresh || !showLogs) {
       return undefined;
@@ -76,7 +85,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
       setLoading(true);
       setError(null);
       try {
-        const resultado = await buscarLogsPrediction(logLines, selectedProcess);
+        const resultado = await buscarLogsPrediction(logLines, "prediction-arb");
         setLoading(false);
         if (!resultado.ok) {
           setError(resultado.erro);
@@ -91,7 +100,37 @@ export function PredictionTerminalLogs(): React.ReactNode {
     };
     const interval = setInterval(() => void buscar(), 7000);
     return () => clearInterval(interval);
-  }, [autoRefresh, logLines, selectedProcess, showLogs]);
+  }, [autoRefresh, logLines, showLogs]);
+
+  // Aplica filtros de moeda e categoria de etapas
+  const logsFiltrados = logs.filter((log) => {
+    const txtLower = log.texto.toLowerCase();
+    
+    // Filtro por Ativo/Moeda
+    if (selectedCoin !== "TODOS") {
+      const coinLower = selectedCoin.toLowerCase();
+      if (!txtLower.includes(coinLower)) return false;
+    }
+
+    // Filtro por Categoria/Etapa Operacional
+    if (selectedCategory === "ORDEM") {
+      return /🚀|Enviando Ordem|Cotações|Filled Size|EMERGENCY STOP|placeOrder/i.test(log.texto);
+    }
+    if (selectedCategory === "RADAR") {
+      return /⏳|👀|RADAR DE TEMPO|RADAR ATIVO|BLOQUEIO DE PONTO DE CORTE|CORTE FINAL/i.test(log.texto);
+    }
+    if (selectedCategory === "SCAN") {
+      return /🔍|PREDICTION SCAN|Mercados avaliados/i.test(log.texto);
+    }
+    if (selectedCategory === "RECONCILE") {
+      return /🔁|SYNC|Reconciliada|Batch Redeem|Mercado venceu/i.test(log.texto);
+    }
+    if (selectedCategory === "ERRO") {
+      return /🚨|⚠️|🔒|ERROR|ERR|FATAL/i.test(log.texto);
+    }
+
+    return true;
+  });
 
   useEffect(() => {
     if (containerRef.current !== null && showLogs) {
@@ -135,20 +174,40 @@ export function PredictionTerminalLogs(): React.ReactNode {
 
       {showLogs ? (
         <div className="flex h-[450px] flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-2.5 text-xs text-slate-400">
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-400 font-semibold">Robô:</span>
-              <select
-                value={selectedProcess}
-                onChange={(e) => setSelectedProcess(e.target.value)}
-                className="rounded border border-indigo-500/30 bg-slate-900 px-2.5 py-1 font-mono text-xs text-indigo-300 font-bold outline-none focus:border-indigo-500"
-              >
-                {PROCESSOS.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 bg-slate-900 px-4 py-2.5 text-xs text-slate-400">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Filtro Moeda */}
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-slate-400">Ativo:</span>
+                <select
+                  value={selectedCoin}
+                  onChange={(e) => setSelectedCoin(e.target.value)}
+                  className="rounded border border-indigo-500/30 bg-slate-950 px-2 py-1 font-mono text-xs font-bold text-indigo-300 outline-none focus:border-indigo-500"
+                >
+                  {MOEDAS.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro Etapa Operacional */}
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-slate-400">Etapa:</span>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="rounded border border-indigo-500/30 bg-slate-950 px-2 py-1 font-mono text-xs font-bold text-indigo-300 outline-none focus:border-indigo-500"
+                >
+                  {CATEGORIAS.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setAutoRefresh((v) => !v)}
@@ -161,6 +220,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
                 {autoRefresh ? "AUTO-REFRESH ON" : "PAUSADO"}
               </button>
             </div>
+
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
                 <span>Linhas:</span>
@@ -169,7 +229,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
                   onChange={(e) => setLogLines(Number(e.target.value))}
                   className="rounded border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-slate-300 outline-none"
                 >
-                  {[50, 150, 300, 500].map((n) => (
+                  {[150, 300, 500, 1000].map((n) => (
                     <option key={n} value={n}>
                       {n}
                     </option>
@@ -179,7 +239,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
               <button
                 type="button"
                 onClick={download}
-                disabled={logs.length === 0}
+                disabled={logsFiltrados.length === 0}
                 className="rounded border border-slate-700 bg-slate-800 p-1 text-slate-300 transition hover:bg-slate-700 disabled:opacity-50"
                 title="Baixar arquivo de log"
               >
@@ -193,7 +253,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
             ref={containerRef}
             className="flex-1 space-y-1 overflow-y-auto bg-black/85 p-4 font-mono text-xs text-slate-300"
           >
-            {loading && logs.length === 0 ? (
+            {loading && logsFiltrados.length === 0 ? (
               <div className="flex items-center gap-2 p-4 text-slate-500">
                 <RefreshCw className="h-4 w-4 animate-spin text-indigo-400" aria-hidden="true" />{" "}
                 Buscando logs...
@@ -202,12 +262,12 @@ export function PredictionTerminalLogs(): React.ReactNode {
               <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-4 text-rose-400">
                 ⚠️ {error}
               </div>
-            ) : logs.length === 0 ? (
+            ) : logsFiltrados.length === 0 ? (
               <div className="p-4 text-center italic text-slate-500">
-                Nenhum log encontrado para este robô.
+                Nenhum log encontrado para o filtro selecionado ({selectedCoin} / {selectedCategory}).
               </div>
             ) : (
-              logs.map((log, i) => {
+              logsFiltrados.map((log, i) => {
                 const isError = /ERROR|ERR|FATAL|🚨/.test(log.texto);
                 const isWarn = /WARN|⚠️|⛔/.test(log.texto);
                 const isSuccess = /SUCCESS|✅|🟢/.test(log.texto);
