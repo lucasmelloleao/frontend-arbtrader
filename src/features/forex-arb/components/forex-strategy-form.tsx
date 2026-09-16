@@ -266,7 +266,12 @@ export function ForexStrategyForm({
               <select
                 className={`${CAMPO_CLASS} appearance-none`}
                 value={leg.side ?? "buy"}
-                onChange={(e) => atualizarLeg(leg.legKey, "side", e.target.value as "buy" | "sell")}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "buy" || val === "sell") {
+                    atualizarLeg(leg.legKey, "side", val);
+                  }
+                }}
               >
                 <option value="buy">COMPRA</option>
                 <option value="sell">VENDA</option>

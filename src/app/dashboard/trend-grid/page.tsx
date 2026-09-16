@@ -35,10 +35,6 @@ async function TrendGridCarregado(): Promise<React.ReactNode> {
       apiClient(kyServer, API_ENDPOINTS.exchanges.listar, exchangeListSchema),
     ]);
 
-  // DEBUG: verificar se a chamada de strategies está falhando
-  console.log('[TREND-GRID DEBUG] strategies status:', strategies.status, strategies.status === 'rejected' ? (strategies as any).reason?.message : `count=${(strategies as any).value?.length}`);
-  console.log('[TREND-GRID DEBUG] trades status:', trades.status, trades.status === 'rejected' ? (trades as any).reason?.message : `count=${(trades as any).value?.length}`);
-
   const strategiesData: ForexArbStrategy[] =
     strategies.status === "fulfilled" ? strategies.value : [];
   const tradesData: ForexArbTrade[] = trades.status === "fulfilled" ? trades.value : [];
@@ -51,26 +47,26 @@ async function TrendGridCarregado(): Promise<React.ReactNode> {
   const exchangeIds = exchangesData.map((e) => e.exchangeId);
 
   // Filtra exclusivamente as estratégias e trades do Trend Grid Bot
-  // Mais flexível: considera várias indicações de grid bot
-  const isLikelyGridStrategy = (s: any) =>
-    s.isGrid ||
-    s.type === "trend_grid" ||
-    (typeof s.name === "string" && s.name.includes("TrendGrid")) ||
-    s.gridLevelsCount > 0 ||
-    (typeof s.name === "string" && s.name.includes("grid")) ||
-    (s.legs && s.legs.length > 0);
+  const isLikelyGridStrategy = (s: ForexArbStrategy): boolean =>
+    Boolean(
+      s.isGrid ||
+        s.type === "trend_grid" ||
+        (typeof s.name === "string" && s.name.includes("TrendGrid")) ||
+        (s.gridLevelsCount ?? 0) > 0 ||
+        (typeof s.name === "string" && s.name.includes("grid")) ||
+        (s.legs && s.legs.length > 0),
+    );
 
   const gridStrategies = strategiesData.filter(isLikelyGridStrategy);
 
   // Trades: busca por strategyName contendo TrendGrid OU reason contendo grid
-  // Também considera trades com pernas de grid ou tipo close
   const gridTrades = tradesData.filter(
     (t) =>
       (typeof t.strategyName === "string" &&
         (t.strategyName.includes("TrendGrid") ||
           t.strategyName.includes("grid"))) ||
       (typeof t.reason === "string" && t.reason.includes("grid")) ||
-      (t.type === "close" && t.legs && t.legs.some((l: any) => l.side)),
+      (t.type === "close" && t.legs && t.legs.some((l) => l.side)),
   );
 
   const abertas = gridStrategies.filter((s) => s.positionOpen);

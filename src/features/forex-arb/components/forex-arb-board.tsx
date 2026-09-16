@@ -64,7 +64,7 @@ function LegsChain({ legs }: { legs: readonly ForexArbLeg[] }): React.ReactNode 
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       {legs.map((leg, i) => (
-        <span key={`${leg.side}-${leg.symbol}-${i}`} className="flex items-center gap-1.5">
+        <span key={`${leg.side}-${leg.symbol}-${leg.price ?? "0"}`} className="flex items-center gap-1.5">
           <LegBadge leg={leg} />
           {i < legs.length - 1 ? <span className="text-slate-600">→</span> : null}
         </span>
@@ -84,7 +84,7 @@ export function ForexArbBoard({
   opportunities,
   exchangeIds,
   exchangeKeys,
-  botType,
+  botType: _botType,
 }: ForexArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -109,7 +109,7 @@ export function ForexArbBoard({
       try {
         const data = await buscarCotacoesAoVivo();
         if (ativo && data !== null) setLivePrices(data);
-      } catch (e) {
+      } catch (_e) {
         // Ignora falha silenciosamente durante troca de rotas ou queda de rede
       }
     };
@@ -679,7 +679,7 @@ export function ForexArbBoard({
                   <div className="mb-3 space-y-1.5">
                     {trade.legs.map((leg, legIdx) => (
                       <div
-                        key={`${leg.side}-${leg.symbol}-${leg.entryPrice ?? leg.price ?? leg.orderId ?? legIdx}-${legIdx}`}
+                        key={`${leg.side}-${leg.symbol}-${leg.entryPrice ?? leg.price ?? leg.orderId ?? "leg"}`}
                         className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-1">
