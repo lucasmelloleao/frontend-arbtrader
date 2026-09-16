@@ -56,7 +56,7 @@ export function PredictionHarvestButton({
       ) : null}
       <button
         type="button"
-        disabled={isPending || !isOnline}
+        disabled={isPending}
         onClick={handleToggle}
         className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-black uppercase tracking-wide transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
           allowLiveTrading
@@ -64,11 +64,9 @@ export function PredictionHarvestButton({
             : "bg-emerald-600 text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-500"
         }`}
         title={
-          isOnline
-            ? allowLiveTrading
-              ? "Parar colheita — volta para modo simulação (dry-run)"
-              : "Iniciar colheita — passa a operar com ordens reais"
-            : "Robô offline — inicie o bot antes de colher"
+          allowLiveTrading
+            ? "Parar colheita — volta para modo simulação (dry-run)"
+            : "Iniciar colheita — passa a operar com ordens reais"
         }
       >
         {isPending ? (
