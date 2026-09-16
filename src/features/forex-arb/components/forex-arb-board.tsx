@@ -64,7 +64,10 @@ function LegsChain({ legs }: { legs: readonly ForexArbLeg[] }): React.ReactNode 
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       {legs.map((leg, i) => (
-        <span key={`${leg.side}-${leg.symbol}-${leg.price ?? "0"}`} className="flex items-center gap-1.5">
+        <span
+          key={`${leg.side}-${leg.symbol}-${leg.price ?? "0"}`}
+          className="flex items-center gap-1.5"
+        >
           <LegBadge leg={leg} />
           {i < legs.length - 1 ? <span className="text-slate-600">→</span> : null}
         </span>
@@ -310,12 +313,14 @@ export function ForexArbBoard({
 
                 const isGoldPair = sym.includes("XAU");
                 const isJpyPair = sym.includes("JPY");
-                const volField = primaryLeg.volume || strat.positionVolume || strat.tradeSize || 0.01;
+                const volField =
+                  primaryLeg.volume || strat.positionVolume || strat.tradeSize || 0.01;
                 const amtField = primaryLeg.amount || strat.positionSize || 0;
                 // Se amtField for em unidades (ex: 100000 para 1 lote, ou 1000 para 0.01 lote):
                 // Se volField for em lotes (ex: 1000.00 lote vindo de erro anterior no backend, ou 0.01 lote normal):
                 let contractUnits = amtField > 0 ? amtField : volField * 100000;
-                if (contractUnits > 10000000) { // Se estiver inflado (ex: 1000 lotes * 100000 = 100.000.000)
+                if (contractUnits > 10000000) {
+                  // Se estiver inflado (ex: 1000 lotes * 100000 = 100.000.000)
                   contractUnits = contractUnits / 100000;
                 }
                 const rawUnits = contractUnits;
@@ -419,7 +424,11 @@ export function ForexArbBoard({
                               </span>
                               {(() => {
                                 const symKey = leg.symbol || "";
-                                const current = livePrices[symKey]?.mid || (strat.currentPrice && strat.currentPrice > 0 ? strat.currentPrice : null);
+                                const current =
+                                  livePrices[symKey]?.mid ||
+                                  (strat.currentPrice && strat.currentPrice > 0
+                                    ? strat.currentPrice
+                                    : null);
                                 const currentFormatted =
                                   typeof current === "number" ? current.toFixed(5) : "—";
                                 return (
@@ -450,12 +459,7 @@ export function ForexArbBoard({
                                       : strat.positionVolume && strat.positionVolume > 0
                                         ? strat.positionVolume
                                         : strat.tradeSize || 0.01;
-                                const l =
-                                  raw <= 10
-                                    ? raw
-                                    : raw >= 1000
-                                      ? raw / 100000
-                                      : raw / 100;
+                                const l = raw <= 10 ? raw : raw >= 1000 ? raw / 100000 : raw / 100;
                                 const formattedLote = l.toFixed(2);
                                 return `${formattedLote} lote`;
                               })()}

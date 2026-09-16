@@ -155,10 +155,15 @@ export type PredictionLogsResult = { ok: true; logs: string[] } | { ok: false; e
  */
 export async function buscarLogsPrediction(lines = 150): Promise<PredictionLogsResult> {
   try {
-    const data = await apiClient(kyServer, API_ENDPOINTS.predictionArb.logs, predictionArbLogsSchema, {
-      method: "get",
-      searchParams: { process: "prediction-arb", lines },
-    });
+    const data = await apiClient(
+      kyServer,
+      API_ENDPOINTS.predictionArb.logs,
+      predictionArbLogsSchema,
+      {
+        method: "get",
+        searchParams: { process: "prediction-arb", lines },
+      },
+    );
     return { ok: true, logs: data.logs };
   } catch (error: unknown) {
     return {

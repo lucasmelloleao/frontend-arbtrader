@@ -25,7 +25,9 @@ export function ForexScannerButton({
   const [erro, setErro] = useState<string | null>(null);
 
   const isGridMode = mode === "grid";
-  const ativo = isGridMode ? settings?.gridEnabled ?? true : settings?.isScanningEnabled ?? false;
+  const ativo = isGridMode
+    ? (settings?.gridEnabled ?? true)
+    : (settings?.isScanningEnabled ?? false);
 
   const alternar = (): void => {
     setErro(null);
