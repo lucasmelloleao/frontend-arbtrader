@@ -105,7 +105,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
   // Aplica filtros de moeda e categoria de etapas
   const logsFiltrados = logs.filter((log) => {
     const txtLower = log.texto.toLowerCase();
-    
+
     // Filtro por Ativo/Moeda
     if (selectedCoin !== "TODOS") {
       const coinLower = selectedCoin.toLowerCase();
@@ -117,7 +117,9 @@ export function PredictionTerminalLogs(): React.ReactNode {
       return /🚀|Enviando Ordem|Cotações|Filled Size|EMERGENCY STOP|placeOrder/i.test(log.texto);
     }
     if (selectedCategory === "RADAR") {
-      return /⏳|👀|RADAR DE TEMPO|RADAR ATIVO|BLOQUEIO DE PONTO DE CORTE|CORTE FINAL/i.test(log.texto);
+      return /⏳|👀|RADAR DE TEMPO|RADAR ATIVO|BLOQUEIO DE PONTO DE CORTE|CORTE FINAL/i.test(
+        log.texto,
+      );
     }
     if (selectedCategory === "SCAN") {
       return /🔍|PREDICTION SCAN|Mercados avaliados/i.test(log.texto);
@@ -264,7 +266,8 @@ export function PredictionTerminalLogs(): React.ReactNode {
               </div>
             ) : logsFiltrados.length === 0 ? (
               <div className="p-4 text-center italic text-slate-500">
-                Nenhum log encontrado para o filtro selecionado ({selectedCoin} / {selectedCategory}).
+                Nenhum log encontrado para o filtro selecionado ({selectedCoin} / {selectedCategory}
+                ).
               </div>
             ) : (
               logsFiltrados.map((log, i) => {

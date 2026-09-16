@@ -294,10 +294,7 @@ export function PredictionSettingsPanel({
 
             {/* Janela Entrada Altcoins 5m */}
             <div>
-              <label
-                htmlFor="t5m-alt-input"
-                className="block text-xs font-semibold text-slate-300"
-              >
+              <label htmlFor="t5m-alt-input" className="block text-xs font-semibold text-slate-300">
                 Janela 5m Altcoins (segundos)
               </label>
               <input
@@ -316,10 +313,7 @@ export function PredictionSettingsPanel({
 
             {/* Janela Entrada Majors 5m */}
             <div>
-              <label
-                htmlFor="t5m-maj-input"
-                className="block text-xs font-semibold text-slate-300"
-              >
+              <label htmlFor="t5m-maj-input" className="block text-xs font-semibold text-slate-300">
                 Janela 5m BTC/ETH (segundos)
               </label>
               <input
