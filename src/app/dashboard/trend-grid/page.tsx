@@ -64,7 +64,7 @@ async function TrendGridCarregado(): Promise<React.ReactNode> {
     (t) =>
       t.strategyName.includes("TrendGrid") ||
       t.strategyName.includes("grid") ||
-      t.reason.includes("grid") ||
+      Boolean(t.reason?.includes("grid")) ||
       (t.type === "close" && t.legs.some((l) => l.side)),
   );
 

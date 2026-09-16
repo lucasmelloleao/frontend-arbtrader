@@ -181,6 +181,7 @@ const atualizarPredictionSettingsInputSchema = object({
   maxSlippagePct: optional(number()),
   closeWhenComplete: optional(boolean()),
   targetProfitPct: optional(number()),
+  minHighCertaintyProb: optional(number()),
   allowedMarkets: optional(array(string())),
   scanIntervalMs: optional(number()),
 });
