@@ -151,9 +151,12 @@ export async function executarManualScan(): Promise<MutacaoResult> {
 export type PredictionLogsResult = { ok: true; logs: string[] } | { ok: false; erro: string };
 
 /**
- * Busca as linhas de log do robô Polymarket (GET /prediction-arb/logs).
+ * Busca as linhas de log de um robô específico (GET /prediction-arb/logs?process=...&lines=...).
  */
-export async function buscarLogsPrediction(lines = 150): Promise<PredictionLogsResult> {
+export async function buscarLogsPrediction(
+  lines = 150,
+  processName = "prediction-arb",
+): Promise<PredictionLogsResult> {
   try {
     const data = await apiClient(
       kyServer,
@@ -161,7 +164,7 @@ export async function buscarLogsPrediction(lines = 150): Promise<PredictionLogsR
       predictionArbLogsSchema,
       {
         method: "get",
-        searchParams: { process: "prediction-arb", lines },
+        searchParams: { process: processName, lines },
       },
     );
     return { ok: true, logs: data.logs };

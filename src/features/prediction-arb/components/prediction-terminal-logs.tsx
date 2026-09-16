@@ -15,6 +15,7 @@ const ANSI_ESCAPE = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*[mK]`, "g");
  */
 export function PredictionTerminalLogs(): React.ReactNode {
   const [showLogs, setShowLogs] = useState(false);
+  const [selectedProcess, setSelectedProcess] = useState("prediction-arb");
   const [logs, setLogs] = useState<{ id: number; texto: string }[]>([]);
   const nextLogId = useRef(0);
   const [loading, setLoading] = useState(false);
@@ -24,10 +25,18 @@ export function PredictionTerminalLogs(): React.ReactNode {
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const PROCESSOS = [
+    { id: "prediction-arb", label: "🎯 Polymarket Prediction Arb" },
+    { id: "perp-arb", label: "⚡ Perp Arbitrage (Hyperliquid)" },
+    { id: "forex-arb", label: "💱 Forex Arbitrage (cTrader)" },
+    { id: "api-server", label: "🌐 API Server Backend" },
+    { id: "scanner", label: "🔍 Market Scanner" },
+  ];
+
   const normalizar = (linhas: readonly string[]): { id: number; texto: string }[] =>
     linhas.map((linha) => ({ id: nextLogId.current++, texto: linha.replace(ANSI_ESCAPE, "") }));
 
-  // Fetch inicial ao ligar/trocar linhas
+  // Fetch inicial ao ligar/trocar linhas/trocar processo
   useEffect(() => {
     if (!showLogs) {
       return undefined;
@@ -37,7 +46,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
       setLoading(true);
       setError(null);
       try {
-        const resultado = await buscarLogsPrediction(logLines);
+        const resultado = await buscarLogsPrediction(logLines, selectedProcess);
         if (!ativo) return;
         setLoading(false);
         if (!resultado.ok) {
@@ -56,7 +65,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
     return () => {
       ativo = false;
     };
-  }, [logLines, showLogs]);
+  }, [logLines, selectedProcess, showLogs]);
 
   // Auto-refresh a cada 7s
   useEffect(() => {
@@ -67,7 +76,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
       setLoading(true);
       setError(null);
       try {
-        const resultado = await buscarLogsPrediction(logLines);
+        const resultado = await buscarLogsPrediction(logLines, selectedProcess);
         setLoading(false);
         if (!resultado.ok) {
           setError(resultado.erro);
@@ -82,7 +91,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
     };
     const interval = setInterval(() => void buscar(), 7000);
     return () => clearInterval(interval);
-  }, [autoRefresh, logLines, showLogs]);
+  }, [autoRefresh, logLines, selectedProcess, showLogs]);
 
   useEffect(() => {
     if (containerRef.current !== null && showLogs) {
@@ -128,13 +137,22 @@ export function PredictionTerminalLogs(): React.ReactNode {
         <div className="flex h-[450px] flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-2xl">
           <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-2.5 text-xs text-slate-400">
             <div className="flex items-center gap-3">
-              <span className="rounded border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 font-mono text-indigo-400">
-                prediction-arb
-              </span>
+              <span className="text-xs text-slate-400 font-semibold">Robô:</span>
+              <select
+                value={selectedProcess}
+                onChange={(e) => setSelectedProcess(e.target.value)}
+                className="rounded border border-indigo-500/30 bg-slate-900 px-2.5 py-1 font-mono text-xs text-indigo-300 font-bold outline-none focus:border-indigo-500"
+              >
+                {PROCESSOS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
               <button
                 type="button"
                 onClick={() => setAutoRefresh((v) => !v)}
-                className={`rounded border px-2 py-0.5 text-[10px] font-bold ${
+                className={`rounded border px-2 py-1 text-[10px] font-bold ${
                   autoRefresh
                     ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
                     : "border-slate-700 bg-slate-800 text-slate-400"
