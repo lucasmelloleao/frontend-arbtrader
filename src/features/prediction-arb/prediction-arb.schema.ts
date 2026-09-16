@@ -124,6 +124,7 @@ export const predictionArbSettingsSchema = object({
   maxSlippagePct: fallback(number(), 0.1),
   closeWhenComplete: fallback(boolean(), true),
   targetProfitPct: fallback(number(), 1.0),
+  minHighCertaintyProb: fallback(number(), 0.95),
   allowedMarkets: fallback(array(string()), []),
   scanIntervalMs: fallback(number(), 60000),
 });

@@ -31,6 +31,9 @@ export function PredictionSettingsPanel({
   const [maxSlippagePct, setMaxSlippagePct] = useState(settings?.maxSlippagePct ?? 0.1);
   const [closeWhenComplete, setCloseWhenComplete] = useState(settings?.closeWhenComplete ?? true);
   const [maxDailyLoss, setMaxDailyLoss] = useState(settings?.maxDailyLoss ?? 10);
+  const [minHighCertaintyProb, setMinHighCertaintyProb] = useState(
+    settings?.minHighCertaintyProb ?? 0.95,
+  );
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -48,6 +51,7 @@ export function PredictionSettingsPanel({
         maxSlippagePct,
         closeWhenComplete,
         maxDailyLoss,
+        minHighCertaintyProb,
       });
 
       if (res.ok) {
@@ -220,6 +224,29 @@ export function PredictionSettingsPanel({
                 onChange={(e) => setTargetProfitPct(Number(e.target.value))}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
               />
+            </div>
+
+            {/* Certeza Mínima Direcional */}
+            <div>
+              <label
+                htmlFor="min-certainty-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Certeza Mínima Direcional (ex: 0.95 = 95%)
+              </label>
+              <input
+                id="min-certainty-input"
+                type="number"
+                step="0.01"
+                min="0.50"
+                max="0.99"
+                value={minHighCertaintyProb}
+                onChange={(e) => setMinHighCertaintyProb(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Probabilidade estimada mínima (0.95 = 95%) para disparo de entrada direcional.
+              </p>
             </div>
 
             {/* Slippage Máximo */}
