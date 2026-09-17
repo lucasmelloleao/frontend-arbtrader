@@ -152,24 +152,6 @@ export function PredictionSettingsPanel({
               />
             </div>
 
-            {/* Spread Mínimo */}
-            <div>
-              <label
-                htmlFor="min-spread-input"
-                className="block text-xs font-semibold text-slate-300"
-              >
-                Spread Mínimo (%)
-              </label>
-              <input
-                id="min-spread-input"
-                type="number"
-                step="0.1"
-                value={minSpreadPct}
-                onChange={(e) => setMinSpreadPct(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
-              />
-            </div>
-
             {/* Volume Mínimo 24h */}
             <div>
               <label htmlFor="min-vol-input" className="block text-xs font-semibold text-slate-300">
@@ -226,24 +208,6 @@ export function PredictionSettingsPanel({
               <p className="mt-1 text-[10px] text-slate-500">
                 Quantas posições (pares YES+NO) o robô pode manter abertas ao mesmo tempo.
               </p>
-            </div>
-
-            {/* Target Profit % */}
-            <div>
-              <label
-                htmlFor="target-profit-input"
-                className="block text-xs font-semibold text-slate-300"
-              >
-                Meta de Lucro (%)
-              </label>
-              <input
-                id="target-profit-input"
-                type="number"
-                step="0.1"
-                value={targetProfitPct}
-                onChange={(e) => setTargetProfitPct(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
-              />
             </div>
 
             {/* Certeza Mínima Direcional (Entrada) */}
@@ -393,30 +357,7 @@ export function PredictionSettingsPanel({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-3">
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-300 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={makerOnly}
-                  onChange={(e) => setMakerOnly(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500"
-                />
-                <ShieldCheck className="h-3.5 w-3.5 text-indigo-400" aria-hidden="true" />
-                Maker Only (Evitar Taker Fees)
-              </label>
-
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-300 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={closeWhenComplete}
-                  onChange={(e) => setCloseWhenComplete(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500"
-                />
-                Fechar ao Alcançar Completude (1.00)
-              </label>
-            </div>
-
+          <div className="flex justify-end border-t border-slate-800 pt-3">
             <button
               type="submit"
               disabled={isPending}
