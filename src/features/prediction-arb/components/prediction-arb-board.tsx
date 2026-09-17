@@ -402,6 +402,18 @@ export function PredictionArbBoard({
                 <div className="mt-1 font-mono text-[11px] text-slate-400">{strat.slug}</div>
                 <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
                   <span className="font-mono text-slate-300">
+                    Prob YES:{" "}
+                    <b className="text-emerald-400 font-bold">
+                      {strat.yesPrice > 0 ? `${(strat.yesPrice * 100).toFixed(1)}%` : "—"}
+                    </b>
+                  </span>
+                  <span className="font-mono text-slate-300">
+                    Prob NO:{" "}
+                    <b className="text-indigo-400 font-bold">
+                      {strat.noPrice > 0 ? `${(strat.noPrice * 100).toFixed(1)}%` : "—"}
+                    </b>
+                  </span>
+                  <span className="font-mono text-slate-300">
                     Bid/Ask:{" "}
                     <b className="text-white">
                       {strat.bestBid.toFixed(3)}/{strat.bestAsk.toFixed(3)}
@@ -428,7 +440,18 @@ export function PredictionArbBoard({
                   <span className="font-mono text-slate-300">
                     Vence:{" "}
                     <b className="text-white">
-                      {strat.minutosParaVencer > 0 ? `${strat.minutosParaVencer}min` : "Vencido"}
+                      {strat.segundosParaVencer > 0 ? (
+                        strat.segundosParaVencer <= 180 ? (
+                          <span className="text-amber-400 font-bold">
+                            {Math.floor(strat.segundosParaVencer / 60)}m{" "}
+                            {String(strat.segundosParaVencer % 60).padStart(2, "0")}s
+                          </span>
+                        ) : (
+                          `${Math.ceil(strat.segundosParaVencer / 60)}min`
+                        )
+                      ) : (
+                        <span className="text-rose-400 font-bold">Vencido</span>
+                      )}
                     </b>
                   </span>
                 </div>
