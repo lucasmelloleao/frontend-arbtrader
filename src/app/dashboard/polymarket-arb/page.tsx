@@ -106,13 +106,13 @@ async function PolymarketArbCarregado(): Promise<React.ReactNode> {
 
       <PredictionSettingsPanel settings={settingsData} />
 
-      <PredictionTerminalLogs />
-
       <PredictionArbBoard
         strategies={strategiesData}
         trades={tradesData}
         exchangeKeys={exchangesData}
       />
+
+      <PredictionTerminalLogs />
     </div>
   );
 }
