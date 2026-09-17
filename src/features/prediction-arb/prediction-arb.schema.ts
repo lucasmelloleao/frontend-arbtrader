@@ -86,6 +86,7 @@ const predictionArbTradeSchema = object({
   spreadPct: fallback(number(), 0),
   reason: fallback(string(), ""),
   orderIds: fallback(array(string()), []),
+  openedAt: fallback(string(), ""),
   createdAt: fallback(string(), ""),
 });
 

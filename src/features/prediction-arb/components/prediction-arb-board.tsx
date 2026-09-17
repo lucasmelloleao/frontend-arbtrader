@@ -510,6 +510,36 @@ export function PredictionArbBoard({
                 <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/5 pt-3 text-xs">
                   <div>
                     <span className="text-[10px] font-bold uppercase text-slate-500">
+                      Entrada
+                    </span>
+                    <div className="mt-0.5 font-mono font-semibold text-slate-300">
+                      {t.openedAt ? new Date(t.openedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">
+                      Encerramento
+                    </span>
+                    <div className="mt-0.5 font-mono font-semibold text-slate-300">
+                      {t.createdAt ? new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">Duração</span>
+                    <div className="mt-0.5 font-mono font-bold text-amber-400">
+                      {(() => {
+                        if (!t.openedAt || !t.createdAt) return "—";
+                        const diffSec = Math.max(0, Math.floor((new Date(t.createdAt).getTime() - new Date(t.openedAt).getTime()) / 1000));
+                        const m = Math.floor(diffSec / 60);
+                        const s = diffSec % 60;
+                        return m > 0 ? `${m}m ${s}s` : `${s}s`;
+                      })()}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-slate-500">
                       Investido
                     </span>
                     <div className="mt-0.5 font-mono font-bold text-white">
