@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 
-import { ChevronDown, Save, Settings, ShieldCheck } from "lucide-react";
+import { ChevronDown, Save, Settings } from "lucide-react";
 
 import { salvarSettings } from "@/features/prediction-arb/prediction-arb.actions";
 import type { PredictionArbSettings } from "@/features/prediction-arb/prediction-arb.schema";
@@ -23,13 +23,9 @@ export function PredictionSettingsPanel({
 
   const [isScanningEnabled, setIsScanningEnabled] = useState(settings?.isScanningEnabled ?? false);
   const [tradeSize, setTradeSize] = useState(settings?.tradeSize ?? 100);
-  const [minSpreadPct, setMinSpreadPct] = useState(settings?.minSpreadPct ?? 0.5);
   const [minVolume24hUSD, setMinVolume24hUSD] = useState(settings?.minVolume24hUSD ?? 5000);
   const [maxOpenPairs, setMaxOpenPairs] = useState(settings?.maxOpenPairs ?? 3);
-  const [targetProfitPct, setTargetProfitPct] = useState(settings?.targetProfitPct ?? 1.0);
-  const [makerOnly, setMakerOnly] = useState(settings?.makerOnly ?? true);
   const [maxSlippagePct, setMaxSlippagePct] = useState(settings?.maxSlippagePct ?? 0.1);
-  const [closeWhenComplete, setCloseWhenComplete] = useState(settings?.closeWhenComplete ?? true);
   const [maxDailyLoss, setMaxDailyLoss] = useState(settings?.maxDailyLoss ?? 10);
   const [minHighCertaintyProb, setMinHighCertaintyProb] = useState(
     settings?.minHighCertaintyProb ?? 0.95,
@@ -58,13 +54,9 @@ export function PredictionSettingsPanel({
       const res = await salvarSettings({
         isScanningEnabled,
         tradeSize,
-        minSpreadPct,
         minVolume24hUSD,
         maxOpenPairs,
-        targetProfitPct,
-        makerOnly,
         maxSlippagePct,
-        closeWhenComplete,
         maxDailyLoss,
         minHighCertaintyProb,
         minWatchCertaintyProb,
