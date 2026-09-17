@@ -5,7 +5,6 @@ import { Activity } from "lucide-react";
 import { PredictionArbBoard } from "@/features/prediction-arb/components/prediction-arb-board";
 import { PredictionClearHistoryButton } from "@/features/prediction-arb/components/prediction-clear-history-button";
 import { PredictionHarvestButton } from "@/features/prediction-arb/components/prediction-harvest-button";
-import { PredictionScannerButton } from "@/features/prediction-arb/components/prediction-scanner-button";
 import { PredictionSettingsPanel } from "@/features/prediction-arb/components/prediction-settings-panel";
 import { PredictionStatsHeader } from "@/features/prediction-arb/components/prediction-stats-header";
 import { PredictionTerminalLogs } from "@/features/prediction-arb/components/prediction-terminal-logs";
@@ -93,7 +92,6 @@ async function PolymarketArbCarregado(): Promise<React.ReactNode> {
             />
             Robô {botData !== null && botData.isOnline ? "ONLINE" : "OFFLINE"}
           </span>
-          <PredictionScannerButton settings={settingsData} />
           <PredictionClearHistoryButton />
         </div>
       </div>
