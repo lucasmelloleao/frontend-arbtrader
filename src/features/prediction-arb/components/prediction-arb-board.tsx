@@ -43,7 +43,7 @@ export function PredictionArbBoard({
   useEffect(() => {
     const interval = setInterval(() => {
       router.refresh();
-    }, 10000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [router]);
 
