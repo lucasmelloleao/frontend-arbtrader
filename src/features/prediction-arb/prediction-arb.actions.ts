@@ -132,21 +132,6 @@ export async function alternarColheita(live: boolean): Promise<MutacaoResult> {
   return { ok: true };
 }
 
-/**
- * Dispara um scan manual de mercados na Gamma API (GET /prediction-arb/manual-scan).
- */
-export async function executarManualScan(): Promise<MutacaoResult> {
-  try {
-    await apiClient(kyServer, API_ENDPOINTS.predictionArb.manualScan, undefined, {
-      method: "get",
-    });
-  } catch (error: unknown) {
-    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
-  }
-  revalidatePath("/dashboard/polymarket-arb");
-  return { ok: true };
-}
-
 /** Linhas de log do robô prediction-arb. */
 export type PredictionLogsResult = { ok: true; logs: string[] } | { ok: false; erro: string };
 
