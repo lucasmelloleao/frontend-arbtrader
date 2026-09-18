@@ -484,15 +484,27 @@ export function PredictionArbBoard({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h4 className="text-sm font-bold text-white">{t.question || t.slug}</h4>
-                    <div className="mt-0.5 text-xs text-slate-400 font-mono">
-                      {t.type === "close_pair"
-                        ? "Encerrada"
-                        : t.type === "mm_quote"
-                          ? t.orderIds.length > 0
-                            ? "Cotação MM (ordem enviada)"
-                            : "Cotação MM (sem ordem)"
-                          : "Aberta"}{" "}
-                      | {new Date(t.createdAt).toLocaleString()}
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs font-mono text-slate-400">
+                      {t.reason?.includes("venda-antecipada") ? (
+                        <span className="inline-flex items-center rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+                          Venda Antecipada (Saída Prévias)
+                        </span>
+                      ) : t.reason?.includes("redeem-vencimento") ? (
+                        <span className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                          Vencimento (Resgate Total)
+                        </span>
+                      ) : (
+                        <span>
+                          {t.type === "close_pair"
+                            ? "Encerrada"
+                            : t.type === "mm_quote"
+                              ? t.orderIds.length > 0
+                                ? "Cotação MM (ordem enviada)"
+                                : "Cotação MM (sem ordem)"
+                              : "Aberta"}
+                        </span>
+                      )}{" "}
+                      <span>| {new Date(t.createdAt).toLocaleString()}</span>
                     </div>
                   </div>
                   <div
