@@ -79,3 +79,11 @@ const atualizarDerivSettingsInputSchema = object({
 });
 
 export type AtualizarDerivSettingsInput = InferOutput<typeof atualizarDerivSettingsInputSchema>;
+
+/** Schema de resposta de logs Deriv. */
+export const derivLogsSchema = object({
+  process: fallback(string(), "backend-arbtrader"),
+  linesCount: fallback(number(), 0),
+  logs: fallback(array(string()), []),
+  timestamp: fallback(string(), ""),
+});

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import type { AtualizarDerivSettingsInput } from "@/features/deriv/deriv.schema";
+import { derivLogsSchema, type AtualizarDerivSettingsInput } from "@/features/deriv/deriv.schema";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
@@ -48,5 +48,22 @@ export async function syncTradesDeriv(): Promise<MutacaoResult> {
     return { ok: true };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+}
+
+export type DerivLogsResult = { ok: true; logs: string[] } | { ok: false; erro: string };
+
+export async function buscarLogsDeriv(lines = 150): Promise<DerivLogsResult> {
+  try {
+    const data = await apiClient(kyServer, API_ENDPOINTS.deriv.logs, derivLogsSchema, {
+      method: "get",
+      searchParams: { lines },
+    });
+    return { ok: true, logs: data.logs };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
+    };
   }
 }

@@ -4,6 +4,7 @@ import { Activity } from "lucide-react";
 
 import { DerivBoard } from "@/features/deriv/components/deriv-board";
 import { DerivSettingsPanel } from "@/features/deriv/components/deriv-settings-panel";
+import { DerivTerminalLogs } from "@/features/deriv/components/deriv-terminal-logs";
 import {
   derivSettingsSchema,
   derivTradeListSchema,
@@ -48,6 +49,8 @@ async function DerivPageContent(): Promise<React.ReactNode> {
       <DerivSettingsPanel settings={settings} />
 
       <DerivBoard summary={summary} trades={trades} />
+
+      <DerivTerminalLogs />
     </div>
   );
 }

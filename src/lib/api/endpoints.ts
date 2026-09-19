@@ -121,5 +121,6 @@ export const API_ENDPOINTS = {
     summary: "api/v1/deriv/summary",
     close: "api/v1/deriv/close",
     sync: "api/v1/deriv/sync",
+    logs: "api/v1/deriv/logs",
   },
 } as const;
