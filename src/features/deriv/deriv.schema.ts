@@ -47,6 +47,9 @@ export type DerivTradesSummary = InferOutput<typeof derivTradesSummarySchema>;
 export const derivSettingsSchema = object({
   userId: fallback(string(), ""),
   appId: fallback(string(), "1089"),
+  accountType: fallback(string(), "demo"),
+  demoApiToken: fallback(string(), ""),
+  realApiToken: fallback(string(), ""),
   apiToken: fallback(string(), ""),
   isScanningEnabled: fallback(boolean(), false),
   allowLiveTrading: fallback(boolean(), false),
@@ -65,6 +68,9 @@ export type DerivSettings = InferOutput<typeof derivSettingsSchema>;
 /** Input de atualização de configurações Deriv. */
 const atualizarDerivSettingsInputSchema = object({
   appId: optional(string()),
+  accountType: optional(string()),
+  demoApiToken: optional(string()),
+  realApiToken: optional(string()),
   apiToken: optional(string()),
   isScanningEnabled: optional(boolean()),
   allowLiveTrading: optional(boolean()),

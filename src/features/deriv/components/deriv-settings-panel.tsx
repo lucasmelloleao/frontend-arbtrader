@@ -16,7 +16,11 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
   const [mensagem, setMensagem] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
 
   const [appId, setAppId] = useState(settings?.appId ?? "1089");
-  const [apiToken, setApiToken] = useState(settings?.apiToken ?? "");
+  const [accountType, setAccountType] = useState(settings?.accountType ?? "demo");
+  const [demoApiToken, setDemoApiToken] = useState(
+    settings?.demoApiToken ?? settings?.apiToken ?? "",
+  );
+  const [realApiToken, setRealApiToken] = useState(settings?.realApiToken ?? "");
   const [isScanningEnabled, setIsScanningEnabled] = useState(settings?.isScanningEnabled ?? false);
   const [allowLiveTrading, setAllowLiveTrading] = useState(settings?.allowLiveTrading ?? false);
   const [tradeSize, setTradeSize] = useState(settings?.tradeSize ?? 5);
@@ -32,7 +36,10 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
     startTransition(async () => {
       const res = await salvarDerivSettings({
         appId,
-        apiToken,
+        accountType,
+        demoApiToken,
+        realApiToken,
+        apiToken: accountType === "real" ? realApiToken : demoApiToken,
         isScanningEnabled,
         allowLiveTrading,
         tradeSize,
@@ -82,20 +89,57 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
           ) : null}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {/* API Token */}
+            {/* Seletor de Ambiente: Demo vs Real */}
             <div>
               <label
-                htmlFor="api-token-input"
+                htmlFor="account-type-select"
                 className="block text-xs font-semibold text-slate-300"
               >
-                API Token Deriv
+                Ambiente Operacional Deriv
+              </label>
+              <select
+                id="account-type-select"
+                value={accountType}
+                onChange={(e) => setAccountType(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-sans text-xs font-bold text-white outline-none focus:border-emerald-500"
+              >
+                <option value="demo">🎮 Conta Demo (Virtual / DOT)</option>
+                <option value="real">💎 Conta Real (Produção / ROT)</option>
+              </select>
+            </div>
+
+            {/* Token Demo */}
+            <div>
+              <label
+                htmlFor="demo-api-token-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                API Token - Conta Demo (DOT... / pat_...)
               </label>
               <input
-                id="api-token-input"
+                id="demo-api-token-input"
                 type="password"
-                value={apiToken}
-                onChange={(e) => setApiToken(e.target.value)}
-                placeholder="Insira o seu token da Deriv"
+                value={demoApiToken}
+                onChange={(e) => setDemoApiToken(e.target.value)}
+                placeholder="Token gerado na Conta Demo"
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            {/* Token Real */}
+            <div>
+              <label
+                htmlFor="real-api-token-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                API Token - Conta Real (ROT... / pat_...)
+              </label>
+              <input
+                id="real-api-token-input"
+                type="password"
+                value={realApiToken}
+                onChange={(e) => setRealApiToken(e.target.value)}
+                placeholder="Token gerado na Conta Real"
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
               />
             </div>
@@ -143,7 +187,7 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
                 >
                   Operações Reais Ativas
                 </label>
-                <p className="text-[10px] text-slate-400">Enviar ordens reais para a conta Deriv</p>
+                <p className="text-[10px] text-slate-400">Enviar ordens reais para a Deriv</p>
               </div>
               <input
                 id="deriv-live-enabled"
