@@ -479,7 +479,13 @@ export function PredictionArbBoard({
             encerradas.map((t, idx) => (
               <div
                 key={t.id || `${t.slug}-${idx}`}
-                className="rounded-xl border border-white/10 bg-slate-950/70 p-4"
+                className={`rounded-xl border p-4 transition-colors ${
+                  t.pnl > 0
+                    ? "border-emerald-500/20 bg-emerald-950/30 hover:bg-emerald-950/40"
+                    : t.pnl < 0
+                      ? "border-rose-500/20 bg-rose-950/30 hover:bg-rose-950/40"
+                      : "border-white/10 bg-slate-950/70"
+                }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
