@@ -517,6 +517,12 @@ export function PredictionArbBoard({
                     }`}
                   >
                     {fmtUsd(t.pnl)}
+                    {t.investedUsd > 0 ? (
+                      <span className="ml-1.5 text-xs font-semibold">
+                        ({t.pnl > 0 ? "+" : ""}
+                        {((t.pnl / t.investedUsd) * 100).toFixed(2)}%)
+                      </span>
+                    ) : null}
                   </div>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/5 pt-3 text-xs">
@@ -594,6 +600,12 @@ export function PredictionArbBoard({
                       }`}
                     >
                       {fmtUsd(t.pnl)}
+                      {t.investedUsd > 0 ? (
+                        <span className="ml-1 text-[10px] opacity-90">
+                          ({t.pnl > 0 ? "+" : ""}
+                          {((t.pnl / t.investedUsd) * 100).toFixed(2)}%)
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </div>
