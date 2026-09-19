@@ -132,6 +132,7 @@ export const predictionArbSettingsSchema = object({
   maxEntrySecondsBeforeExpiry5mMaj: fallback(number(), 120),
   maxEntrySecondsBeforeExpiry15mAlt: fallback(number(), 120),
   maxEntrySecondsBeforeExpiry15mMaj: fallback(number(), 300),
+  emergencyStopThreshold: fallback(number(), 0.82),
   allowedMarkets: fallback(array(string()), []),
   scanIntervalMs: fallback(number(), 60000),
 });
@@ -192,6 +193,7 @@ const atualizarPredictionSettingsInputSchema = object({
   maxEntrySecondsBeforeExpiry5mMaj: optional(number()),
   maxEntrySecondsBeforeExpiry15mAlt: optional(number()),
   maxEntrySecondsBeforeExpiry15mMaj: optional(number()),
+  emergencyStopThreshold: optional(number()),
   allowedMarkets: optional(array(string())),
   scanIntervalMs: optional(number()),
 });

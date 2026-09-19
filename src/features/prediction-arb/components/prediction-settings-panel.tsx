@@ -45,6 +45,9 @@ export function PredictionSettingsPanel({
   const [maxEntrySecondsBeforeExpiry15mMaj, setMaxEntrySecondsBeforeExpiry15mMaj] = useState(
     settings?.maxEntrySecondsBeforeExpiry15mMaj ?? 300,
   );
+  const [emergencyStopThreshold, setEmergencyStopThreshold] = useState(
+    settings?.emergencyStopThreshold ?? 0.82,
+  );
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -64,6 +67,7 @@ export function PredictionSettingsPanel({
         maxEntrySecondsBeforeExpiry5mMaj,
         maxEntrySecondsBeforeExpiry15mAlt,
         maxEntrySecondsBeforeExpiry15mMaj,
+        emergencyStopThreshold,
       });
 
       if (res.ok) {
@@ -327,6 +331,29 @@ export function PredictionSettingsPanel({
               />
               <p className="mt-1 text-[10px] text-slate-500">
                 Segundos finais para disparar em BTC e ETH (15m).
+              </p>
+            </div>
+
+            {/* Emergency Stop Loss */}
+            <div>
+              <label
+                htmlFor="emergency-stop-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Stop Loss Emergência (Cotação Ex: 0.82)
+              </label>
+              <input
+                id="emergency-stop-input"
+                type="number"
+                step="0.01"
+                min="0.50"
+                max="0.95"
+                value={emergencyStopThreshold}
+                onChange={(e) => setEmergencyStopThreshold(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Encerra imediatamente a posição se o livro despencar abaixo desta cotação.
               </p>
             </div>
 
