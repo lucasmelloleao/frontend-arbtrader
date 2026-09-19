@@ -71,6 +71,7 @@ const LINKS: readonly SidebarLink[] = [
     habilitado: false,
   },
   { href: "/dashboard/polymarket-arb", label: "Polymarket Arb", icon: Activity, habilitado: true },
+  { href: "/dashboard/deriv", label: "Deriv Bot", icon: Activity, habilitado: true },
   { href: "/dashboard/liquidation", label: "Liquidação", icon: ShieldAlert, habilitado: false },
   { href: "/dashboard/flash-loan", label: "Flash Loans", icon: Zap, habilitado: false },
   {

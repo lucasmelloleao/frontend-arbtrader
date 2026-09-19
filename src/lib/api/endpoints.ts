@@ -113,4 +113,13 @@ export const API_ENDPOINTS = {
 
   /** Consulta Processual TJPR / Datajud */
   processoTJPR: "api/v1/processo-tjpr",
+
+  /** Robô de Opções Digitais Deriv. */
+  deriv: {
+    settings: "api/v1/deriv/settings",
+    listarTrades: "api/v1/deriv/trades",
+    summary: "api/v1/deriv/summary",
+    close: "api/v1/deriv/close",
+    sync: "api/v1/deriv/sync",
+  },
 } as const;

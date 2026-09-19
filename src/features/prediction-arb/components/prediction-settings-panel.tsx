@@ -48,6 +48,7 @@ export function PredictionSettingsPanel({
   const [emergencyStopThreshold, setEmergencyStopThreshold] = useState(
     settings?.emergencyStopThreshold ?? 0.82,
   );
+  const [minTakeProfitPct, setMinTakeProfitPct] = useState(settings?.minTakeProfitPct ?? 2.0);
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -68,6 +69,7 @@ export function PredictionSettingsPanel({
         maxEntrySecondsBeforeExpiry15mAlt,
         maxEntrySecondsBeforeExpiry15mMaj,
         emergencyStopThreshold,
+        minTakeProfitPct,
       });
 
       if (res.ok) {
@@ -354,6 +356,30 @@ export function PredictionSettingsPanel({
               />
               <p className="mt-1 text-[10px] text-slate-500">
                 Encerra imediatamente a posição se o livro despencar abaixo desta cotação.
+              </p>
+            </div>
+
+            {/* Lucro Mínimo Saída Antecipada */}
+            <div>
+              <label
+                htmlFor="min-tp-pct-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Lucro Mínimo Saída Antecipada (%)
+              </label>
+              <input
+                id="min-tp-pct-input"
+                type="number"
+                step="0.1"
+                min="0.5"
+                max="20.0"
+                value={minTakeProfitPct}
+                onChange={(e) => setMinTakeProfitPct(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Lucro líquido mínimo exigido sobre o preço de entrada para autorizar a saída
+                antecipada.
               </p>
             </div>
 
