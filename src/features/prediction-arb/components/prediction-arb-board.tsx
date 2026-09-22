@@ -8,9 +8,11 @@ import { Plus, Power, TrendingUp, X, XCircle } from "lucide-react";
 import { PredictionStrategyForm } from "@/features/prediction-arb/components/prediction-strategy-form";
 import {
   aumentarAporte,
+  criarStrategy,
   deletarStrategy,
   fecharPosicao,
   voidCloseStrategy,
+  buscarTradesPrediction,
 } from "@/features/prediction-arb/prediction-arb.actions";
 import type {
   PredictionArbStrategy,
@@ -20,7 +22,7 @@ import type {
 type PredictionArbBoardProps = {
   strategies: readonly PredictionArbStrategy[];
   trades: readonly PredictionArbTrade[];
-  exchangeKeys: readonly { id: string; exchangeId: string; nome: string }[];
+  exchangeKeys?: readonly { id: string; exchangeId: string; nome: string }[];
 };
 
 const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
@@ -28,17 +30,24 @@ const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 
 /**
  * Painel principal do Polymarket Arb: abas para Posições Abertas, Estratégias Monitoradas
- * e Histórico de Trades com auto-refresh a cada 10s.
+ * e Histórico de Trades com carregamento sob demanda por período.
  */
 export function PredictionArbBoard({
   strategies,
-  trades,
-  exchangeKeys,
+  trades: initialTrades,
+  exchangeKeys = [],
 }: PredictionArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [aba, setAba] = useState<"open" | "monitored" | "closed">("open");
   const [criando, setCriando] = useState(false);
+  const [periodo, setPeriodo] = useState<"today" | "7d" | "30d" | "all">("today");
+  const [tradesList, setTradesList] = useState<readonly PredictionArbTrade[]>(initialTrades);
+  const [carregandoTrades, setCarregandoTrades] = useState(false);
+
+  useEffect(() => {
+    setTradesList(initialTrades);
+  }, [initialTrades]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -47,16 +56,26 @@ export function PredictionArbBoard({
     return () => clearInterval(interval);
   }, [router]);
 
-  const cutoffDate = new Date("2026-09-15T00:00:00.000Z");
-  const filteredStrategies = strategies.filter(
-    (s) => !s.createdAt || new Date(s.createdAt) >= cutoffDate,
-  );
-  const filteredTrades = trades.filter((t) => !t.createdAt || new Date(t.createdAt) >= cutoffDate);
+  const carregarPeriodo = async (p: "today" | "7d" | "30d" | "all") => {
+    setPeriodo(p);
+    setCarregandoTrades(true);
+    const res = await buscarTradesPrediction({ periodo: p });
+    setCarregandoTrades(false);
+    if (res.ok) {
+      setTradesList(res.trades);
+    }
+  };
 
-  const abertas = filteredStrategies.filter((s) => s.positionOpen);
-  const monitorando = filteredStrategies.filter((s) => !s.positionOpen);
-  const encerradas = filteredTrades.filter(
-    (t) => t.type === "close_pair" && t.status === "executed",
+  const abertas = strategies.filter(
+    (s) => s.positionOpen && (s.yesShares > 0 || s.noShares > 0 || (s.openOrderIds && s.openOrderIds.length > 0))
+  );
+  const monitorando = strategies.filter(
+    (s) => !s.positionOpen || (s.yesShares === 0 && s.noShares === 0 && (!s.openOrderIds || s.openOrderIds.length === 0))
+  );
+  const encerradas = tradesList.filter(
+    (t) =>
+      (t.type === "close_pair" || t.type === "close" || t.type === "settlement" || t.status === "closed") &&
+      (t.realizedUsd > 0 || t.pnl !== 0 || (t.status === "executed" && t.type === "close_pair"))
   );
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
@@ -469,14 +488,50 @@ export function PredictionArbBoard({
 
       {/* Aba: Histórico de Trades */}
       {aba === "closed" ? (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {encerradas.length === 0 ? (
-            <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
-              <TrendingUp className="mx-auto mb-3 h-8 w-8 opacity-40" aria-hidden="true" />
-              Nenhum trade encerrado registrado a partir de 15/09/2026.
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-slate-900/80 p-3 shadow-sm">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-cyan-400" />
+              <span className="text-xs font-bold text-slate-200">Período do Histórico:</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(
+                [
+                  { id: "today", label: "Hoje" },
+                  { id: "7d", label: "Últimos 7 dias" },
+                  { id: "30d", label: "Últimos 30 dias" },
+                  { id: "all", label: "Histórico Completo" },
+                ] as const
+              ).map((btn) => (
+                <button
+                  key={btn.id}
+                  disabled={carregandoTrades}
+                  onClick={() => carregarPeriodo(btn.id)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                    periodo === btn.id
+                      ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                      : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {carregandoTrades ? (
+            <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/40 p-10 text-center text-xs text-slate-400">
+              Carregando operações do período...
             </div>
           ) : (
-            encerradas.map((t, idx) => (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {encerradas.length === 0 ? (
+                <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
+                  <TrendingUp className="mx-auto mb-3 h-8 w-8 opacity-40" aria-hidden="true" />
+                  Nenhuma operação encontrada para o período selecionado.
+                </div>
+              ) : (
+                encerradas.map((t, idx) => (
               <div
                 key={t.id || `${t.slug}-${idx}`}
                 className={`rounded-xl border p-4 transition-colors ${
@@ -620,6 +675,8 @@ export function PredictionArbBoard({
                 ) : null}
               </div>
             ))
+          )}
+            </div>
           )}
         </div>
       ) : null}

@@ -117,10 +117,16 @@ export const API_ENDPOINTS = {
   /** Robô de Opções Digitais Deriv. */
   deriv: {
     settings: "api/v1/deriv/settings",
+    strategies: "api/v1/deriv/strategies",
+    contractsFor: "api/v1/deriv/contracts-for",
+    barrierRange: "api/v1/deriv/barrier-range",
+    proposal: "api/v1/deriv/proposal",
+    balance: "api/v1/deriv/balance",
     listarTrades: "api/v1/deriv/trades",
     summary: "api/v1/deriv/summary",
     close: "api/v1/deriv/close",
     sync: "api/v1/deriv/sync",
     logs: "api/v1/deriv/logs",
+    limparTrades: "api/v1/deriv/trades",
   },
 } as const;

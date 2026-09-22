@@ -2,6 +2,7 @@ import {
   array,
   boolean,
   fallback,
+  nullable,
   number,
   object,
   optional,
@@ -14,6 +15,7 @@ const derivTradeSchema = object({
   id: fallback(string(), ""),
   contractId: fallback(string(), ""),
   symbol: fallback(string(), ""),
+  strategyName: fallback(string(), ""),
   question: fallback(string(), ""),
   contractType: fallback(string(), "RISE"),
   status: fallback(string(), "executed"),
@@ -46,7 +48,7 @@ export type DerivTradesSummary = InferOutput<typeof derivTradesSummarySchema>;
 /** Schema das configurações do robô Deriv. */
 export const derivSettingsSchema = object({
   userId: fallback(string(), ""),
-  appId: fallback(string(), "1089"),
+  appId: fallback(string(), "34kQP2mEzJFjAJ2q1atub"),
   accountType: fallback(string(), "demo"),
   demoApiToken: fallback(string(), ""),
   realApiToken: fallback(string(), ""),
@@ -59,6 +61,7 @@ export const derivSettingsSchema = object({
   minHighCertaintyProb: fallback(number(), 0.95),
   emergencyStopPct: fallback(number(), 20),
   minTakeProfitPct: fallback(number(), 2.0),
+  minPayoutPct: fallback(number(), 35.0),
   allowedSymbols: fallback(array(string()), ["frxBTCUSD", "frxETHUSD", "R_100", "R_50"]),
   contractDurationSec: fallback(number(), 300),
 });
@@ -80,16 +83,84 @@ const atualizarDerivSettingsInputSchema = object({
   minHighCertaintyProb: optional(number()),
   emergencyStopPct: optional(number()),
   minTakeProfitPct: optional(number()),
+  minPayoutPct: optional(number()),
   allowedSymbols: optional(array(string())),
   contractDurationSec: optional(number()),
 });
 
 export type AtualizarDerivSettingsInput = InferOutput<typeof atualizarDerivSettingsInputSchema>;
 
-/** Schema de resposta de logs Deriv. */
 export const derivLogsSchema = object({
   process: fallback(string(), "backend-arbtrader"),
   linesCount: fallback(number(), 0),
   logs: fallback(array(string()), []),
   timestamp: fallback(string(), ""),
 });
+
+/** Schema de uma Estratégia por Ativo na Deriv. */
+export const derivStrategySchema = object({
+  id: fallback(string(), ""),
+  name: fallback(string(), ""),
+  symbol: fallback(string(), "1HZ10V"),
+  contractType: fallback(string(), "BOTH_HL"),
+  barrier: fallback(string(), "-1"),
+  barrierLower: fallback(string(), "+1"),
+  tradeSize: fallback(number(), 2),
+  durationSec: fallback(number(), 15),
+  minCertaintyProb: fallback(number(), 0.75),
+  active: fallback(boolean(), true),
+  positionOpen: fallback(boolean(), false),
+  contractId: fallback(nullable(string()), null),
+  pnl: fallback(number(), 0),
+  lastCheckAt: fallback(string(), ""),
+  lastTradeAt: fallback(string(), ""),
+  createdAt: fallback(string(), ""),
+});
+
+export type DerivStrategy = InferOutput<typeof derivStrategySchema>;
+
+export const derivStrategyListSchema = array(derivStrategySchema);
+
+export const criarDerivStrategyInputSchema = object({
+  name: optional(string()),
+  symbol: string(),
+  contractType: optional(string()),
+  barrier: optional(string()),
+  barrierLower: optional(string()),
+  tradeSize: optional(number()),
+  durationSec: optional(number()),
+  minCertaintyProb: optional(number()),
+  active: optional(boolean()),
+});
+
+export type CriarDerivStrategyInput = InferOutput<typeof criarDerivStrategyInputSchema>;
+
+export const atualizarDerivStrategyInputSchema = object({
+  id: string(),
+  name: optional(string()),
+  symbol: optional(string()),
+  contractType: optional(string()),
+  barrier: optional(string()),
+  barrierLower: optional(string()),
+  tradeSize: optional(number()),
+  durationSec: optional(number()),
+  minCertaintyProb: optional(number()),
+  active: optional(boolean()),
+});
+
+export type AtualizarDerivStrategyInput = InferOutput<typeof atualizarDerivStrategyInputSchema>;
+
+/** Schema de resposta de saldo Deriv. */
+const derivAccountBalanceSchema = object({
+  loginId: fallback(string(), ""),
+  balance: fallback(number(), 0),
+  currency: fallback(string(), "USD"),
+});
+
+export const derivBalanceSchema = object({
+  demo: fallback(nullable(derivAccountBalanceSchema), null),
+  real: fallback(nullable(derivAccountBalanceSchema), null),
+  activeAccount: fallback(string(), "demo"),
+});
+
+export type DerivBalance = InferOutput<typeof derivBalanceSchema>;

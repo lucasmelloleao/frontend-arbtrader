@@ -54,6 +54,7 @@ const predictionArbStrategySchema = object({
   pnlAtual: fallback(number(), 0),
   retornoVencimento: fallback(number(), 0),
   lucroGarantido: fallback(number(), 0),
+  openOrderIds: optional(array(string())),
 });
 
 export type PredictionArbStrategy = InferOutput<typeof predictionArbStrategySchema>;

@@ -15,7 +15,7 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
   const [isPending, startTransition] = useTransition();
   const [mensagem, setMensagem] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
 
-  const [appId, setAppId] = useState(settings?.appId ?? "1089");
+  const [appId, setAppId] = useState(settings?.appId || "34kQP2mEzJFjAJ2q1atub");
   const [accountType, setAccountType] = useState(settings?.accountType ?? "demo");
   const [demoApiToken, setDemoApiToken] = useState(
     settings?.demoApiToken ?? settings?.apiToken ?? "",
@@ -28,12 +28,27 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
   const [maxDailyLoss, setMaxDailyLoss] = useState(settings?.maxDailyLoss ?? 10);
   const [emergencyStopPct, setEmergencyStopPct] = useState(settings?.emergencyStopPct ?? 20);
   const [minTakeProfitPct, setMinTakeProfitPct] = useState(settings?.minTakeProfitPct ?? 2.0);
+  const [minPayoutPct, setMinPayoutPct] = useState(settings?.minPayoutPct ?? 35.0);
+  const [minHighCertaintyProb, setMinHighCertaintyProb] = useState(
+    Math.round((settings?.minHighCertaintyProb ?? 0.75) * 100)
+  );
+  const [contractDurationSec, setContractDurationSec] = useState(
+    settings?.contractDurationSec ?? 300
+  );
+  const [allowedSymbolsStr, setAllowedSymbolsStr] = useState(
+    (settings?.allowedSymbols ?? ["R_100", "R_50", "frxBTCUSD"]).join(", ")
+  );
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     setMensagem(null);
 
     startTransition(async () => {
+      const symbolsArray = allowedSymbolsStr
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
       const res = await salvarDerivSettings({
         appId,
         accountType,
@@ -47,6 +62,10 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
         maxDailyLoss,
         emergencyStopPct,
         minTakeProfitPct,
+        minPayoutPct,
+        minHighCertaintyProb: Number((minHighCertaintyProb / 100).toFixed(2)),
+        contractDurationSec,
+        allowedSymbols: symbolsArray,
       });
 
       if (res.ok) {
@@ -283,6 +302,75 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
                 onChange={(e) => setMinTakeProfitPct(Number(e.target.value))}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
               />
+            </div>
+
+            {/* Payout Líquido Mínimo % */}
+            <div>
+              <label htmlFor="deriv-min-payout-pct" className="block text-xs font-semibold text-slate-300">
+                💰 Payout Líquido Mínimo (%)
+              </label>
+              <input
+                id="deriv-min-payout-pct"
+                type="number"
+                step="1"
+                min={10}
+                max={200}
+                value={minPayoutPct}
+                onChange={(e) => setMinPayoutPct(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
+              />
+              <p className="mt-0.5 text-[10px] text-slate-400">Rejeita propostas que paguem menos</p>
+            </div>
+
+            {/* Certeza Mínima de Entrada % */}
+            <div>
+              <label htmlFor="deriv-certainty-prob" className="block text-xs font-semibold text-slate-300">
+                🎯 Certeza Mínima de Entrada (%)
+              </label>
+              <input
+                id="deriv-certainty-prob"
+                type="number"
+                min={50}
+                max={99}
+                step={1}
+                value={minHighCertaintyProb}
+                onChange={(e) => setMinHighCertaintyProb(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
+              />
+              <p className="mt-0.5 text-[10px] text-slate-400">Só entra se prob. calculada for maior</p>
+            </div>
+
+            {/* Duração do Contrato em Segundos */}
+            <div>
+              <label htmlFor="deriv-duration-sec" className="block text-xs font-semibold text-slate-300">
+                ⏱️ Duração do Contrato (Segundos)
+              </label>
+              <input
+                id="deriv-duration-sec"
+                type="number"
+                min={15}
+                step={15}
+                value={contractDurationSec}
+                onChange={(e) => setContractDurationSec(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
+              />
+              <p className="mt-0.5 text-[10px] text-slate-400">Ex: 60 (1m), 180 (3m), 300 (5m)</p>
+            </div>
+
+            {/* Ativos / Símbolos Permitidos */}
+            <div className="sm:col-span-2 lg:col-span-3">
+              <label htmlFor="deriv-allowed-symbols" className="block text-xs font-semibold text-slate-300">
+                📊 Ativos Analisados (Separados por vírgula)
+              </label>
+              <input
+                id="deriv-allowed-symbols"
+                type="text"
+                value={allowedSymbolsStr}
+                onChange={(e) => setAllowedSymbolsStr(e.target.value)}
+                placeholder="R_100, R_50, frxBTCUSD, frxETHUSD"
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
+              />
+              <p className="mt-0.5 text-[10px] text-slate-400">Índices Sintéticos e Cripto (ex: R_100, R_50, R_25, frxBTCUSD)</p>
             </div>
           </div>
 

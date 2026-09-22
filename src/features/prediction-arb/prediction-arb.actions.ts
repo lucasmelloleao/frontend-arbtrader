@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 import {
   type AtualizarPredictionSettingsInput,
   type CriarPredictionStrategyInput,
+  type PredictionArbTrade,
   predictionArbLogsSchema,
+  predictionArbTradeListSchema,
 } from "@/features/prediction-arb/prediction-arb.schema";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
@@ -162,6 +164,49 @@ export async function buscarLogsPrediction(
 }
 
 /**
+  * Busca trades com filtro de período ou dia atual.
+  */
+export async function buscarTradesPrediction(filtro?: {
+  periodo?: "today" | "7d" | "30d" | "all";
+  startDate?: string;
+  endDate?: string;
+}): Promise<{ ok: true; trades: PredictionArbTrade[] } | { ok: false; erro: string }> {
+  try {
+    const searchParams: Record<string, string> = {};
+    if (filtro?.periodo === "all") {
+      searchParams.all = "true";
+    } else if (filtro?.periodo === "7d") {
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      searchParams.startDate = d.toISOString();
+    } else if (filtro?.periodo === "30d") {
+      const d = new Date();
+      d.setDate(d.getDate() - 30);
+      searchParams.startDate = d.toISOString();
+    } else if (filtro?.startDate || filtro?.endDate) {
+      if (filtro.startDate) searchParams.startDate = filtro.startDate;
+      if (filtro.endDate) searchParams.endDate = filtro.endDate;
+    }
+
+    const trades = await apiClient(
+      kyServer,
+      API_ENDPOINTS.predictionArb.listarTrades,
+      predictionArbTradeListSchema,
+      {
+        method: "get",
+        searchParams,
+      },
+    );
+    return { ok: true, trades: trades as PredictionArbTrade[] };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
+    };
+  }
+}
+
+/**
  * Limpa todo o histórico de operações e estratégias da Polymarket (DELETE /prediction-arb/trades).
  */
 export async function limparHistoricoPrediction(): Promise<MutacaoResult> {
@@ -175,3 +220,4 @@ export async function limparHistoricoPrediction(): Promise<MutacaoResult> {
   revalidatePath("/dashboard/polymarket-arb");
   return { ok: true };
 }
+

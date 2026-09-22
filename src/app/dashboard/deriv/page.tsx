@@ -6,10 +6,14 @@ import { DerivBoard } from "@/features/deriv/components/deriv-board";
 import { DerivSettingsPanel } from "@/features/deriv/components/deriv-settings-panel";
 import { DerivTerminalLogs } from "@/features/deriv/components/deriv-terminal-logs";
 import {
+  derivBalanceSchema,
   derivSettingsSchema,
   derivTradeListSchema,
+  derivStrategyListSchema,
   derivTradesSummarySchema,
+  type DerivBalance,
   type DerivSettings,
+  type DerivStrategy,
   type DerivTrade,
   type DerivTradesSummary,
 } from "@/features/deriv/deriv.schema";
@@ -18,10 +22,12 @@ import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
 
 async function DerivPageContent(): Promise<React.ReactNode> {
-  const [settingsRes, summaryRes, tradesRes] = await Promise.allSettled([
+  const [settingsRes, summaryRes, tradesRes, balanceRes, strategiesRes] = await Promise.allSettled([
     apiClient(kyServer, API_ENDPOINTS.deriv.settings, derivSettingsSchema),
     apiClient(kyServer, API_ENDPOINTS.deriv.summary, derivTradesSummarySchema),
     apiClient(kyServer, API_ENDPOINTS.deriv.listarTrades, derivTradeListSchema),
+    apiClient(kyServer, API_ENDPOINTS.deriv.balance, derivBalanceSchema),
+    apiClient(kyServer, API_ENDPOINTS.deriv.strategies, derivStrategyListSchema),
   ]);
 
   const settings: DerivSettings | null =
@@ -29,6 +35,10 @@ async function DerivPageContent(): Promise<React.ReactNode> {
   const summary: DerivTradesSummary | null =
     summaryRes.status === "fulfilled" ? summaryRes.value : null;
   const trades: DerivTrade[] = tradesRes.status === "fulfilled" ? tradesRes.value : [];
+  const balance: DerivBalance | null =
+    balanceRes.status === "fulfilled" ? balanceRes.value : null;
+  const strategies: DerivStrategy[] =
+    strategiesRes.status === "fulfilled" ? strategiesRes.value : [];
 
   return (
     <div className="space-y-6">
@@ -48,7 +58,7 @@ async function DerivPageContent(): Promise<React.ReactNode> {
 
       <DerivSettingsPanel settings={settings} />
 
-      <DerivBoard summary={summary} trades={trades} />
+      <DerivBoard summary={summary} trades={trades} balance={balance} strategies={strategies} />
 
       <DerivTerminalLogs />
     </div>
