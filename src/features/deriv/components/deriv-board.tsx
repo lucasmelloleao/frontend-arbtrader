@@ -29,10 +29,12 @@ import {
   deletarDerivStrategy,
   buscarTradesDerivPorPeriodo,
   listarDerivStrategies,
+  analisarDerivComIa,
   type DerivPeriod,
 } from "@/features/deriv/deriv.actions";
 import { DerivStrategyForm } from "@/features/deriv/components/deriv-strategy-form";
 import type {
+  DerivAiAnalysis,
   DerivBalance,
   DerivStrategy,
   DerivTrade,
@@ -73,6 +75,11 @@ export function DerivBoard({
   const [perfTrades, setPerfTrades] = useState<readonly DerivTrade[]>([]);
   const [loadingPerf, setLoadingPerf] = useState(false);
   const [perfConsulted, setPerfConsulted] = useState(false);
+
+  // Análise retrospectiva por IA (Gemini/DeepSeek)
+  const [aiAnalysis, setAiAnalysis] = useState<DerivAiAnalysis | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiErro, setAiErro] = useState<string | null>(null);
 
   const consultarPerformance = async (periodo: DerivPeriod = perfPeriod): Promise<void> => {
     setPerfPeriod(periodo);
@@ -179,6 +186,20 @@ export function DerivBoard({
     startTransition(async () => {
       await limparHistoricoDeriv();
       router.refresh();
+    });
+  };
+
+  const handleAiAnalysis = (): void => {
+    setAiLoading(true);
+    setAiErro(null);
+    startTransition(async () => {
+      const res = await analisarDerivComIa();
+      setAiLoading(false);
+      if (res.ok) {
+        setAiAnalysis(res.data);
+      } else {
+        setAiErro(res.erro);
+      }
     });
   };
 
@@ -361,9 +382,62 @@ export function DerivBoard({
               <Trash2 className="h-3.5 w-3.5" />
               Limpar
             </button>
+            <button
+              onClick={handleAiAnalysis}
+              disabled={aiLoading || isPending}
+              className="flex items-center gap-1 rounded-lg bg-cyan-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-cyan-500 disabled:opacity-50"
+              title="Análise retrospectiva com IA"
+            >
+              <Sparkles className={`h-3.5 w-3.5 ${aiLoading ? "animate-spin" : ""}`} />
+              {aiLoading ? "Analisando..." : "Análise IA"}
+            </button>
           </div>
         </div>
       </div>
+
+      {aiErro ? (
+        <div className="rounded-xl border border-rose-500/30 bg-rose-950/40 p-4 text-xs text-rose-300">
+          {aiErro}
+        </div>
+      ) : null}
+
+      {aiAnalysis ? (
+        <div className="space-y-3 rounded-xl border border-cyan-500/20 bg-slate-950/60 p-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-cyan-400" />
+            <span className="text-sm font-bold text-white">Análise Inteligente (IA)</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="rounded-lg bg-slate-900/60 p-2">
+              <span className="text-[10px] uppercase text-slate-500">Trades</span>
+              <div className="text-sm font-bold text-white">{aiAnalysis.metrics.totalTrades}</div>
+            </div>
+            <div className="rounded-lg bg-slate-900/60 p-2">
+              <span className="text-[10px] uppercase text-slate-500">Win Rate</span>
+              <div className="text-sm font-bold text-emerald-400">
+                {aiAnalysis.metrics.winRatePct}%
+              </div>
+            </div>
+            <div className="rounded-lg bg-slate-900/60 p-2">
+              <span className="text-[10px] uppercase text-slate-500">P/L</span>
+              <div
+                className={`text-sm font-bold ${
+                  aiAnalysis.metrics.totalPnl >= 0 ? "text-emerald-400" : "text-rose-400"
+                }`}
+              >
+                {fmtUsd(aiAnalysis.metrics.totalPnl)}
+              </div>
+            </div>
+            <div className="rounded-lg bg-slate-900/60 p-2">
+              <span className="text-[10px] uppercase text-slate-500">Profit Factor</span>
+              <div className="text-sm font-bold text-white">{aiAnalysis.metrics.profitFactor}</div>
+            </div>
+          </div>
+          <pre className="whitespace-pre-wrap rounded-lg bg-slate-900/60 p-3 text-xs leading-relaxed text-slate-200">
+            {aiAnalysis.analysis}
+          </pre>
+        </div>
+      ) : null}
 
       {/* Tabs */}
       <div className="flex items-center justify-between border-b border-border">

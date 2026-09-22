@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  derivAiAnalysisSchema,
   derivBalanceSchema,
   derivLogsSchema,
   derivStrategyListSchema,
@@ -10,6 +11,7 @@ import {
   type AtualizarDerivSettingsInput,
   type AtualizarDerivStrategyInput,
   type CriarDerivStrategyInput,
+  type DerivAiAnalysis,
   type DerivBalance,
   type DerivStrategy,
   type DerivTrade,
@@ -191,6 +193,22 @@ export async function buscarLogsDeriv(lines = 150): Promise<DerivLogsResult> {
       searchParams: { lines },
     });
     return { ok: true, logs: data.logs };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
+    };
+  }
+}
+
+export async function analisarDerivComIa(): Promise<
+  { ok: true; data: DerivAiAnalysis } | { ok: false; erro: string }
+> {
+  try {
+    const data = await apiClient(kyServer, API_ENDPOINTS.deriv.aiAnalysis, derivAiAnalysisSchema, {
+      method: "post",
+    });
+    return { ok: true, data };
   } catch (error: unknown) {
     return {
       ok: false,

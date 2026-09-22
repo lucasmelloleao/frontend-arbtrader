@@ -164,3 +164,36 @@ export const derivBalanceSchema = object({
 });
 
 export type DerivBalance = InferOutput<typeof derivBalanceSchema>;
+
+/** Linha agregada da análise retrospectiva por IA. */
+const derivAiAggregateSchema = object({
+  chave: fallback(string(), ""),
+  trades: fallback(number(), 0),
+  vitorias: fallback(number(), 0),
+  derrotas: fallback(number(), 0),
+  winRatePct: fallback(number(), 0),
+  pnl: fallback(number(), 0),
+});
+
+/** Schema da análise retrospectiva por IA (Gemini/DeepSeek). */
+export const derivAiAnalysisSchema = object({
+  metrics: object({
+    totalTrades: fallback(number(), 0),
+    wins: fallback(number(), 0),
+    losses: fallback(number(), 0),
+    winRatePct: fallback(number(), 0),
+    totalPnl: fallback(number(), 0),
+    totalInvestido: fallback(number(), 0),
+    totalRealizado: fallback(number(), 0),
+    avgWin: fallback(number(), 0),
+    avgLoss: fallback(number(), 0),
+    profitFactor: fallback(number(), 0),
+    porSimbolo: fallback(array(derivAiAggregateSchema), []),
+    porTipoContrato: fallback(array(derivAiAggregateSchema), []),
+    porEstrategia: fallback(array(derivAiAggregateSchema), []),
+    porHora: fallback(array(derivAiAggregateSchema), []),
+  }),
+  analysis: fallback(string(), ""),
+});
+
+export type DerivAiAnalysis = InferOutput<typeof derivAiAnalysisSchema>;
