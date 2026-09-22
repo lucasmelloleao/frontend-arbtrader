@@ -192,6 +192,9 @@ export function DerivStrategyForm({
               <option value="BOTH_RF">Rise / Fall Automático (Sem Barreira)</option>
               <option value="RISE">Apenas RISE (Call)</option>
               <option value="FALL">Apenas FALL (Put)</option>
+              <option value="BOTH_MULT">Multiplicador Automático (Cripto: Up / Down)</option>
+              <option value="MULTUP">Apenas Multiplicador Up (Cripto)</option>
+              <option value="MULTDOWN">Apenas Multiplicador Down (Cripto)</option>
             </select>
           </div>
 
