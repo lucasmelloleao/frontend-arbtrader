@@ -164,8 +164,8 @@ export async function buscarLogsPrediction(
 }
 
 /**
-  * Busca trades com filtro de período ou dia atual.
-  */
+ * Busca trades com filtro de período ou dia atual.
+ */
 export async function buscarTradesPrediction(filtro?: {
   periodo?: "today" | "7d" | "30d" | "all";
   startDate?: string;
@@ -197,7 +197,7 @@ export async function buscarTradesPrediction(filtro?: {
         searchParams,
       },
     );
-    return { ok: true, trades: trades as PredictionArbTrade[] };
+    return { ok: true, trades };
   } catch (error: unknown) {
     return {
       ok: false,
@@ -220,4 +220,3 @@ export async function limparHistoricoPrediction(): Promise<MutacaoResult> {
   revalidatePath("/dashboard/polymarket-arb");
   return { ok: true };
 }
-

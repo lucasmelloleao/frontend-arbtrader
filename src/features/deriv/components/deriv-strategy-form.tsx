@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X, Layers, ShieldAlert, Sparkles, Clock, DollarSign, Info } from "lucide-react";
-import {
-  criarDerivStrategy,
-  atualizarDerivStrategy,
-} from "@/features/deriv/deriv.actions";
+import { Sparkles, X } from "lucide-react";
+import { criarDerivStrategy, atualizarDerivStrategy } from "@/features/deriv/deriv.actions";
 import type { DerivStrategy } from "@/features/deriv/deriv.schema";
 
 const DERIV_SYMBOLS = [
@@ -39,13 +36,15 @@ const DERIV_SYMBOLS = [
   { value: "frxAUDUSD", label: "AUD/USD (Forex)" },
 ];
 
-
 type DerivStrategyFormProps = {
   strategyParaEditar?: DerivStrategy | null;
   onFechar: () => void;
 };
 
-export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrategyFormProps): React.ReactNode {
+export function DerivStrategyForm({
+  strategyParaEditar,
+  onFechar,
+}: DerivStrategyFormProps): React.ReactNode {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -57,12 +56,12 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
   const [tradeSize, setTradeSize] = useState(strategyParaEditar?.tradeSize ?? 2);
   const [durationSec, setDurationSec] = useState(strategyParaEditar?.durationSec ?? 15);
   const [minCertaintyProb, setMinCertaintyProb] = useState(
-    strategyParaEditar ? Math.round(strategyParaEditar.minCertaintyProb * 100) : 75
+    strategyParaEditar ? Math.round(strategyParaEditar.minCertaintyProb * 100) : 75,
   );
 
   const isEditing = Boolean(strategyParaEditar?.id);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setErro(null);
@@ -80,9 +79,9 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
       contractType,
       barrier: barrier.trim() || "-0.50",
       barrierLower: barrierLower.trim() || "+0.50",
-      tradeSize: Number(tradeSize) || 2,
-      durationSec: Number(durationSec) || 15,
-      minCertaintyProb: Number(minCertaintyProb) / 100,
+      tradeSize: tradeSize || 2,
+      durationSec: durationSec || 15,
+      minCertaintyProb: minCertaintyProb / 100,
     };
 
     let res;
@@ -135,8 +134,14 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* Nome da Estratégia */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300">Nome de Identificação</label>
+            <label
+              htmlFor="deriv-strategy-name"
+              className="block text-xs font-semibold text-slate-300"
+            >
+              Nome de Identificação
+            </label>
             <input
+              id="deriv-strategy-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -147,8 +152,14 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
 
           {/* Ativo */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300">Ativo / Mercado Deriv</label>
+            <label
+              htmlFor="deriv-strategy-symbol"
+              className="block text-xs font-semibold text-slate-300"
+            >
+              Ativo / Mercado Deriv
+            </label>
             <select
+              id="deriv-strategy-symbol"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
               className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
@@ -163,8 +174,14 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
 
           {/* Tipo de Contrato */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300">Modo de Operação</label>
+            <label
+              htmlFor="deriv-strategy-contract-type"
+              className="block text-xs font-semibold text-slate-300"
+            >
+              Modo de Operação
+            </label>
             <select
+              id="deriv-strategy-contract-type"
               value={contractType}
               onChange={(e) => setContractType(e.target.value)}
               className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
@@ -180,8 +197,14 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
 
           {/* Duração Selecionável */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300">Duração do Contrato</label>
+            <label
+              htmlFor="deriv-strategy-duration"
+              className="block text-xs font-semibold text-slate-300"
+            >
+              Duração do Contrato
+            </label>
             <select
+              id="deriv-strategy-duration"
               value={durationSec}
               onChange={(e) => setDurationSec(Number(e.target.value))}
               className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
@@ -211,7 +234,8 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
                   Configuração de Barreiras Recomendadas:
                 </span>
                 <p className="mt-1 text-[11px] text-slate-400">
-                  Para contratos Higher/Lower de 15s no ativo {symbol}, a barreira padrão recomendada é <b>±0.50</b> (ou entre ±0.10 e ±2.00).
+                  Para contratos Higher/Lower de 15s no ativo {symbol}, a barreira padrão
+                  recomendada é <b>±0.50</b> (ou entre ±0.10 e ±2.00).
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {["0.20", "0.50", "0.80", "1.00", "1.50"].map((val) => (
@@ -235,10 +259,14 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300">
+                <label
+                  htmlFor="deriv-strategy-barrier"
+                  className="block text-xs font-semibold text-slate-300"
+                >
                   Barreira HIGHER (Offset de Margem)
                 </label>
                 <input
+                  id="deriv-strategy-barrier"
                   type="text"
                   value={barrier}
                   onChange={(e) => setBarrier(e.target.value)}
@@ -251,10 +279,14 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300">
+                <label
+                  htmlFor="deriv-strategy-barrier-lower"
+                  className="block text-xs font-semibold text-slate-300"
+                >
                   Barreira LOWER (Offset de Margem)
                 </label>
                 <input
+                  id="deriv-strategy-barrier-lower"
                   type="text"
                   value={barrierLower}
                   onChange={(e) => setBarrierLower(e.target.value)}
@@ -270,10 +302,16 @@ export function DerivStrategyForm({ strategyParaEditar, onFechar }: DerivStrateg
 
           {/* Aporte em USD */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300">Aporte por Ordem ($ USD)</label>
+            <label
+              htmlFor="deriv-strategy-trade-size"
+              className="block text-xs font-semibold text-slate-300"
+            >
+              Aporte por Ordem ($ USD)
+            </label>
             <div className="relative mt-1">
               <span className="absolute left-3 top-2 text-xs text-slate-500">$</span>
               <input
+                id="deriv-strategy-trade-size"
                 type="number"
                 min="0.35"
                 step="0.01"

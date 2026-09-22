@@ -16,8 +16,6 @@ import {
   Search,
   Sparkles,
   Trash2,
-  TrendingDown,
-  TrendingUp,
   Wallet,
   XCircle,
 } from "lucide-react";
@@ -34,8 +32,12 @@ import {
   type DerivPeriod,
 } from "@/features/deriv/deriv.actions";
 import { DerivStrategyForm } from "@/features/deriv/components/deriv-strategy-form";
-import type { DerivBalance, DerivStrategy, DerivTrade, DerivTradesSummary } from "@/features/deriv/deriv.schema";
-
+import type {
+  DerivBalance,
+  DerivStrategy,
+  DerivTrade,
+  DerivTradesSummary,
+} from "@/features/deriv/deriv.schema";
 
 type DerivBoardProps = {
   summary: DerivTradesSummary | null;
@@ -46,11 +48,13 @@ type DerivBoardProps = {
 
 const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
 
+const EMPTY_STRATEGIES: readonly DerivStrategy[] = [];
+
 export function DerivBoard({
-  summary,
+  summary: _summary,
   trades: initialTrades,
   balance: initialBalance,
-  strategies: initialStrategies = [],
+  strategies: initialStrategies = EMPTY_STRATEGIES,
 }: DerivBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -64,42 +68,46 @@ export function DerivBoard({
   const [strategyList, setStrategyList] = useState<readonly DerivStrategy[]>(initialStrategies);
   const [loadingTrades, setLoadingTrades] = useState(false);
 
-
   // Performance por Ativo (Consulta sob demanda)
   const [perfPeriod, setPerfPeriod] = useState<DerivPeriod>("1h");
   const [perfTrades, setPerfTrades] = useState<readonly DerivTrade[]>([]);
   const [loadingPerf, setLoadingPerf] = useState(false);
   const [perfConsulted, setPerfConsulted] = useState(false);
 
-  const consultarPerformance = async (periodo: DerivPeriod = perfPeriod) => {
+  const consultarPerformance = async (periodo: DerivPeriod = perfPeriod): Promise<void> => {
     setPerfPeriod(periodo);
     setLoadingPerf(true);
     const res = await buscarTradesDerivPorPeriodo(periodo);
-    if (res.ok && res.data) {
+    if (res.ok) {
       setPerfTrades(res.data);
       setPerfConsulted(true);
     }
     setLoadingPerf(false);
   };
 
-
-  useEffect(() => {
+  const [previousStrategies, setPreviousStrategies] = useState(initialStrategies);
+  if (initialStrategies !== previousStrategies) {
+    setPreviousStrategies(initialStrategies);
     setStrategyList(initialStrategies);
-  }, [initialStrategies]);
+  }
 
-  useEffect(() => {
+  const [previousTrades, setPreviousTrades] = useState(initialTrades);
+  if (initialTrades !== previousTrades) {
+    setPreviousTrades(initialTrades);
     setTradeList(initialTrades);
-  }, [initialTrades]);
+  }
 
-  useEffect(() => {
-    if (initialBalance) setLiveBalance(initialBalance);
-  }, [initialBalance]);
+  const [previousBalance, setPreviousBalance] = useState(initialBalance ?? null);
+  if (initialBalance && initialBalance !== previousBalance) {
+    setPreviousBalance(initialBalance);
+    setLiveBalance(initialBalance);
+  }
 
-  const carregarTradesPorPeriodo = async (periodo: "today" | "7d" | "30d" | "all") => {
+  const carregarTradesPorPeriodo = async (periodo: DerivPeriod): Promise<void> => {
     setSelectedPeriod(periodo);
     setLoadingTrades(true);
     const res = await buscarTradesDerivPorPeriodo(periodo);
-    if (res.ok && res.data) {
+    if (res.ok) {
       setTradeList(res.data);
     }
     setLoadingTrades(false);
@@ -107,24 +115,24 @@ export function DerivBoard({
 
   useEffect(() => {
     let ativo = true;
-    const fetchData = async () => {
+    const fetchData = async (): Promise<void> => {
       const [resBalance, resTrades] = await Promise.all([
         buscarSaldoDeriv(),
         buscarTradesDerivPorPeriodo(selectedPeriod),
       ]);
       if (ativo) {
-        if (resBalance.ok && resBalance.data) {
+        if (resBalance.ok) {
           setLiveBalance(resBalance.data);
         }
-        if (resTrades.ok && resTrades.data) {
+        if (resTrades.ok) {
           setTradeList(resTrades.data);
         }
       }
     };
 
-    fetchData();
+    void fetchData();
     const interval = setInterval(() => {
-      fetchData();
+      void fetchData();
     }, 10000);
 
     return () => {
@@ -133,7 +141,6 @@ export function DerivBoard({
     };
   }, [selectedPeriod]);
 
-
   const balance = liveBalance ?? initialBalance;
 
   const activeTrades = tradeList.filter((t) => t.status === "open" || t.status === "pending");
@@ -141,23 +148,23 @@ export function DerivBoard({
 
   // Lista de símbolos únicos presentes no histórico
   const availableSymbols = Array.from(
-    new Set(closedTrades.map((t) => t.symbol).filter(Boolean))
-  ).sort();
+    new Set(closedTrades.map((t) => t.symbol).filter(Boolean)),
+  ).toSorted();
 
   // Trades encerrados filtrados por ativo (se selecionado)
-  const filteredClosedTrades = selectedSymbol === "ALL"
-    ? closedTrades
-    : closedTrades.filter((t) => t.symbol === selectedSymbol);
+  const filteredClosedTrades =
+    selectedSymbol === "ALL"
+      ? closedTrades
+      : closedTrades.filter((t) => t.symbol === selectedSymbol);
 
-  const closedTradesPnl = filteredClosedTrades.reduce((acc, t) => acc + (t.pnl ?? 0), 0);
-  const closedTradesWins = filteredClosedTrades.filter((t) => (t.pnl ?? 0) > 0).length;
+  const closedTradesPnl = filteredClosedTrades.reduce((acc, t) => acc + t.pnl, 0);
+  const closedTradesWins = filteredClosedTrades.filter((t) => t.pnl > 0).length;
   const closedTradesWinRate =
     filteredClosedTrades.length > 0 ? (closedTradesWins / filteredClosedTrades.length) * 100 : 0;
 
   const totalTrades = filteredClosedTrades.length;
   const totalPnl = closedTradesPnl;
   const winRate = closedTradesWinRate;
-
 
   const handleSync = (): void => {
     startTransition(async () => {
@@ -167,7 +174,8 @@ export function DerivBoard({
   };
 
   const handleClearHistory = (): void => {
-    if (!confirm("Tem certeza que deseja zerar e limpar todo o histórico de operações Deriv?")) return;
+    if (!confirm("Tem certeza que deseja zerar e limpar todo o histórico de operações Deriv?"))
+      return;
     startTransition(async () => {
       await limparHistoricoDeriv();
       router.refresh();
@@ -184,7 +192,7 @@ export function DerivBoard({
 
   const handleToggleStrategy = (strategy: DerivStrategy): void => {
     setStrategyList((prev) =>
-      prev.map((s) => (s.id === strategy.id ? { ...s, active: !s.active } : s))
+      prev.map((s) => (s.id === strategy.id ? { ...s, active: !s.active } : s)),
     );
     startTransition(async () => {
       await toggleDerivStrategy(strategy.id, !strategy.active);
@@ -211,7 +219,7 @@ export function DerivBoard({
             setIsModalOpen(false);
             setEditingStrategy(null);
             const res = await listarDerivStrategies();
-            if (res.ok && res.data) {
+            if (res.ok) {
               setStrategyList(res.data);
             }
             router.refresh();
@@ -242,7 +250,11 @@ export function DerivBoard({
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-3xl font-extrabold tracking-tight text-white">
-              ${(balance?.demo?.balance ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              $
+              {(balance?.demo?.balance ?? 0).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
             <span className="text-xs font-semibold text-slate-400">
               {balance?.demo?.currency ?? "USD"}
@@ -277,7 +289,11 @@ export function DerivBoard({
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-3xl font-extrabold tracking-tight text-white">
-              ${(balance?.real?.balance ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              $
+              {(balance?.real?.balance ?? 0).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
             <span className="text-xs font-semibold text-slate-400">
               {balance?.real?.currency ?? "USD"}
@@ -371,7 +387,7 @@ export function DerivBoard({
             onClick={() => {
               setTab("performance");
               if (!perfConsulted) {
-                consultarPerformance(perfPeriod);
+                void consultarPerformance(perfPeriod);
               }
             }}
             className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
@@ -397,7 +413,6 @@ export function DerivBoard({
               {activeTrades.length}
             </span>
           </button>
-
 
           <button
             onClick={() => setTab("closed")}
@@ -436,7 +451,8 @@ export function DerivBoard({
               <Sparkles className="mx-auto h-8 w-8 text-cyan-400 opacity-60" />
               <h3 className="mt-3 text-base font-bold text-white">Nenhuma Estratégia Cadastrada</h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                Crie regras específicas para cada ativo Deriv (ex: Volatility 10 1s, Volatility 100, BTC/USD).
+                Crie regras específicas para cada ativo Deriv (ex: Volatility 10 1s, Volatility 100,
+                BTC/USD).
               </p>
               <button
                 onClick={() => {
@@ -638,7 +654,6 @@ export function DerivBoard({
 
       {/* Tab: Lucro/Prejuízo por Ativo */}
       {tab === "performance" && (
-
         <div className="space-y-4">
           {/* Barra de Seleção de Período e Botão de Consulta Sob Demanda */}
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -663,28 +678,28 @@ export function DerivBoard({
                   { id: "30d", label: "30 Dias" },
                   { id: "all", label: "Tudo" },
                 ] as const
+              )
 
-
-              ).map((p) => {
-                const isSelected = perfPeriod === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => {
-                      setPerfPeriod(p.id);
-                      consultarPerformance(p.id);
-                    }}
-                    disabled={loadingPerf}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                      isSelected
-                        ? "bg-cyan-600 text-white shadow-md shadow-cyan-500/20"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-white"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                );
-              })}
+                .map((p) => {
+                  const isSelected = perfPeriod === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        setPerfPeriod(p.id);
+                        void consultarPerformance(p.id);
+                      }}
+                      disabled={loadingPerf}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                        isSelected
+                          ? "bg-cyan-600 text-white shadow-md shadow-cyan-500/20"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-white"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
             </div>
 
             <button
@@ -707,7 +722,8 @@ export function DerivBoard({
               <BarChart3 className="mx-auto h-8 w-8 text-cyan-400 opacity-60" />
               <h3 className="mt-3 text-base font-bold text-white">Consulta sob Demanda</h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                Selecione o intervalo de tempo acima e clique em Consultar para analisar os lucros e prejuízos por ativo.
+                Selecione o intervalo de tempo acima e clique em Consultar para analisar os lucros e
+                prejuízos por ativo.
               </p>
               <button
                 onClick={() => consultarPerformance(perfPeriod)}
@@ -721,7 +737,7 @@ export function DerivBoard({
             (() => {
               // Agrupamento por Ativo (Symbol)
               const closedPerfTrades = perfTrades.filter(
-                (t) => t.status !== "open" && t.status !== "pending"
+                (t) => t.status !== "open" && t.status !== "pending",
               );
 
               if (closedPerfTrades.length === 0) {
@@ -732,7 +748,7 @@ export function DerivBoard({
                 );
               }
 
-              const symbolMap: Record<
+              const symbolMap = new Map<
                 string,
                 {
                   symbol: string;
@@ -743,37 +759,38 @@ export function DerivBoard({
                   realized: number;
                   pnl: number;
                 }
-              > = {};
+              >();
 
               closedPerfTrades.forEach((t) => {
                 const sym = t.symbol || "Outros";
-                const pnl = Number(t.pnl) || 0;
-                const invested = Number(t.investedUsd || t.buyPrice) || 0;
-                const realized = Number(t.realizedUsd || t.sellPrice) || 0;
+                const pnl = t.pnl || 0;
+                const invested = t.investedUsd || t.buyPrice || 0;
+                const realized = t.realizedUsd || t.sellPrice || 0;
                 const isWin = pnl > 0 || (t.reason && t.reason.includes("Lucro"));
                 const isLoss = pnl < 0 || (t.reason && t.reason.includes("Perda"));
 
-                if (!symbolMap[sym]) {
-                  symbolMap[sym] = {
+                const entry = symbolMap.get(sym);
+                if (entry) {
+                  entry.totalTrades += 1;
+                  if (isWin) entry.wins += 1;
+                  else if (isLoss) entry.losses += 1;
+                  entry.invested += invested;
+                  entry.realized += realized;
+                  entry.pnl += pnl;
+                } else {
+                  symbolMap.set(sym, {
                     symbol: sym,
-                    totalTrades: 0,
-                    wins: 0,
-                    losses: 0,
-                    invested: 0,
-                    realized: 0,
-                    pnl: 0,
-                  };
+                    totalTrades: 1,
+                    wins: isWin ? 1 : 0,
+                    losses: isLoss ? 1 : 0,
+                    invested,
+                    realized,
+                    pnl,
+                  });
                 }
-
-                symbolMap[sym].totalTrades += 1;
-                if (isWin) symbolMap[sym].wins += 1;
-                else if (isLoss) symbolMap[sym].losses += 1;
-                symbolMap[sym].invested += invested;
-                symbolMap[sym].realized += realized;
-                symbolMap[sym].pnl += pnl;
               });
 
-              const groupedList = Object.values(symbolMap).sort((a, b) => b.pnl - a.pnl);
+              const groupedList = Array.from(symbolMap.values()).toSorted((a, b) => b.pnl - a.pnl);
               const totalPeriodPnl = groupedList.reduce((acc, i) => acc + i.pnl, 0);
               const totalPeriodTrades = groupedList.reduce((acc, i) => acc + i.totalTrades, 0);
               const totalPeriodWins = groupedList.reduce((acc, i) => acc + i.wins, 0);
@@ -802,9 +819,7 @@ export function DerivBoard({
                       <span className="text-[10px] font-semibold uppercase text-muted-foreground">
                         Total de Trades
                       </span>
-                      <div className="mt-1 text-xl font-black text-white">
-                        {totalPeriodTrades}
-                      </div>
+                      <div className="mt-1 text-xl font-black text-white">{totalPeriodTrades}</div>
                     </div>
 
                     <div className="rounded-xl border border-border bg-card p-3 shadow-sm">
@@ -846,9 +861,7 @@ export function DerivBoard({
                         <tbody className="divide-y divide-border">
                           {groupedList.map((item) => {
                             const winRateItem =
-                              item.totalTrades > 0
-                                ? (item.wins / item.totalTrades) * 100
-                                : 0;
+                              item.totalTrades > 0 ? (item.wins / item.totalTrades) * 100 : 0;
                             const isPositive = item.pnl >= 0;
 
                             return (
@@ -876,8 +889,8 @@ export function DerivBoard({
                                       winRateItem >= 70
                                         ? "bg-emerald-500/20 text-emerald-400"
                                         : winRateItem >= 50
-                                        ? "bg-amber-500/20 text-amber-400"
-                                        : "bg-rose-500/20 text-rose-400"
+                                          ? "bg-amber-500/20 text-amber-400"
+                                          : "bg-rose-500/20 text-rose-400"
                                     }`}
                                   >
                                     {winRateItem.toFixed(1)}%
@@ -956,8 +969,6 @@ export function DerivBoard({
                 })}
               </div>
 
-
-
               {/* Filtro de Ativo (Symbol) */}
               <div className="flex items-center gap-2 border-l border-border pl-4">
                 <Filter className="h-3.5 w-3.5 text-cyan-400" />
@@ -1002,10 +1013,10 @@ export function DerivBoard({
                 selectedPeriod === "today"
                   ? "Hoje"
                   : selectedPeriod === "7d"
-                  ? "7 Dias"
-                  : selectedPeriod === "30d"
-                  ? "30 Dias"
-                  : "Todo Histórico"
+                    ? "7 Dias"
+                    : selectedPeriod === "30d"
+                      ? "30 Dias"
+                      : "Todo Histórico"
               }).`}
             </div>
           ) : (
@@ -1029,7 +1040,6 @@ export function DerivBoard({
                       const plUsd = t.pnl;
                       const isWin = t.status === "won" || plUsd >= 0;
 
-
                       return (
                         <tr
                           key={t.id}
@@ -1048,7 +1058,9 @@ export function DerivBoard({
                               ID: {t.contractId || t.id}
                             </span>
                           </td>
-                          <td className="p-3 font-mono text-xs font-bold text-cyan-400">{t.symbol}</td>
+                          <td className="p-3 font-mono text-xs font-bold text-cyan-400">
+                            {t.symbol}
+                          </td>
                           <td className="p-3">
                             <span
                               className={`rounded px-2 py-0.5 text-xs font-semibold ${
@@ -1062,7 +1074,9 @@ export function DerivBoard({
                             </span>
                           </td>
                           <td className="p-3">${t.buyPrice.toFixed(2)}</td>
-                          <td className="p-3">{t.sellPrice ? `$${t.sellPrice.toFixed(2)}` : "-"}</td>
+                          <td className="p-3">
+                            {t.sellPrice ? `$${t.sellPrice.toFixed(2)}` : "-"}
+                          </td>
                           <td className="p-3">
                             <span
                               className={`font-bold ${isWin ? "text-emerald-500" : "text-rose-500"}`}

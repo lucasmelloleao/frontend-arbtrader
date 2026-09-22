@@ -8,7 +8,6 @@ import { Plus, Power, TrendingUp, X, XCircle } from "lucide-react";
 import { PredictionStrategyForm } from "@/features/prediction-arb/components/prediction-strategy-form";
 import {
   aumentarAporte,
-  criarStrategy,
   deletarStrategy,
   fecharPosicao,
   voidCloseStrategy,
@@ -28,6 +27,8 @@ type PredictionArbBoardProps = {
 const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
 const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 
+const EMPTY_EXCHANGE_KEYS: readonly { id: string; exchangeId: string; nome: string }[] = [];
+
 /**
  * Painel principal do Polymarket Arb: abas para Posições Abertas, Estratégias Monitoradas
  * e Histórico de Trades com carregamento sob demanda por período.
@@ -35,7 +36,7 @@ const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 export function PredictionArbBoard({
   strategies,
   trades: initialTrades,
-  exchangeKeys = [],
+  exchangeKeys = EMPTY_EXCHANGE_KEYS,
 }: PredictionArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -45,9 +46,11 @@ export function PredictionArbBoard({
   const [tradesList, setTradesList] = useState<readonly PredictionArbTrade[]>(initialTrades);
   const [carregandoTrades, setCarregandoTrades] = useState(false);
 
-  useEffect(() => {
+  const [previousInitialTrades, setPreviousInitialTrades] = useState(initialTrades);
+  if (initialTrades !== previousInitialTrades) {
+    setPreviousInitialTrades(initialTrades);
     setTradesList(initialTrades);
-  }, [initialTrades]);
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -56,7 +59,7 @@ export function PredictionArbBoard({
     return () => clearInterval(interval);
   }, [router]);
 
-  const carregarPeriodo = async (p: "today" | "7d" | "30d" | "all") => {
+  const carregarPeriodo = async (p: "today" | "7d" | "30d" | "all"): Promise<void> => {
     setPeriodo(p);
     setCarregandoTrades(true);
     const res = await buscarTradesPrediction({ periodo: p });
@@ -67,15 +70,22 @@ export function PredictionArbBoard({
   };
 
   const abertas = strategies.filter(
-    (s) => s.positionOpen && (s.yesShares > 0 || s.noShares > 0 || (s.openOrderIds && s.openOrderIds.length > 0))
+    (s) =>
+      s.positionOpen &&
+      (s.yesShares > 0 || s.noShares > 0 || (s.openOrderIds && s.openOrderIds.length > 0)),
   );
   const monitorando = strategies.filter(
-    (s) => !s.positionOpen || (s.yesShares === 0 && s.noShares === 0 && (!s.openOrderIds || s.openOrderIds.length === 0))
+    (s) =>
+      !s.positionOpen ||
+      (s.yesShares === 0 && s.noShares === 0 && (!s.openOrderIds || s.openOrderIds.length === 0)),
   );
   const encerradas = tradesList.filter(
     (t) =>
-      (t.type === "close_pair" || t.type === "close" || t.type === "settlement" || t.status === "closed") &&
-      (t.realizedUsd > 0 || t.pnl !== 0 || (t.status === "executed" && t.type === "close_pair"))
+      (t.type === "close_pair" ||
+        t.type === "close" ||
+        t.type === "settlement" ||
+        t.status === "closed") &&
+      (t.realizedUsd > 0 || t.pnl !== 0 || (t.status === "executed" && t.type === "close_pair")),
   );
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
@@ -532,150 +542,154 @@ export function PredictionArbBoard({
                 </div>
               ) : (
                 encerradas.map((t, idx) => (
-              <div
-                key={t.id || `${t.slug}-${idx}`}
-                className={`rounded-xl border p-4 transition-colors ${
-                  t.pnl > 0
-                    ? "border-emerald-500/20 bg-emerald-950/30 hover:bg-emerald-950/40"
-                    : t.pnl < 0
-                      ? "border-rose-500/20 bg-rose-950/30 hover:bg-rose-950/40"
-                      : "border-white/10 bg-slate-950/70"
-                }`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <h4 className="text-sm font-bold text-white">{t.question || t.slug}</h4>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs font-mono text-slate-400">
-                      {t.reason.includes("venda-antecipada") ? (
-                        <span className="inline-flex items-center rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
-                          Venda Antecipada (Saída Prévias)
-                        </span>
-                      ) : t.reason.includes("redeem-vencimento") ? (
-                        <span className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
-                          Vencimento (Resgate Total)
-                        </span>
-                      ) : (
-                        <span>
-                          {t.type === "close_pair"
-                            ? "Encerrada"
-                            : t.type === "mm_quote"
-                              ? t.orderIds.length > 0
-                                ? "Cotação MM (ordem enviada)"
-                                : "Cotação MM (sem ordem)"
-                              : "Aberta"}
-                        </span>
-                      )}{" "}
-                      <span>| {new Date(t.createdAt).toLocaleString()}</span>
-                    </div>
-                  </div>
                   <div
-                    className={`text-right font-mono text-base font-black ${
+                    key={t.id || `${t.slug}-${idx}`}
+                    className={`rounded-xl border p-4 transition-colors ${
                       t.pnl > 0
-                        ? "text-emerald-400"
+                        ? "border-emerald-500/20 bg-emerald-950/30 hover:bg-emerald-950/40"
                         : t.pnl < 0
-                          ? "text-rose-400"
-                          : "text-slate-400"
+                          ? "border-rose-500/20 bg-rose-950/30 hover:bg-rose-950/40"
+                          : "border-white/10 bg-slate-950/70"
                     }`}
                   >
-                    {fmtUsd(t.pnl)}
-                    {t.investedUsd > 0 ? (
-                      <span className="ml-1.5 text-xs font-semibold">
-                        ({t.pnl > 0 ? "+" : ""}
-                        {((t.pnl / t.investedUsd) * 100).toFixed(2)}%)
-                      </span>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <h4 className="text-sm font-bold text-white">{t.question || t.slug}</h4>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs font-mono text-slate-400">
+                          {t.reason.includes("venda-antecipada") ? (
+                            <span className="inline-flex items-center rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+                              Venda Antecipada (Saída Prévias)
+                            </span>
+                          ) : t.reason.includes("redeem-vencimento") ? (
+                            <span className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                              Vencimento (Resgate Total)
+                            </span>
+                          ) : (
+                            <span>
+                              {t.type === "close_pair"
+                                ? "Encerrada"
+                                : t.type === "mm_quote"
+                                  ? t.orderIds.length > 0
+                                    ? "Cotação MM (ordem enviada)"
+                                    : "Cotação MM (sem ordem)"
+                                  : "Aberta"}
+                            </span>
+                          )}{" "}
+                          <span>| {new Date(t.createdAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div
+                        className={`text-right font-mono text-base font-black ${
+                          t.pnl > 0
+                            ? "text-emerald-400"
+                            : t.pnl < 0
+                              ? "text-rose-400"
+                              : "text-slate-400"
+                        }`}
+                      >
+                        {fmtUsd(t.pnl)}
+                        {t.investedUsd > 0 ? (
+                          <span className="ml-1.5 text-xs font-semibold">
+                            ({t.pnl > 0 ? "+" : ""}
+                            {((t.pnl / t.investedUsd) * 100).toFixed(2)}%)
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/5 pt-3 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-slate-500">
+                          Entrada
+                        </span>
+                        <div className="mt-0.5 font-mono font-semibold text-slate-300">
+                          {t.openedAt
+                            ? new Date(t.openedAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                              })
+                            : "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-slate-500">
+                          Encerramento
+                        </span>
+                        <div className="mt-0.5 font-mono font-semibold text-slate-300">
+                          {t.createdAt
+                            ? new Date(t.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                              })
+                            : "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-slate-500">
+                          Duração
+                        </span>
+                        <div className="mt-0.5 font-mono font-bold text-amber-400">
+                          {(() => {
+                            if (!t.openedAt || !t.createdAt) return "—";
+                            const diffSec = Math.max(
+                              0,
+                              Math.floor(
+                                (new Date(t.createdAt).getTime() - new Date(t.openedAt).getTime()) /
+                                  1000,
+                              ),
+                            );
+                            const m = Math.floor(diffSec / 60);
+                            const s = diffSec % 60;
+                            return m > 0 ? `${m}m ${s}s` : `${s}s`;
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-slate-500">
+                          Investido
+                        </span>
+                        <div className="mt-0.5 font-mono font-bold text-white">
+                          ${t.investedUsd.toFixed(2)}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-slate-500">
+                          Realizado
+                        </span>
+                        <div className="mt-0.5 font-mono font-bold text-slate-300">
+                          ${t.realizedUsd.toFixed(2)}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-slate-500">P/L</span>
+                        <div
+                          className={`mt-0.5 font-mono font-bold ${
+                            t.pnl > 0
+                              ? "text-emerald-400"
+                              : t.pnl < 0
+                                ? "text-rose-400"
+                                : "text-slate-400"
+                          }`}
+                        >
+                          {fmtUsd(t.pnl)}
+                          {t.investedUsd > 0 ? (
+                            <span className="ml-1 text-[10px] opacity-90">
+                              ({t.pnl > 0 ? "+" : ""}
+                              {((t.pnl / t.investedUsd) * 100).toFixed(2)}%)
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                    {t.reason ? (
+                      <div className="mt-2 text-[10px] text-slate-600">{t.reason}</div>
                     ) : null}
                   </div>
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-white/5 pt-3 text-xs">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-500">Entrada</span>
-                    <div className="mt-0.5 font-mono font-semibold text-slate-300">
-                      {t.openedAt
-                        ? new Date(t.openedAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })
-                        : "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-500">
-                      Encerramento
-                    </span>
-                    <div className="mt-0.5 font-mono font-semibold text-slate-300">
-                      {t.createdAt
-                        ? new Date(t.createdAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })
-                        : "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-500">Duração</span>
-                    <div className="mt-0.5 font-mono font-bold text-amber-400">
-                      {(() => {
-                        if (!t.openedAt || !t.createdAt) return "—";
-                        const diffSec = Math.max(
-                          0,
-                          Math.floor(
-                            (new Date(t.createdAt).getTime() - new Date(t.openedAt).getTime()) /
-                              1000,
-                          ),
-                        );
-                        const m = Math.floor(diffSec / 60);
-                        const s = diffSec % 60;
-                        return m > 0 ? `${m}m ${s}s` : `${s}s`;
-                      })()}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-500">
-                      Investido
-                    </span>
-                    <div className="mt-0.5 font-mono font-bold text-white">
-                      ${t.investedUsd.toFixed(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-500">
-                      Realizado
-                    </span>
-                    <div className="mt-0.5 font-mono font-bold text-slate-300">
-                      ${t.realizedUsd.toFixed(2)}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-500">P/L</span>
-                    <div
-                      className={`mt-0.5 font-mono font-bold ${
-                        t.pnl > 0
-                          ? "text-emerald-400"
-                          : t.pnl < 0
-                            ? "text-rose-400"
-                            : "text-slate-400"
-                      }`}
-                    >
-                      {fmtUsd(t.pnl)}
-                      {t.investedUsd > 0 ? (
-                        <span className="ml-1 text-[10px] opacity-90">
-                          ({t.pnl > 0 ? "+" : ""}
-                          {((t.pnl / t.investedUsd) * 100).toFixed(2)}%)
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-                {t.reason ? (
-                  <div className="mt-2 text-[10px] text-slate-600">{t.reason}</div>
-                ) : null}
-              </div>
-            ))
-          )}
+                ))
+              )}
             </div>
           )}
         </div>

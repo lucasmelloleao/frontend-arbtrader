@@ -6,7 +6,6 @@ import {
   derivBalanceSchema,
   derivLogsSchema,
   derivStrategyListSchema,
-  derivStrategySchema,
   derivTradeListSchema,
   type AtualizarDerivSettingsInput,
   type AtualizarDerivStrategyInput,
@@ -23,14 +22,25 @@ export type MutacaoResult = { ok: true } | { ok: false; erro: string };
 
 const ERRO_INESPERADO = "Não foi possível concluir a operação. Tente novamente.";
 
-export type DerivPeriod = "5m" | "10m" | "30m" | "1h" | "2h" | "3h" | "4h" | "5h" | "12h" | "24h" | "today" | "7d" | "30d" | "all";
-
-
+export type DerivPeriod =
+  | "5m"
+  | "10m"
+  | "30m"
+  | "1h"
+  | "2h"
+  | "3h"
+  | "4h"
+  | "5h"
+  | "12h"
+  | "24h"
+  | "today"
+  | "7d"
+  | "30d"
+  | "all";
 
 export async function buscarTradesDerivPorPeriodo(
-  period: DerivPeriod = "today"
+  period: DerivPeriod = "today",
 ): Promise<{ ok: true; data: DerivTrade[] } | { ok: false; erro: string }> {
-
   try {
     const data = await apiClient(kyServer, API_ENDPOINTS.deriv.listarTrades, derivTradeListSchema, {
       method: "get",
@@ -42,11 +52,18 @@ export async function buscarTradesDerivPorPeriodo(
   }
 }
 
-export async function listarDerivStrategies(): Promise<{ ok: true; data: DerivStrategy[] } | { ok: false; erro: string }> {
+export async function listarDerivStrategies(): Promise<
+  { ok: true; data: DerivStrategy[] } | { ok: false; erro: string }
+> {
   try {
-    const data = await apiClient(kyServer, API_ENDPOINTS.deriv.strategies, derivStrategyListSchema, {
-      method: "get",
-    });
+    const data = await apiClient(
+      kyServer,
+      API_ENDPOINTS.deriv.strategies,
+      derivStrategyListSchema,
+      {
+        method: "get",
+      },
+    );
     return { ok: true, data };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
@@ -66,7 +83,9 @@ export async function criarDerivStrategy(input: CriarDerivStrategyInput): Promis
   }
 }
 
-export async function atualizarDerivStrategy(input: AtualizarDerivStrategyInput): Promise<MutacaoResult> {
+export async function atualizarDerivStrategy(
+  input: AtualizarDerivStrategyInput,
+): Promise<MutacaoResult> {
   try {
     await apiClient(kyServer, `${API_ENDPOINTS.deriv.strategies}/${input.id}`, undefined, {
       method: "put",
@@ -147,105 +166,14 @@ export async function limparHistoricoDeriv(): Promise<MutacaoResult> {
   }
 }
 
-export async function buscarSaldoDeriv(): Promise<{ ok: true; data: DerivBalance } | { ok: false; erro: string }> {
+export async function buscarSaldoDeriv(): Promise<
+  { ok: true; data: DerivBalance } | { ok: false; erro: string }
+> {
   try {
     const data = await apiClient(kyServer, API_ENDPOINTS.deriv.balance, derivBalanceSchema, {
       method: "get",
     });
     return { ok: true, data };
-  } catch (error: unknown) {
-    return {
-      ok: false,
-      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
-    };
-  }
-}
-
-export type DerivContractOption = {
-  contractCategory: string;
-  contractType: string;
-  contractDisplay: string;
-  minDuration: string;
-  maxDuration: string;
-  barriers: number;
-  defaultBarrier?: string;
-};
-
-export async function buscarContratosDisponiveisDeriv(
-  symbol: string
-): Promise<{ ok: true; data: DerivContractOption[] } | { ok: false; erro: string }> {
-  try {
-    const res = await apiClient(
-      kyServer,
-      API_ENDPOINTS.deriv.contractsFor,
-      undefined,
-      {
-        method: "get",
-        searchParams: { symbol },
-      }
-    );
-    return { ok: true, data: (res as any)?.data || [] };
-  } catch (error: unknown) {
-    return {
-      ok: false,
-      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
-    };
-  }
-}
-
-
-export type DerivBarrierRangeData = {
-  symbol: string;
-  durationSec: number;
-  higher: { min: string; max: string; default: string; validList: string[] };
-  lower: { min: string; max: string; default: string; validList: string[] };
-};
-
-export async function buscarFaixaBarreiraDeriv(
-  symbol: string,
-  durationSec: number
-): Promise<{ ok: true; data: DerivBarrierRangeData } | { ok: false; erro: string }> {
-  try {
-    const res = await apiClient(
-      kyServer,
-      API_ENDPOINTS.deriv.barrierRange,
-      undefined,
-      {
-        method: "get",
-        searchParams: { symbol, durationSec },
-      }
-    );
-    return { ok: true, data: (res as any)?.data };
-  } catch (error: unknown) {
-    return {
-      ok: false,
-      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
-    };
-  }
-}
-
-
-export async function testarPropostaDeriv(params: {
-  symbol: string;
-  contractType: string;
-  durationSec: number;
-  barrier?: string;
-  amount?: number;
-}): Promise<{ ok: true; data: any } | { ok: false; erro: string }> {
-  try {
-    const res = await apiClient(
-      kyServer,
-      API_ENDPOINTS.deriv.proposal,
-      undefined,
-      {
-        method: "post",
-        json: params,
-      }
-    );
-    if ((res as any)?.success === false) {
-      return { ok: false, erro: (res as any)?.error || "Contrato indisponível" };
-    }
-    return { ok: true, data: (res as any)?.data };
   } catch (error: unknown) {
     return {
       ok: false,
@@ -270,4 +198,3 @@ export async function buscarLogsDeriv(lines = 150): Promise<DerivLogsResult> {
     };
   }
 }
-

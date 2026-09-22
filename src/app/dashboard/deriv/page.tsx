@@ -35,8 +35,7 @@ async function DerivPageContent(): Promise<React.ReactNode> {
   const summary: DerivTradesSummary | null =
     summaryRes.status === "fulfilled" ? summaryRes.value : null;
   const trades: DerivTrade[] = tradesRes.status === "fulfilled" ? tradesRes.value : [];
-  const balance: DerivBalance | null =
-    balanceRes.status === "fulfilled" ? balanceRes.value : null;
+  const balance: DerivBalance | null = balanceRes.status === "fulfilled" ? balanceRes.value : null;
   const strategies: DerivStrategy[] =
     strategiesRes.status === "fulfilled" ? strategiesRes.value : [];
 

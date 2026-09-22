@@ -98,7 +98,7 @@ export const derivLogsSchema = object({
 });
 
 /** Schema de uma Estratégia por Ativo na Deriv. */
-export const derivStrategySchema = object({
+const derivStrategySchema = object({
   id: fallback(string(), ""),
   name: fallback(string(), ""),
   symbol: fallback(string(), "1HZ10V"),
@@ -121,7 +121,7 @@ export type DerivStrategy = InferOutput<typeof derivStrategySchema>;
 
 export const derivStrategyListSchema = array(derivStrategySchema);
 
-export const criarDerivStrategyInputSchema = object({
+const criarDerivStrategyInputSchema = object({
   name: optional(string()),
   symbol: string(),
   contractType: optional(string()),
@@ -135,7 +135,7 @@ export const criarDerivStrategyInputSchema = object({
 
 export type CriarDerivStrategyInput = InferOutput<typeof criarDerivStrategyInputSchema>;
 
-export const atualizarDerivStrategyInputSchema = object({
+const atualizarDerivStrategyInputSchema = object({
   id: string(),
   name: optional(string()),
   symbol: optional(string()),

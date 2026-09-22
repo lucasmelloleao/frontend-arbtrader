@@ -30,13 +30,13 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
   const [minTakeProfitPct, setMinTakeProfitPct] = useState(settings?.minTakeProfitPct ?? 2.0);
   const [minPayoutPct, setMinPayoutPct] = useState(settings?.minPayoutPct ?? 35.0);
   const [minHighCertaintyProb, setMinHighCertaintyProb] = useState(
-    Math.round((settings?.minHighCertaintyProb ?? 0.75) * 100)
+    Math.round((settings?.minHighCertaintyProb ?? 0.75) * 100),
   );
   const [contractDurationSec, setContractDurationSec] = useState(
-    settings?.contractDurationSec ?? 300
+    settings?.contractDurationSec ?? 300,
   );
   const [allowedSymbolsStr, setAllowedSymbolsStr] = useState(
-    (settings?.allowedSymbols ?? ["R_100", "R_50", "frxBTCUSD"]).join(", ")
+    (settings?.allowedSymbols ?? ["R_100", "R_50", "frxBTCUSD"]).join(", "),
   );
 
   const handleSubmit = (e: React.FormEvent): void => {
@@ -306,7 +306,10 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
 
             {/* Payout Líquido Mínimo % */}
             <div>
-              <label htmlFor="deriv-min-payout-pct" className="block text-xs font-semibold text-slate-300">
+              <label
+                htmlFor="deriv-min-payout-pct"
+                className="block text-xs font-semibold text-slate-300"
+              >
                 💰 Payout Líquido Mínimo (%)
               </label>
               <input
@@ -319,12 +322,17 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
                 onChange={(e) => setMinPayoutPct(Number(e.target.value))}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
               />
-              <p className="mt-0.5 text-[10px] text-slate-400">Rejeita propostas que paguem menos</p>
+              <p className="mt-0.5 text-[10px] text-slate-400">
+                Rejeita propostas que paguem menos
+              </p>
             </div>
 
             {/* Certeza Mínima de Entrada % */}
             <div>
-              <label htmlFor="deriv-certainty-prob" className="block text-xs font-semibold text-slate-300">
+              <label
+                htmlFor="deriv-certainty-prob"
+                className="block text-xs font-semibold text-slate-300"
+              >
                 🎯 Certeza Mínima de Entrada (%)
               </label>
               <input
@@ -337,12 +345,17 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
                 onChange={(e) => setMinHighCertaintyProb(Number(e.target.value))}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
               />
-              <p className="mt-0.5 text-[10px] text-slate-400">Só entra se prob. calculada for maior</p>
+              <p className="mt-0.5 text-[10px] text-slate-400">
+                Só entra se prob. calculada for maior
+              </p>
             </div>
 
             {/* Duração do Contrato em Segundos */}
             <div>
-              <label htmlFor="deriv-duration-sec" className="block text-xs font-semibold text-slate-300">
+              <label
+                htmlFor="deriv-duration-sec"
+                className="block text-xs font-semibold text-slate-300"
+              >
                 ⏱️ Duração do Contrato (Segundos)
               </label>
               <input
@@ -359,7 +372,10 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
 
             {/* Ativos / Símbolos Permitidos */}
             <div className="sm:col-span-2 lg:col-span-3">
-              <label htmlFor="deriv-allowed-symbols" className="block text-xs font-semibold text-slate-300">
+              <label
+                htmlFor="deriv-allowed-symbols"
+                className="block text-xs font-semibold text-slate-300"
+              >
                 📊 Ativos Analisados (Separados por vírgula)
               </label>
               <input
@@ -370,7 +386,9 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
                 placeholder="R_100, R_50, frxBTCUSD, frxETHUSD"
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
               />
-              <p className="mt-0.5 text-[10px] text-slate-400">Índices Sintéticos e Cripto (ex: R_100, R_50, R_25, frxBTCUSD)</p>
+              <p className="mt-0.5 text-[10px] text-slate-400">
+                Índices Sintéticos e Cripto (ex: R_100, R_50, R_25, frxBTCUSD)
+              </p>
             </div>
           </div>
 
