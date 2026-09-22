@@ -207,6 +207,7 @@ export async function analisarDerivComIa(): Promise<
   try {
     const data = await apiClient(kyServer, API_ENDPOINTS.deriv.aiAnalysis, derivAiAnalysisSchema, {
       method: "post",
+      timeout: 120000,
     });
     return { ok: true, data };
   } catch (error: unknown) {

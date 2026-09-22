@@ -7,7 +7,7 @@ import type { NextRequest } from "next/server";
  * carrega (ADR-007). Trocar o nome aqui é o único ajuste se o seu backend usar
  * outro.
  */
-const SESSION_COOKIE = "session_token";
+const SESSION_COOKIES = ["session_token", "token", "connect.sid"];
 
 /**
  * Trava de request-boundary das áreas autenticadas. É o `proxy.ts` do Next 16,
@@ -28,7 +28,8 @@ const SESSION_COOKIE = "session_token";
  * @returns Segue o fluxo quando há sessão; senão redireciona pra `/login`.
  */
 export function proxy(request: NextRequest): NextResponse {
-  if (request.cookies.has(SESSION_COOKIE)) {
+  const hasSession = SESSION_COOKIES.some((name) => request.cookies.has(name));
+  if (hasSession) {
     return NextResponse.next();
   }
   return NextResponse.redirect(new URL("/login", request.url));
