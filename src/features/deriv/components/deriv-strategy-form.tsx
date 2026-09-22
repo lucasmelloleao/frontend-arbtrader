@@ -26,8 +26,8 @@ const DERIV_SYMBOLS = [
   { value: "stpRNG", label: "Step Index (stpRNG)" },
 
   // Criptomoedas
-  { value: "frxBTCUSD", label: "BTC/USD (Crypto)" },
-  { value: "frxETHUSD", label: "ETH/USD (Crypto)" },
+  { value: "cryBTCUSD", label: "BTC/USD (Bitcoin)" },
+  { value: "cryETHUSD", label: "ETH/USD (Ethereum)" },
 
   // Moedas Forex
   { value: "frxEURUSD", label: "EUR/USD (Forex)" },
