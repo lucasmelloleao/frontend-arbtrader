@@ -217,24 +217,6 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
               />
             </div>
 
-            {/* Aporte por Contrato */}
-            <div>
-              <label
-                htmlFor="deriv-trade-size"
-                className="block text-xs font-semibold text-slate-300"
-              >
-                Aporte por Contrato (USD)
-              </label>
-              <input
-                id="deriv-trade-size"
-                type="number"
-                min={1}
-                value={tradeSize}
-                onChange={(e) => setTradeSize(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
-              />
-            </div>
-
             {/* Máximo de Contratos Abertos */}
             <div>
               <label
@@ -324,70 +306,6 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
               />
               <p className="mt-0.5 text-[10px] text-slate-400">
                 Rejeita propostas que paguem menos
-              </p>
-            </div>
-
-            {/* Certeza Mínima de Entrada % */}
-            <div>
-              <label
-                htmlFor="deriv-certainty-prob"
-                className="block text-xs font-semibold text-slate-300"
-              >
-                🎯 Certeza Mínima de Entrada (%)
-              </label>
-              <input
-                id="deriv-certainty-prob"
-                type="number"
-                min={50}
-                max={99}
-                step={1}
-                value={minHighCertaintyProb}
-                onChange={(e) => setMinHighCertaintyProb(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
-              />
-              <p className="mt-0.5 text-[10px] text-slate-400">
-                Só entra se prob. calculada for maior
-              </p>
-            </div>
-
-            {/* Duração do Contrato em Segundos */}
-            <div>
-              <label
-                htmlFor="deriv-duration-sec"
-                className="block text-xs font-semibold text-slate-300"
-              >
-                ⏱️ Duração do Contrato (Segundos)
-              </label>
-              <input
-                id="deriv-duration-sec"
-                type="number"
-                min={15}
-                step={15}
-                value={contractDurationSec}
-                onChange={(e) => setContractDurationSec(Number(e.target.value))}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
-              />
-              <p className="mt-0.5 text-[10px] text-slate-400">Ex: 60 (1m), 180 (3m), 300 (5m)</p>
-            </div>
-
-            {/* Ativos / Símbolos Permitidos */}
-            <div className="sm:col-span-2 lg:col-span-3">
-              <label
-                htmlFor="deriv-allowed-symbols"
-                className="block text-xs font-semibold text-slate-300"
-              >
-                📊 Ativos Analisados (Separados por vírgula)
-              </label>
-              <input
-                id="deriv-allowed-symbols"
-                type="text"
-                value={allowedSymbolsStr}
-                onChange={(e) => setAllowedSymbolsStr(e.target.value)}
-                placeholder="R_100, R_50, frxBTCUSD, frxETHUSD"
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-emerald-500"
-              />
-              <p className="mt-0.5 text-[10px] text-slate-400">
-                Índices Sintéticos e Cripto (ex: R_100, R_50, R_25, frxBTCUSD)
               </p>
             </div>
           </div>

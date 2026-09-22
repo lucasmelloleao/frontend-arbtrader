@@ -1159,7 +1159,29 @@ export function DerivBoard({
                             </span>
                           </td>
                           <td className="p-3 text-xs text-muted-foreground">
-                            {t.reason || t.status}
+                            {(() => {
+                              const motivo = t.reason || t.status || "-";
+                              const isEarlyTp = motivo.includes("Take Profit") || motivo.includes("Saída Antecipada");
+                              const isEarlyStop = motivo.includes("Emergency Stop") || motivo.includes("Stop Antecipado");
+
+                              if (isEarlyTp) {
+                                return (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2.5 py-0.5 text-[11px] font-bold text-cyan-300 border border-cyan-500/30">
+                                    🎯 {motivo}
+                                  </span>
+                                );
+                              }
+
+                              if (isEarlyStop) {
+                                return (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/20 px-2.5 py-0.5 text-[11px] font-bold text-rose-300 border border-rose-500/30">
+                                    🚨 {motivo}
+                                  </span>
+                                );
+                              }
+
+                              return motivo;
+                            })()}
                           </td>
                         </tr>
                       );
