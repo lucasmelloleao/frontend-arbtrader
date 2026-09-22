@@ -84,8 +84,11 @@ export function useLoginForm(destino: Route): UseLoginForm {
       setErroServidor(mensagem);
       return;
     }
-    router.replace(destino);
-    router.refresh();
+    if (typeof window !== "undefined") {
+      window.location.href = destino;
+    } else {
+      router.replace(destino);
+    }
   });
 
   const voltarAoLogin = (): void => {
