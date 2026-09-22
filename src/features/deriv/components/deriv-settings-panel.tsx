@@ -23,21 +23,15 @@ export function DerivSettingsPanel({ settings }: DerivSettingsPanelProps): React
   const [realApiToken, setRealApiToken] = useState(settings?.realApiToken ?? "");
   const [isScanningEnabled, setIsScanningEnabled] = useState(settings?.isScanningEnabled ?? false);
   const [allowLiveTrading, setAllowLiveTrading] = useState(settings?.allowLiveTrading ?? false);
-  const [tradeSize, setTradeSize] = useState(settings?.tradeSize ?? 5);
+  const tradeSize = settings?.tradeSize ?? 5;
   const [maxOpenContracts, setMaxOpenContracts] = useState(settings?.maxOpenContracts ?? 3);
   const [maxDailyLoss, setMaxDailyLoss] = useState(settings?.maxDailyLoss ?? 10);
   const [emergencyStopPct, setEmergencyStopPct] = useState(settings?.emergencyStopPct ?? 20);
   const [minTakeProfitPct, setMinTakeProfitPct] = useState(settings?.minTakeProfitPct ?? 2.0);
   const [minPayoutPct, setMinPayoutPct] = useState(settings?.minPayoutPct ?? 35.0);
-  const [minHighCertaintyProb, setMinHighCertaintyProb] = useState(
-    Math.round((settings?.minHighCertaintyProb ?? 0.75) * 100),
-  );
-  const [contractDurationSec, setContractDurationSec] = useState(
-    settings?.contractDurationSec ?? 300,
-  );
-  const [allowedSymbolsStr, setAllowedSymbolsStr] = useState(
-    (settings?.allowedSymbols ?? ["R_100", "R_50", "frxBTCUSD"]).join(", "),
-  );
+  const minHighCertaintyProb = Math.round((settings?.minHighCertaintyProb ?? 0.75) * 100);
+  const contractDurationSec = settings?.contractDurationSec ?? 300;
+  const allowedSymbolsStr = (settings?.allowedSymbols ?? ["R_100", "R_50", "frxBTCUSD"]).join(", ");
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();

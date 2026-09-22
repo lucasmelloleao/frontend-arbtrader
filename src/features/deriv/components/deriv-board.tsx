@@ -1161,8 +1161,12 @@ export function DerivBoard({
                           <td className="p-3 text-xs text-muted-foreground">
                             {(() => {
                               const motivo = t.reason || t.status || "-";
-                              const isEarlyTp = motivo.includes("Take Profit") || motivo.includes("Saída Antecipada");
-                              const isEarlyStop = motivo.includes("Emergency Stop") || motivo.includes("Stop Antecipado");
+                              const isEarlyTp =
+                                motivo.includes("Take Profit") ||
+                                motivo.includes("Saída Antecipada");
+                              const isEarlyStop =
+                                motivo.includes("Emergency Stop") ||
+                                motivo.includes("Stop Antecipado");
 
                               if (isEarlyTp) {
                                 return (
