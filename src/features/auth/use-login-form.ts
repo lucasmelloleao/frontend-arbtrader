@@ -58,8 +58,8 @@ export function useLoginForm(destino: Route): UseLoginForm {
   const entrar = form.handleSubmit(async (credenciais) => {
     setErroServidor(null);
     try {
-      // Sem schema: a identidade vem do cookie, o contrato não devolve `data`.
-      await apiClient(kyClient, API_ENDPOINTS.auth.login, undefined, {
+      // Sem schema: a identidade vem do cookie e do JSON retornado.
+      const resposta = await apiClient<any>(kyClient, API_ENDPOINTS.auth.login, undefined, {
         method: "post",
         json: {
           email: credenciais.email,
@@ -67,6 +67,13 @@ export function useLoginForm(destino: Route): UseLoginForm {
           twoFactorToken: credenciais.codigo2fa || undefined,
         },
       });
+
+      // Garante a gravação do cookie no client caso a Vercel/browser tenha restrição de cookie cross-origin
+      const tokenRecebido = resposta?.token || resposta?.data?.token;
+      if (tokenRecebido && typeof document !== "undefined") {
+        document.cookie = `session_token=${tokenRecebido}; path=/; max-age=604800; SameSite=Lax`;
+        document.cookie = `token=${tokenRecebido}; path=/; max-age=604800; SameSite=Lax`;
+      }
     } catch (error: unknown) {
       const mensagem = error instanceof Error ? error.message : ERRO_INESPERADO;
       if (mensagem === ERRO_2FA_REQUIRED) {
