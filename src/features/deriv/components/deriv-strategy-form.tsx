@@ -58,8 +58,12 @@ export function DerivStrategyForm({
   const [minCertaintyProb, setMinCertaintyProb] = useState(
     strategyParaEditar ? Math.round(strategyParaEditar.minCertaintyProb * 100) : 75,
   );
-  const [minTakeProfitPct, setMinTakeProfitPct] = useState(strategyParaEditar?.minTakeProfitPct ?? 15);
-  const [emergencyStopPct, setEmergencyStopPct] = useState(strategyParaEditar?.emergencyStopPct ?? 70);
+  const [minTakeProfitPct, setMinTakeProfitPct] = useState(
+    strategyParaEditar?.minTakeProfitPct ?? 15,
+  );
+  const [emergencyStopPct, setEmergencyStopPct] = useState(
+    strategyParaEditar?.emergencyStopPct ?? 70,
+  );
 
   const isEditing = Boolean(strategyParaEditar?.id);
 

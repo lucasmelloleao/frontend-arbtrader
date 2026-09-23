@@ -5,6 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 
 import {
   BarChart3,
+  Brain,
   Calendar,
   CircleDot,
   Clock,
@@ -33,6 +34,7 @@ import {
   type DerivPeriod,
 } from "@/features/deriv/deriv.actions";
 import { DerivStrategyForm } from "@/features/deriv/components/deriv-strategy-form";
+import { DerivAiStrategyView } from "@/features/deriv/components/deriv-ai-strategy-view";
 import type {
   DerivAiAnalysis,
   DerivBalance,
@@ -60,7 +62,9 @@ export function DerivBoard({
 }: DerivBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [tab, setTab] = useState<"strategies" | "performance" | "open" | "closed">("strategies");
+  const [tab, setTab] = useState<"strategies" | "aiStrategy" | "performance" | "open" | "closed">(
+    "strategies",
+  );
   const [liveBalance, setLiveBalance] = useState<DerivBalance | null>(initialBalance ?? null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStrategy, setEditingStrategy] = useState<DerivStrategy | null>(null);
@@ -458,6 +462,18 @@ export function DerivBoard({
           </button>
 
           <button
+            onClick={() => setTab("aiStrategy")}
+            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+              tab === "aiStrategy"
+                ? "border-cyan-400 text-cyan-400"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Brain className="h-4 w-4 text-purple-400" />
+            IA Meta-Labeling (Gate 4)
+          </button>
+
+          <button
             onClick={() => {
               setTab("performance");
               if (!perfConsulted) {
@@ -516,6 +532,9 @@ export function DerivBoard({
           </button>
         )}
       </div>
+
+      {/* AI Meta-Labeling View */}
+      {tab === "aiStrategy" && <DerivAiStrategyView />}
 
       {/* Strategies Grid */}
       {tab === "strategies" && (

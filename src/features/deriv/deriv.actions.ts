@@ -217,3 +217,51 @@ export async function analisarDerivComIa(): Promise<
     };
   }
 }
+
+export interface MetaModelStatus {
+  isTrained: boolean;
+  metadata: {
+    trainedAt: string;
+    samplesCount: number;
+    winRateBaseline: number;
+    accuracy: number;
+    features: string[];
+    nEstimators: number;
+  } | null;
+  totalExecutedTrades: number;
+  minTradesRequired: number;
+}
+
+export async function buscarStatusMetaLabeling(): Promise<
+  { ok: true; data: MetaModelStatus } | { ok: false; erro: string }
+> {
+  try {
+    const res: any = await apiClient(kyServer, API_ENDPOINTS.deriv.metaModelStatus, undefined, {
+      method: "get",
+    });
+    return { ok: true, data: res.data || res };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
+    };
+  }
+}
+
+export async function treinarModeloMetaLabeling(): Promise<
+  { ok: true; message: string; data?: any } | { ok: false; erro: string }
+> {
+  try {
+    const res: any = await apiClient(kyServer, API_ENDPOINTS.deriv.metaModelTrain, undefined, {
+      method: "post",
+      timeout: 60000,
+    });
+    revalidatePath("/dashboard/deriv");
+    return { ok: true, message: res.message || "Modelo treinado com sucesso!", data: res.data };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
+    };
+  }
+}
