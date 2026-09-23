@@ -163,9 +163,13 @@ export function FxProBoard({
               Nenhuma posição aberta na FxPro cTrader no momento.
             </div>
           ) : (
-            abertas.map((strat) => (
+            abertas.map((strat, idx) => (
               <div
-                key={strat.id}
+                key={
+                  strat.id
+                    ? `${strat.id}-${strat.currentPositionId || idx}`
+                    : `open-${strat.symbol}-${idx}`
+                }
                 className="rounded-xl border border-indigo-500/30 bg-slate-950/70 p-5 shadow-lg"
               >
                 <div className="mb-3 flex items-start justify-between gap-2">
@@ -250,8 +254,15 @@ export function FxProBoard({
               Nenhuma estratégia FxPro cadastrada.
             </div>
           ) : (
-            monitorando.map((strat) => (
-              <div key={strat.id} className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
+            monitorando.map((strat, idx) => (
+              <div
+                key={
+                  strat.id
+                    ? `${strat.id}-${strat.symbol}-${idx}`
+                    : `monitored-${strat.symbol}-${idx}`
+                }
+                className="rounded-xl border border-white/10 bg-slate-950/70 p-4"
+              >
                 <div className="flex items-center justify-between">
                   <span className="truncate text-sm font-bold text-white">{strat.name}</span>
                   <div className="flex items-center gap-1.5">
@@ -376,9 +387,9 @@ export function FxProBoard({
                   Nenhum trade encerrado encontrado no período.
                 </div>
               ) : (
-                encerradas.map((t) => (
+                encerradas.map((t, idx) => (
                   <div
-                    key={t.id || t.positionId}
+                    key={t.id ? `${t.id}-${idx}` : `${t.positionId || "trade"}-${t.symbol}-${idx}`}
                     className={`rounded-xl border p-4 transition-colors ${
                       t.pnlUsd > 0
                         ? "border-emerald-500/20 bg-emerald-950/30"

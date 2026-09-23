@@ -287,9 +287,9 @@ export function FxProAiStrategyView(): React.ReactNode {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {datasetSamples.map((row) => (
+                {datasetSamples.map((row, idx) => (
                   <tr
-                    key={row.id}
+                    key={row.id ? `${row.id}-${idx}` : `sample-${row.symbol}-${idx}`}
                     className={`transition-colors hover:bg-muted/30 ${
                       row.isWin ? "bg-emerald-500/5" : "bg-rose-500/5"
                     }`}
