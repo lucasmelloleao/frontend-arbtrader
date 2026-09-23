@@ -58,6 +58,8 @@ export function DerivStrategyForm({
   const [minCertaintyProb, setMinCertaintyProb] = useState(
     strategyParaEditar ? Math.round(strategyParaEditar.minCertaintyProb * 100) : 75,
   );
+  const [minTakeProfitPct, setMinTakeProfitPct] = useState(strategyParaEditar?.minTakeProfitPct ?? 15);
+  const [emergencyStopPct, setEmergencyStopPct] = useState(strategyParaEditar?.emergencyStopPct ?? 70);
 
   const isEditing = Boolean(strategyParaEditar?.id);
 
@@ -82,6 +84,8 @@ export function DerivStrategyForm({
       tradeSize: tradeSize || 2,
       durationSec: durationSec || 15,
       minCertaintyProb: minCertaintyProb / 100,
+      minTakeProfitPct: minTakeProfitPct || 15,
+      emergencyStopPct: emergencyStopPct || 70,
     };
 
     let res;
@@ -339,6 +343,56 @@ export function DerivStrategyForm({
               onChange={(e) => setMinCertaintyProb(Number(e.target.value))}
               className="mt-2 w-full accent-cyan-400"
             />
+          </div>
+
+          {/* Lucro Mínimo Saída Antecipada (Take Profit %) */}
+          <div>
+            <label
+              htmlFor="deriv-strategy-take-profit"
+              className="block text-xs font-semibold text-emerald-400"
+            >
+              🎯 Take Profit Antecipado (%)
+            </label>
+            <div className="relative mt-1">
+              <input
+                id="deriv-strategy-take-profit"
+                type="number"
+                min="2"
+                max="100"
+                step="1"
+                value={minTakeProfitPct}
+                onChange={(e) => setMinTakeProfitPct(Number(e.target.value))}
+                className="w-full rounded-lg border border-emerald-500/30 bg-slate-900 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+            <span className="text-[10px] text-slate-500">
+              Vende antecipadamente ao atingir +{minTakeProfitPct}% de lucro
+            </span>
+          </div>
+
+          {/* Stop Loss de Emergência (%) */}
+          <div>
+            <label
+              htmlFor="deriv-strategy-stop-loss"
+              className="block text-xs font-semibold text-rose-400"
+            >
+              🚨 Stop Loss Emergência (%)
+            </label>
+            <div className="relative mt-1">
+              <input
+                id="deriv-strategy-stop-loss"
+                type="number"
+                min="10"
+                max="95"
+                step="1"
+                value={emergencyStopPct}
+                onChange={(e) => setEmergencyStopPct(Number(e.target.value))}
+                className="w-full rounded-lg border border-rose-500/30 bg-slate-900 px-3 py-2 text-xs text-white focus:border-rose-500 focus:outline-none"
+              />
+            </div>
+            <span className="text-[10px] text-slate-500">
+              Liquida antecipadamente se o prejuízo atingir -{emergencyStopPct}%
+            </span>
           </div>
         </div>
 

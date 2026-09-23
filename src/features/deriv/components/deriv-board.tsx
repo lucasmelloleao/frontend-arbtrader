@@ -592,6 +592,14 @@ export function DerivBoard({
                           {(strat.minCertaintyProb * 100).toFixed(0)}%
                         </p>
                       </div>
+                      <div className="rounded-lg bg-slate-950/50 p-2">
+                        <span className="text-[10px] text-muted-foreground">TP / Stop Loss</span>
+                        <p className="font-semibold text-slate-200">
+                          <span className="text-emerald-400">+{strat.minTakeProfitPct ?? 15}%</span>
+                          {" / "}
+                          <span className="text-rose-400">-{strat.emergencyStopPct ?? 70}%</span>
+                        </p>
+                      </div>
                     </div>
 
                     <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">

@@ -108,6 +108,8 @@ const derivStrategySchema = object({
   tradeSize: fallback(number(), 2),
   durationSec: fallback(number(), 15),
   minCertaintyProb: fallback(number(), 0.75),
+  minTakeProfitPct: fallback(number(), 15),
+  emergencyStopPct: fallback(number(), 70),
   active: fallback(boolean(), true),
   positionOpen: fallback(boolean(), false),
   contractId: fallback(nullable(string()), null),
@@ -130,6 +132,8 @@ const criarDerivStrategyInputSchema = object({
   tradeSize: optional(number()),
   durationSec: optional(number()),
   minCertaintyProb: optional(number()),
+  minTakeProfitPct: optional(number()),
+  emergencyStopPct: optional(number()),
   active: optional(boolean()),
 });
 
@@ -145,6 +149,8 @@ const atualizarDerivStrategyInputSchema = object({
   tradeSize: optional(number()),
   durationSec: optional(number()),
   minCertaintyProb: optional(number()),
+  minTakeProfitPct: optional(number()),
+  emergencyStopPct: optional(number()),
   active: optional(boolean()),
 });
 
