@@ -1,7 +1,6 @@
 "use client";
 
 import { valibotResolver } from "@hookform/resolvers/valibot";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
@@ -79,21 +78,21 @@ export function useExchangeForm(
         ? VALORES_INICIAIS
         : {
             exchangeId: editando.exchangeId,
-            nome: editando.nome,
-            apiKey: editando.apiKey,
+            nome: editando.nome || "",
+            apiKey: editando.apiKey || "",
             apiSecret: "",
-            clientId: editando.clientId ?? editando.apiKey,
+            clientId: editando.clientId || editando.apiKey || "",
             clientSecret: "",
             accessToken: "",
             refreshToken: "",
-            accountId: editando.accountId ?? "",
-            environment: editando.environment ?? "live",
-            host: editando.host ?? "",
+            accountId: editando.accountId || "",
+            environment: editando.environment || "demo",
+            host: editando.host || "",
             quotePort: editando.quotePort ?? 5211,
             tradePort: editando.tradePort ?? 5212,
-            senderCompId: editando.senderCompId ?? "",
-            targetCompId: editando.targetCompId ?? "CSERVER",
-            username: editando.username ?? "",
+            senderCompId: editando.senderCompId || "",
+            targetCompId: editando.targetCompId || "CSERVER",
+            username: editando.username || "",
             password: "",
           },
   });

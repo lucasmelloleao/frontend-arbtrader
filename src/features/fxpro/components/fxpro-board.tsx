@@ -77,9 +77,28 @@ export function FxProBoard({
     setStrategyList(strategies);
   }
 
-  const abertas = strategyList.filter((s) => s.currentPositionId);
-  const monitorando = strategyList.filter((s) => !s.currentPositionId);
   const encerradas = tradesList.filter((t) => t.status === "closed");
+  const posicoesAbertas = (() => {
+    const fromTrades = tradesList.filter((t) => t.status === "open");
+    if (fromTrades.length > 0) return fromTrades;
+    return strategyList
+      .filter((s) => s.currentPositionId)
+      .map((s) => ({
+        id: s.currentPositionId || s.id,
+        strategyId: s.id || s._id || "",
+        positionId: s.currentPositionId || "",
+        symbol: s.symbol,
+        side: s.currentSide || "BUY",
+        lotSize: s.lotSize,
+        entryPrice: s.entryPrice,
+        stopLossPrice: null,
+        takeProfitPrice: null,
+        pnlUsd: s.currentPnlUsd,
+        pips: 0,
+        status: "open" as const,
+        openedAt: s.lastTradeAt || s.createdAt,
+      }));
+  })();
 
   const confirmarToggle = (strat: FxProStrategy): void => {
     const stratId = strat.id || strat._id || "";
@@ -123,8 +142,8 @@ export function FxProBoard({
       <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">
         {(
           [
-            { key: "open", label: "Posições Abertas", count: abertas.length },
-            { key: "monitored", label: "Pares Monitorados", count: monitorando.length },
+            { key: "open", label: "Posições Abertas", count: posicoesAbertas.length },
+            { key: "monitored", label: "Pares Monitorados", count: strategyList.length },
             { key: "closed", label: "Histórico de Trades", count: encerradas.length },
             { key: "aiStrategy", label: "IA Meta-Labeling (Gate 4)", count: null, icon: Brain },
           ] as const
@@ -160,103 +179,128 @@ export function FxProBoard({
       {/* Aba: Posições Abertas */}
       {aba === "open" && (
         <div className="grid gap-4 md:grid-cols-2">
-          {abertas.length === 0 ? (
+          {posicoesAbertas.length === 0 ? (
             <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
               Nenhuma posição aberta na FxPro cTrader no momento.
             </div>
           ) : (
-            abertas.map((strat, idx) => (
-              <div
-                key={
-                  strat.id
-                    ? `${strat.id}-${strat.currentPositionId || idx}`
-                    : `open-${strat.symbol}-${idx}`
-                }
-                className="rounded-xl border border-indigo-500/30 bg-slate-950/70 p-5 shadow-lg"
-              >
-                <div className="mb-3 flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-base font-black text-white">{strat.name}</h3>
-                    <div className="mt-0.5 text-xs text-indigo-400 font-mono font-bold">
-                      {strat.symbol} ({strat.timeframe})
+            posicoesAbertas.map((trade, idx) => {
+              const strat = strategyList.find(
+                (s) => (s.id && s.id === trade.strategyId) || s.symbol === trade.symbol,
+              );
+              return (
+                <div
+                  key={
+                    trade.id
+                      ? `${trade.id}-${idx}`
+                      : `${trade.positionId || "pos"}-${trade.symbol}-${idx}`
+                  }
+                  className="rounded-xl border border-indigo-500/30 bg-slate-950/70 p-5 shadow-lg"
+                >
+                  <div className="mb-3 flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-black text-white">{trade.symbol}</h3>
+                        <span className="rounded bg-indigo-500/20 px-2 py-0.5 text-[10px] font-bold text-indigo-300 border border-indigo-500/30">
+                          {strat?.name || "Estratégia FxPro"}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 text-xs text-indigo-400 font-mono font-bold">
+                        {strat
+                          ? `${strat.timeframe} • Alavancagem 1:${strat.leverage}`
+                          : "FxPro cTrader"}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div
+                        className={`font-mono text-base font-black ${
+                          trade.pnlUsd > 0
+                            ? "text-emerald-400"
+                            : trade.pnlUsd < 0
+                              ? "text-rose-400"
+                              : "text-slate-300"
+                        }`}
+                      >
+                        {fmtUsd(trade.pnlUsd)}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        Posição #{trade.positionId}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div
-                      className={`font-mono text-base font-black ${
-                        strat.currentPnlUsd > 0
-                          ? "text-emerald-400"
-                          : strat.currentPnlUsd < 0
-                            ? "text-rose-400"
-                            : "text-slate-300"
-                      }`}
-                    >
-                      {fmtUsd(strat.currentPnlUsd)}
-                    </div>
-                    <div className="text-[11px] text-slate-500">
-                      Posição #{strat.currentPositionId}
-                    </div>
-                  </div>
-                </div>
 
-                <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-white/5 bg-slate-900/60 p-3 text-xs">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">Lado</span>
-                    <div className="flex items-center gap-1 font-bold text-white">
-                      {strat.currentSide === "BUY" ? (
-                        <ArrowUpRight className="h-3.5 w-3.5 text-emerald-400" />
-                      ) : (
-                        <ArrowDownRight className="h-3.5 w-3.5 text-rose-400" />
-                      )}
-                      {strat.currentSide} ({strat.lotSize} lotes)
+                  <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-white/5 bg-slate-900/60 p-3 text-xs">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Lado</span>
+                      <div className="flex items-center gap-1 font-bold text-white">
+                        {trade.side.toUpperCase() === "BUY" ? (
+                          <ArrowUpRight className="h-3.5 w-3.5 text-emerald-400" />
+                        ) : (
+                          <ArrowDownRight className="h-3.5 w-3.5 text-rose-400" />
+                        )}
+                        {trade.side} ({trade.lotSize} lotes)
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        Preço Entrada
+                      </span>
+                      <div className="font-mono font-bold text-white">
+                        {trade.entryPrice ? trade.entryPrice.toFixed(5) : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">TP / SL</span>
+                      <div className="font-mono text-[11px] text-slate-300">
+                        {strat ? `+${strat.takeProfitPips}p / -${strat.stopLossPips}p` : "—"}
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">
-                      Preço Entrada
+
+                  <div className="flex items-center justify-between border-t border-white/5 pt-3 text-[11px] text-slate-400">
+                    <span>
+                      Aberta em:{" "}
+                      {trade.openedAt ? new Date(trade.openedAt).toLocaleTimeString() : "Agora"}
                     </span>
-                    <div className="font-mono font-bold text-white">
-                      {strat.entryPrice.toFixed(5)}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">TP / SL</span>
-                    <div className="font-mono text-[11px] text-slate-300">
-                      +{strat.takeProfitPips}p / -{strat.stopLossPips}p
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between border-t border-white/5 pt-3">
-                  <span className="text-[11px] text-slate-500">
-                    Alavancagem: 1:{strat.leverage}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => confirmarToggle(strat)}
-                      className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-3 py-1 text-xs font-bold text-white hover:bg-amber-500"
-                    >
-                      <Pause className="h-3 w-3" /> Pausar
-                    </button>
+                    {strat && (
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => confirmarToggle(strat)}
+                        className={`inline-flex items-center gap-1 rounded-lg px-3 py-1 text-xs font-bold text-white ${
+                          strat.active
+                            ? "bg-amber-600 hover:bg-amber-500"
+                            : "bg-emerald-600 hover:bg-emerald-500"
+                        }`}
+                      >
+                        {strat.active ? (
+                          <>
+                            <Pause className="h-3 w-3" /> Pausar Robô
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-3 w-3" /> Ativar Robô
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
 
-      {/* Aba: Monitorando */}
+      {/* Aba: Pares Monitorados (Todas as Estratégias) */}
       {aba === "monitored" && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {monitorando.length === 0 ? (
+          {strategyList.length === 0 ? (
             <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
               Nenhuma estratégia FxPro cadastrada.
             </div>
           ) : (
-            monitorando.map((strat, idx) => (
+            strategyList.map((strat, idx) => (
               <div
                 key={
                   strat.id
@@ -266,7 +310,22 @@ export function FxProBoard({
                 className="rounded-xl border border-white/10 bg-slate-950/70 p-4"
               >
                 <div className="flex items-center justify-between">
-                  <span className="truncate text-sm font-bold text-white">{strat.name}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="truncate text-sm font-bold text-white">{strat.name}</span>
+                    {strat.currentPositionId ? (
+                      <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[9px] font-black text-indigo-300 border border-indigo-500/40 animate-pulse">
+                        EM OPERAÇÃO
+                      </span>
+                    ) : strat.active ? (
+                      <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300 border border-emerald-500/30">
+                        MONITORANDO
+                      </span>
+                    ) : (
+                      <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold text-slate-400">
+                        PAUSADO
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"

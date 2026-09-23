@@ -49,7 +49,7 @@ const LINKS: readonly SidebarLink[] = [
     icon: TrendingUp,
     habilitado: true,
   },
-  { href: "/dashboard/exchanges", label: "Exchange", icon: Wallet, habilitado: true },
+  { href: "/dashboard/exchanges", label: "Chaves de API (Exchange)", icon: Wallet, habilitado: true },
   { href: "/dashboard/forex-arb", label: "Scalping Forex", icon: Globe, habilitado: true },
   {
     href: "/dashboard/trend-grid",

@@ -6,14 +6,16 @@
  * no código (regra `no-catalog-literal-compare`).
  */
 export const SUPPORTED_CEX = [
+  { id: "ctrader", nome: "cTrader Open API (FxPro / Pepperstone / Deriv)" },
+  { id: "fxpro", nome: "FxPro (cTrader Open API)" },
+  { id: "deriv", nome: "Deriv (cTrader Open API)" },
+  { id: "pepperstone", nome: "Pepperstone (cTrader)" },
   { id: "mexc", nome: "MEXC" },
   { id: "binance", nome: "Binance" },
   { id: "okx", nome: "OKX" },
   { id: "bybit", nome: "Bybit" },
   { id: "gateio", nome: "Gate.io" },
   { id: "polymarket", nome: "Polymarket" },
-  { id: "ctrader", nome: "cTrader (Pepperstone)" },
-  { id: "pepperstone", nome: "Pepperstone" },
   { id: "fix", nome: "FIX API (Pepperstone)" },
   { id: "pepperstone-fix", nome: "Pepperstone FIX" },
   { id: "ctrader-fix", nome: "cTrader FIX" },
@@ -23,7 +25,12 @@ export const SUPPORTED_CEX = [
  * Corretoras que usam o fluxo cTrader Open API (Client ID/Secret em vez de
  * API Key/Secret). O `apiKey` no backend é o espelho do `clientId`.
  */
-const CTRADER_CEX_IDS: ReadonlySet<string> = new Set(["ctrader", "pepperstone"]);
+const CTRADER_CEX_IDS: ReadonlySet<string> = new Set([
+  "ctrader",
+  "pepperstone",
+  "fxpro",
+  "deriv",
+]);
 
 export function isCtraderId(exchangeId: string): boolean {
   return CTRADER_CEX_IDS.has(exchangeId);

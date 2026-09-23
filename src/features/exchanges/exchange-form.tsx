@@ -188,20 +188,6 @@ export function ExchangeForm({ editando, aoSalvo }: ExchangeFormProps): React.Re
               />
             </div>
           </div>
-
-          <div>
-            <label htmlFor="exchange-environment" className={ROTULO_CLASS}>
-              Ambiente
-            </label>
-            <select
-              id="exchange-environment"
-              className="w-full appearance-none rounded-lg border border-slate-800 bg-slate-950 px-4 py-2 text-white outline-none transition-all focus:border-indigo-500"
-              {...register("environment")}
-            >
-              <option value="live">Live</option>
-              <option value="demo">Demo</option>
-            </select>
-          </div>
         </>
       ) : ehFix ? (
         <>
