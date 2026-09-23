@@ -10,6 +10,25 @@ import {
   type InferOutput,
 } from "valibot";
 
+/** Schema de Configurações Globais do Robô FxPro cTrader. */
+export const fxProSettingsSchema = object({
+  accountType: fallback(string(), "demo"),
+  accountId: fallback(string(), "10650441"),
+  isScanningEnabled: fallback(boolean(), false),
+  allowLiveTrading: fallback(boolean(), false),
+  maxOpenPositions: fallback(number(), 3),
+  maxDailyLoss: fallback(number(), 50),
+  maxDailyProfit: fallback(number(), 100),
+  defaultLotSize: fallback(number(), 0.01),
+  defaultLeverage: fallback(number(), 1000),
+  globalTrailingStop: fallback(boolean(), true),
+  useAiMetaLabeling: fallback(boolean(), true),
+  minAiConfidence: fallback(number(), 0.55),
+  allowedSymbols: fallback(array(string()), ["EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "BTCUSD"]),
+});
+
+export type FxProSettings = InferOutput<typeof fxProSettingsSchema>;
+
 /** Schema de uma estratégia FxPro cTrader. */
 export const fxProStrategySchema = object({
   id: fallback(string(), ""),

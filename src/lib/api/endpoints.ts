@@ -137,6 +137,7 @@ export const API_ENDPOINTS = {
 
   /** Robô Forex / CFD FxPro cTrader. */
   fxpro: {
+    settings: "api/v1/fxpro/settings",
     strategies: "api/v1/fxpro/strategies",
     toggle: (id: string) => `api/v1/fxpro/strategies/${id}/toggle`,
     trades: "api/v1/fxpro/trades",

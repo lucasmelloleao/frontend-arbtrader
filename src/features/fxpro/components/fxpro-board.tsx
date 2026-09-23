@@ -14,9 +14,11 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ShieldCheck,
+  Settings,
 } from "lucide-react";
 import { FxProAiStrategyView } from "@/features/fxpro/components/fxpro-ai-strategy-view";
 import { FxProStrategyForm } from "@/features/fxpro/components/fxpro-strategy-form";
+import { FxProStrategyModal } from "@/features/fxpro/components/fxpro-strategy-modal";
 import {
   alternarEstrategiaFxPro,
   alternarMotorFxPro,
@@ -42,6 +44,7 @@ export function FxProBoard({
   const [isPending, startTransition] = useTransition();
   const [aba, setAba] = useState<"open" | "monitored" | "closed" | "aiStrategy">("open");
   const [criando, setCriando] = useState(false);
+  const [editingStrategy, setEditingStrategy] = useState<FxProStrategy | null>(null);
   const [periodo, setPeriodo] = useState<"today" | "7d" | "30d" | "all">("today");
   const [tradesList, setTradesList] = useState<readonly FxProTrade[]>(initialTrades);
   const [carregandoTrades, setCarregandoTrades] = useState(false);
@@ -249,6 +252,14 @@ export function FxProBoard({
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
+                      onClick={() => setEditingStrategy(strat)}
+                      className="text-slate-400 hover:text-white p-1 hover:bg-slate-800 rounded"
+                      title="Configurar Parâmetros do Ativo"
+                    >
+                      <Settings className="h-3.5 w-3.5 text-indigo-400" />
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => confirmarToggle(strat)}
                       className={`p-1 rounded ${
                         strat.active
@@ -411,6 +422,14 @@ export function FxProBoard({
 
       {/* Aba: IA Meta-Labeling (Gate 4) */}
       {aba === "aiStrategy" && <FxProAiStrategyView />}
+
+      {/* Modal de Configuração por Ativo */}
+      {editingStrategy !== null && (
+        <FxProStrategyModal
+          strategy={editingStrategy}
+          onFechar={() => setEditingStrategy(null)}
+        />
+      )}
     </div>
   );
 }

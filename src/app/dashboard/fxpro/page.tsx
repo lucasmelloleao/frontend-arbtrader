@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import { Activity, ShieldCheck } from "lucide-react";
 import { FxProBoard } from "@/features/fxpro/components/fxpro-board";
+import { FxProSettingsPanel } from "@/features/fxpro/components/fxpro-settings-panel";
 import {
   buscarEstrategiasFxPro,
+  buscarFxProSettings,
   buscarTradesFxPro,
 } from "@/features/fxpro/fxpro.actions";
 import { exchangeListSchema } from "@/features/exchanges/exchanges.schema";
@@ -11,12 +13,17 @@ import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
 
 async function FxProDashboardContent(): Promise<React.ReactNode> {
-  const [strategiesRes, tradesRes, exchangesRes] = await Promise.allSettled([
+  const [settingsRes, strategiesRes, tradesRes, exchangesRes] = await Promise.allSettled([
+    buscarFxProSettings(),
     buscarEstrategiasFxPro(),
     buscarTradesFxPro({ periodo: "today" }),
     apiClient(kyServer, API_ENDPOINTS.exchanges.listar, exchangeListSchema),
   ]);
 
+  const settings =
+    settingsRes.status === "fulfilled" && settingsRes.value.ok
+      ? settingsRes.value.settings
+      : null;
   const strategies =
     strategiesRes.status === "fulfilled" && strategiesRes.value.ok
       ? strategiesRes.value.strategies
@@ -25,13 +32,13 @@ async function FxProDashboardContent(): Promise<React.ReactNode> {
     tradesRes.status === "fulfilled" && tradesRes.value.ok ? tradesRes.value.trades : [];
   const exchangesData = exchangesRes.status === "fulfilled" ? exchangesRes.value : [];
   const fxProKeys = exchangesData
-    .filter((k: any) =>
+    .filter((k) =>
       ["fxpro", "fxpro-ctrader", "ctrader", "pepperstone"].includes(k.exchangeId),
     )
-    .map((k: any) => ({
-      id: k.id || k._id,
+    .map((k) => ({
+      id: k.id,
       exchangeId: k.exchangeId,
-      nome: k.name || k.exchangeId,
+      nome: k.nome,
     }));
 
   const totalLucro = strategies.reduce((acc, s) => acc + (s.totalProfitUsd || 0), 0);
@@ -40,6 +47,9 @@ async function FxProDashboardContent(): Promise<React.ReactNode> {
 
   return (
     <div className="space-y-6">
+      {/* Painel de Configurações Globais do Robô FxPro */}
+      <FxProSettingsPanel settings={settings} />
+
       {/* Header com Estatísticas */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-white/10 bg-slate-950/70 p-4">

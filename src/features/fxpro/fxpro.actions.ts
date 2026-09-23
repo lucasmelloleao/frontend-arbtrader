@@ -2,14 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import {
+  type FxProSettings,
   type FxProStrategy,
   type FxProTrade,
   type FxProMetaModelStatus,
-  fxProStrategyListSchema,
-  fxProTradeListSchema,
-  fxProMetaModelStatusSchema,
 } from "@/features/fxpro/fxpro.schema";
-import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
 
@@ -18,12 +15,37 @@ export type MutacaoResult = { ok: true } | { ok: false; erro: string };
 const ERRO_INESPERADO = "Não foi possível concluir a operação. Tente novamente.";
 
 /**
+ * Busca as configurações globais do robô FxPro.
+ */
+export async function buscarFxProSettings(): Promise<{ ok: true; settings: FxProSettings } | { ok: false; erro: string }> {
+  try {
+    const res = await kyServer.get(API_ENDPOINTS.fxpro.settings).json<{ ok: boolean; settings: FxProSettings }>();
+    return { ok: true, settings: res.settings };
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+}
+
+/**
+ * Salva as configurações globais do robô FxPro.
+ */
+export async function salvarFxProSettings(dados: Partial<FxProSettings>): Promise<MutacaoResult> {
+  try {
+    await kyServer.post(API_ENDPOINTS.fxpro.settings, { json: dados }).json();
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+  revalidatePath("/dashboard/fxpro");
+  return { ok: true };
+}
+
+/**
  * Busca a lista de estratégias da FxPro.
  */
 export async function buscarEstrategiasFxPro(): Promise<{ ok: true; strategies: FxProStrategy[] } | { ok: false; erro: string }> {
   try {
     const res = await kyServer.get(API_ENDPOINTS.fxpro.strategies).json<{ ok: boolean; strategies: FxProStrategy[] }>();
-    return { ok: true, strategies: res.strategies || [] };
+    return { ok: true, strategies: res.strategies };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
@@ -81,7 +103,7 @@ export async function buscarTradesFxPro(opts: {
     if (opts.symbol) searchParams.symbol = opts.symbol;
 
     const res = await kyServer.get(API_ENDPOINTS.fxpro.trades, { searchParams }).json<{ ok: boolean; trades: FxProTrade[] }>();
-    return { ok: true, trades: res.trades || [] };
+    return { ok: true, trades: res.trades };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
