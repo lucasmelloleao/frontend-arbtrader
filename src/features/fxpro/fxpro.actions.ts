@@ -73,6 +73,22 @@ export async function criarEstrategiaFxPro(dados: Partial<FxProStrategy>): Promi
 }
 
 /**
+ * Atualiza uma estratégia FxPro existente.
+ */
+export async function atualizarEstrategiaFxPro(
+  id: string,
+  dados: Partial<FxProStrategy>,
+): Promise<MutacaoResult> {
+  try {
+    await kyServer.put(`${API_ENDPOINTS.fxpro.strategies}/${id}`, { json: dados }).json();
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+  revalidatePath("/dashboard/fxpro");
+  return { ok: true };
+}
+
+/**
  * Deleta uma estratégia FxPro.
  */
 export async function deletarEstrategiaFxPro(id: string): Promise<MutacaoResult> {

@@ -70,24 +70,34 @@ export function FxProBoard({
     }
   };
 
-  const abertas = strategies.filter((s) => s.currentPositionId);
-  const monitorando = strategies.filter((s) => !s.currentPositionId);
+  const [strategyList, setStrategyList] = useState<readonly FxProStrategy[]>(strategies);
+  const [previousStrategies, setPreviousStrategies] = useState(strategies);
+  if (strategies !== previousStrategies) {
+    setPreviousStrategies(strategies);
+    setStrategyList(strategies);
+  }
+
+  const abertas = strategyList.filter((s) => s.currentPositionId);
+  const monitorando = strategyList.filter((s) => !s.currentPositionId);
   const encerradas = tradesList.filter((t) => t.status === "closed");
 
-  const executar = (acao: () => Promise<{ ok: boolean }>): void => {
+  const confirmarToggle = (strat: FxProStrategy): void => {
+    setStrategyList((prev) =>
+      prev.map((s) => (s.id === strat.id ? { ...s, active: !s.active } : s)),
+    );
     startTransition(async () => {
-      await acao();
+      await alternarEstrategiaFxPro(strat.id);
       router.refresh();
     });
   };
 
-  const confirmarToggle = (strat: FxProStrategy): void => {
-    executar(() => alternarEstrategiaFxPro(strat.id));
-  };
-
   const confirmarExcluir = (strat: FxProStrategy): void => {
-    if (!confirm(`Excluir a estratégia "${strat.name}"?`)) return;
-    executar(() => deletarEstrategiaFxPro(strat.id));
+    if (!confirm(`Excluir permanentemente a estratégia "${strat.name}"?`)) return;
+    setStrategyList((prev) => prev.filter((s) => s.id !== strat.id));
+    startTransition(async () => {
+      await deletarEstrategiaFxPro(strat.id);
+      router.refresh();
+    });
   };
 
   return (

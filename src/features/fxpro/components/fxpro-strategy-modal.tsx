@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { X, Save } from "lucide-react";
-import { criarEstrategiaFxPro } from "@/features/fxpro/fxpro.actions";
+import { atualizarEstrategiaFxPro } from "@/features/fxpro/fxpro.actions";
 import type { FxProStrategy } from "@/features/fxpro/fxpro.schema";
 
 type FxProStrategyModalProps = {
@@ -33,8 +33,7 @@ export function FxProStrategyModal({
     setErro(null);
 
     startTransition(async () => {
-      const res = await criarEstrategiaFxPro({
-        id: strategy.id,
+      const res = await atualizarEstrategiaFxPro(strategy.id, {
         name: nome,
         symbol: strategy.symbol,
         timeframe,
