@@ -16,7 +16,7 @@ export function LandingHeader(): React.ReactNode {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2">
           <Zap className="h-7 w-7 text-indigo-500" aria-hidden="true" />
-          <span className="text-xl font-bold tracking-tight text-white">ArbTrade</span>
+          <span className="text-xl font-bold tracking-tight text-white">Arbtrader</span>
         </div>
         <div className="flex items-center gap-3">
           <HelpButton />

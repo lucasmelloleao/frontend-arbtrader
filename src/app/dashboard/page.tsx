@@ -76,7 +76,7 @@ async function PortfolioCarregado(): Promise<React.ReactNode> {
 
       {/* Rodapé */}
       <footer className="border-t border-slate-800 pt-6 text-center text-sm text-slate-500">
-        <p>© {ANO_COPYRIGHT} ArbTrade. Todos os direitos reservados.</p>
+        <p>© {ANO_COPYRIGHT} Arbtrader. Todos os direitos reservados.</p>
       </footer>
     </div>
   );

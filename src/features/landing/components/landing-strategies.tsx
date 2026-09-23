@@ -1,83 +1,87 @@
-import { Activity, BrainCircuit, TrendingUp, Zap } from "lucide-react";
+import { BrainCircuit, Compass, Gauge, ShieldCheck } from "lucide-react";
 
 import { StrategyCard } from "@/features/landing/components/strategy-card";
 
 /**
- * Cards de estratégia, na ordem do original: funding rates, flashloans EVM,
- * flash arbitragem Solana e scalping CEX.
+ * Recursos e pilares de assertividade do Robô Deriv.
  */
-const STRATEGIES = [
+const DERIV_FEATURES = [
   {
-    title: "Arbitragem de Funding Rates",
+    title: "Roteamento Inteligente de Ativos",
     description:
-      "Varre infinitas corretoras centralizadas (MEXC, OKX, Binance) em busca de discrepâncias nas taxas de financiamento. Executa hedge automatizado (Long/Short) garantindo ganhos constantes com risco direcional zero (Delta Neutro).",
-    stats: ["Hedge Neutro Automático", "Scan CEX Multilateral", "Retorno Diário Recorrente"],
-    icon: Activity,
-    iconClass: "text-indigo-400",
-    hoverBorder: "hover:border-indigo-500/50",
-  },
-  {
-    title: "Liquidação EVM via Flashloans",
-    description:
-      "Monitora e liquida devedores subcolateralizados nas redes Arbitrum e Polygon (Aave/Compound). Utilizando Flash Loans sem necessidade de capital de risco próprio: paga a dívida, captura o prêmio e converte o colateral na DEX de forma atômica.",
-    stats: [
-      "Sem Capital Próprio de Entrada",
-      "Transações Atômicas e Seguras",
-      "Proteção Nativa Anti-MEV",
-    ],
-    icon: Zap,
-    iconClass: "text-purple-400",
-    hoverBorder: "hover:border-purple-500/50",
-  },
-  {
-    title: "Arbitragem Flash Solana & Raydium",
-    description:
-      "Motor ultra veloz integrado ao ecossistema Solana. Monitora pools da Raydium, Meteora e Orca, executando rotas de arbitragem instantâneas para capitalizar variações de preço causadas por grandes fluxos de compra/venda.",
-    stats: ["Velocidade Sub-segundo", "Liquidez Multichain", "Integração Jito MEV Bundle"],
-    icon: BrainCircuit,
+      "O robô monitora continuamente múltiplos índices sintéticos da Deriv (10, 25, 50, 75 e 100) e migra as operações automaticamente para o mercado com a movimentação mais limpa e direcional do momento, fugindo de gráficos travados ou erráticos.",
+    stats: ["Varredura Multiativo 24/7", "Foco no Ativo Mais Limpo", "Detecção de Tendência Pura"],
+    icon: Compass,
     iconClass: "text-cyan-400",
     hoverBorder: "hover:border-cyan-500/50",
   },
   {
-    title: "CEX Scalping & OKX Engine",
+    title: "IA Guardiã com Meta-Labeling",
     description:
-      "Aproveita a volatilidade extrema de criptoativos de alto beta usando scalping quantitativo de alta frequência. Opera em milissegundos com ordens parciais, take profits curtos e gestão adaptativa de risco.",
-    stats: ["HFT de Volatilidade", "Margem Dinâmica em USDT", "Slippage Protegido"],
-    icon: TrendingUp,
+      "Uma camada avançada de Inteligência Artificial audita cada oportunidade gerada. Ela reconhece padrões ocultos e armadilhas de reversão da corretora, vetando qualquer ordem duvidosa e autorizando apenas entradas de altíssima probabilidade de vitória.",
+    stats: [
+      "Filtro Preditivo Anti-Armadilha",
+      "Decisão Baseada em Padrões",
+      "Auditoria Instantânea de Sinal",
+    ],
+    icon: BrainCircuit,
+    iconClass: "text-purple-400",
+    hoverBorder: "hover:border-purple-500/50",
+  },
+  {
+    title: "Barreira Milimétrica Autoajustável",
+    description:
+      "Nada de distâncias fixas ou chutes. A barreira de preço é calculada dinamicamente com base na volatilidade real de cada segundo. Isso garante que o alvo esteja sempre em uma zona estatisticamente favorável para fechar no lucro.",
+    stats: [
+      "Ajuste por Volatilidade Real",
+      "Margem de Segurança Ampliada",
+      "Vantagem Matemática em Cada Ponto",
+    ],
+    icon: Gauge,
     iconClass: "text-emerald-400",
     hoverBorder: "hover:border-emerald-500/50",
+  },
+  {
+    title: "Blindagem de Banca e Pausa Preventiva",
+    description:
+      "Proteção inteligente de capital: o robô detecta quando o mercado entra em ruído caótico ou perde o ritmo e ativa quarentenas preventivas automáticas, preservando seus ganhos e seu saldo até o retorno da estabilidade.",
+    stats: ["Preservação de Lucros", "Proteção Contra Dias Ruins", "Gestão Sem Martingale Cego"],
+    icon: ShieldCheck,
+    iconClass: "text-teal-400",
+    hoverBorder: "hover:border-teal-500/50",
   },
 ] as const;
 
 /**
- * Seção "Nossa Suíte de Estratégias de Elite": grade de cards das quatro
- * estratégias. Os ícones são passados como componente (server component não
- * serializa, mas aqui a página é toda estática de marketing — sem dado).
+ * Seção de Recursos de Alta Assertividade do Robô Deriv.
  */
 export function LandingStrategies(): React.ReactNode {
   return (
-    <section id="strategies" className="bg-slate-950 py-24">
+    <section id="recursos-deriv" className="bg-slate-950 py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-20 text-center">
-          <h2 className="mb-4 text-3xl font-extrabold text-white md:text-4xl">
-            Nossa Suíte de Estratégias de Elite
+          <div className="mb-3 inline-block rounded-full bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-cyan-400 border border-cyan-500/20">
+            Tecnologia de Alta Performance
+          </div>
+          <h2 className="mb-4 text-3xl font-extrabold text-white md:text-5xl">
+            Por que o Robô Deriv é tão Assertivo?
           </h2>
-          <p className="mx-auto max-w-2xl text-slate-400">
-            Motores algorítmicos independentes criados para extrair o máximo valor em diferentes
-            ecossistemas da Web3 e Finanças Centralizadas.
+          <p className="mx-auto max-w-2xl text-slate-400 text-lg">
+            Esqueça estratégias manuais e emocionais. Entenda como nossa engenharia quantitativa
+            combina filtros inteligentes para operar com consistência comprovada.
           </p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-2">
-          {STRATEGIES.map((strategy) => (
+          {DERIV_FEATURES.map((feat) => (
             <StrategyCard
-              key={strategy.title}
-              title={strategy.title}
-              description={strategy.description}
-              stats={strategy.stats}
-              icon={strategy.icon}
-              iconClass={strategy.iconClass}
-              hoverBorder={strategy.hoverBorder}
+              key={feat.title}
+              title={feat.title}
+              description={feat.description}
+              stats={feat.stats}
+              icon={feat.icon}
+              iconClass={feat.iconClass}
+              hoverBorder={feat.hoverBorder}
             />
           ))}
         </div>

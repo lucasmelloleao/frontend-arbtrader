@@ -1,27 +1,29 @@
 import Link from "next/link";
-
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Bot } from "lucide-react";
 
 /**
- * CTA final: converte o visitante para o login (painel de controle).
+ * CTA final: chamada direta e convincente para ativar o Robô Deriv.
  */
 export function LandingCta(): React.ReactNode {
   return (
     <section className="relative overflow-hidden py-24 text-center">
-      <div className="absolute inset-0 -z-10 bg-indigo-900/10" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-cyan-950/20 to-transparent" />
       <div className="mx-auto max-w-4xl px-4">
-        <h2 className="mb-6 text-4xl font-extrabold text-white">
-          Pronto para colocar as estratégias para trabalhar por você?
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-500 to-teal-400 text-slate-950 shadow-lg shadow-cyan-500/20">
+          <Bot className="h-8 w-8" />
+        </div>
+        <h2 className="mb-6 text-3xl sm:text-5xl font-extrabold text-white">
+          Pronto para operar com a máxima inteligência na Deriv?
         </h2>
-        <p className="mb-10 text-xl text-slate-400">
-          Conecte suas chaves de API, configure seus limites e assista aos robôs quantitativos
-          operando de forma delta-neutra.
+        <p className="mb-10 text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
+          Conecte seu token de API em menos de 1 minuto, ative os 4 filtros de proteção e deixe o
+          robô quantitativo buscar as melhores oportunidades para você.
         </p>
         <Link
           href="/login"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-500 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-indigo-500/30 transition-all hover:bg-indigo-600"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 px-8 py-4 text-lg font-bold text-slate-950 shadow-xl shadow-cyan-500/30 transition-all hover:scale-[1.02] hover:shadow-cyan-500/50"
         >
-          Iniciar Painel de Controle <ArrowRight className="h-5 w-5" aria-hidden="true" />
+          Acessar Robô Deriv Agora <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </Link>
       </div>
     </section>

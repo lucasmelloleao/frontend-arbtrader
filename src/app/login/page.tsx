@@ -21,7 +21,7 @@ export default function LoginPage(): React.ReactNode {
         <div className="mb-8 text-center">
           <div className="mb-3 flex items-center justify-center gap-2">
             <Zap className="h-7 w-7 text-indigo-500" aria-hidden="true" />
-            <h1 className="text-3xl font-bold text-white">ArbTrade</h1>
+            <h1 className="text-3xl font-bold text-white">Arbtrader</h1>
           </div>
           <p className="text-slate-400">Bem-vindo de volta ao seu painel</p>
         </div>

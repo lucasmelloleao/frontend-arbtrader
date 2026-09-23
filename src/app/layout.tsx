@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ArbTrade — Negociação Quantitativa de Alta Performance",
+  title: "Arbtrader — Negociação Quantitativa de Alta Performance",
   description:
     "Plataforma de negociação quantitativa com motores algorítmicos de arbitragem de funding rates, flashloans e scalping. Você foca na estratégia, nossos algoritmos fazem o resto.",
 };

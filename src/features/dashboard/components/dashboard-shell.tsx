@@ -135,7 +135,7 @@ export function DashboardShell({
             className={`flex items-center gap-2 text-xl font-bold text-white ${isCollapsed ? "justify-center" : ""}`}
           >
             <Zap className="h-6 w-6 shrink-0 text-indigo-500" aria-hidden="true" />
-            {!isCollapsed ? <span>ArbTrade</span> : null}
+            {!isCollapsed ? <span>Arbtrader</span> : null}
           </h1>
           {!isCollapsed ? (
             <button

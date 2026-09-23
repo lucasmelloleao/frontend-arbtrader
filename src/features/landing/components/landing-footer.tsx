@@ -12,9 +12,9 @@ export function LandingFooter(): React.ReactNode {
       <div className="mx-auto max-w-7xl px-4 text-center text-slate-500 sm:px-6 lg:px-8">
         <div className="mb-4 flex items-center justify-center gap-2">
           <Zap className="h-5 w-5 text-indigo-500/50" aria-hidden="true" />
-          <span className="text-lg font-bold tracking-tight text-slate-400">ArbTrade</span>
+          <span className="text-lg font-bold tracking-tight text-slate-400">Arbtrader</span>
         </div>
-        <p>© {ANO_COPYRIGHT} ArbTrade. Todos os direitos reservados.</p>
+        <p>© {ANO_COPYRIGHT} Arbtrader. Todos os direitos reservados.</p>
       </div>
     </footer>
   );
