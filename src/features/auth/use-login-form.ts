@@ -2,7 +2,6 @@
 
 import { valibotResolver } from "@hookform/resolvers/valibot";
 import type { Route } from "next";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
@@ -46,7 +45,6 @@ const ERRO_2FA_REQUIRED = "2fa_required";
  * 2FA e o callback de voltar ao login.
  */
 export function useLoginForm(destino: Route): UseLoginForm {
-  const router = useRouter();
   const [erroServidor, setErroServidor] = useState<string | null>(null);
   const [requer2fa, setRequer2fa] = useState(false);
 
@@ -77,8 +75,7 @@ export function useLoginForm(destino: Route): UseLoginForm {
       setErroServidor(mensagem);
       return;
     }
-    router.replace(destino);
-    router.refresh();
+    window.location.assign(destino);
   });
 
   const voltarAoLogin = (): void => {

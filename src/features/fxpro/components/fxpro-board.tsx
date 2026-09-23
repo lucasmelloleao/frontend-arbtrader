@@ -12,6 +12,10 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Settings,
+  XCircle,
+  BarChart3,
+  Clock,
+  Search,
 } from "lucide-react";
 import { FxProAiStrategyView } from "@/features/fxpro/components/fxpro-ai-strategy-view";
 import { FxProStrategyForm } from "@/features/fxpro/components/fxpro-strategy-form";
@@ -20,6 +24,8 @@ import {
   alternarEstrategiaFxPro,
   buscarTradesFxPro,
   deletarEstrategiaFxPro,
+  fecharPosicaoFxPro,
+  type FxProPeriod,
 } from "@/features/fxpro/fxpro.actions";
 import type { FxProStrategy, FxProTrade } from "@/features/fxpro/fxpro.schema";
 
@@ -40,12 +46,31 @@ export function FxProBoard({
 }: FxProBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [aba, setAba] = useState<"open" | "monitored" | "closed" | "aiStrategy">("open");
+  const [aba, setAba] = useState<"open" | "monitored" | "closed" | "performance" | "aiStrategy">(
+    "open",
+  );
   const [criando, setCriando] = useState(false);
   const [editingStrategy, setEditingStrategy] = useState<FxProStrategy | null>(null);
-  const [periodo, setPeriodo] = useState<"today" | "7d" | "30d" | "all">("today");
+  const [periodo, setPeriodo] = useState<FxProPeriod>("today");
   const [tradesList, setTradesList] = useState<readonly FxProTrade[]>(initialTrades);
   const [carregandoTrades, setCarregandoTrades] = useState(false);
+
+  // Performance por Ativo (Consulta sob demanda)
+  const [perfPeriod, setPerfPeriod] = useState<FxProPeriod>("1h");
+  const [perfTrades, setPerfTrades] = useState<readonly FxProTrade[]>([]);
+  const [loadingPerf, setLoadingPerf] = useState(false);
+  const [perfConsulted, setPerfConsulted] = useState(false);
+
+  const consultarPerformance = async (p: FxProPeriod = perfPeriod): Promise<void> => {
+    setPerfPeriod(p);
+    setLoadingPerf(true);
+    const res = await buscarTradesFxPro({ periodo: p });
+    if (res.ok) {
+      setPerfTrades(res.trades);
+      setPerfConsulted(true);
+    }
+    setLoadingPerf(false);
+  };
 
   const [previousInitialTrades, setPreviousInitialTrades] = useState(initialTrades);
   if (initialTrades !== previousInitialTrades) {
@@ -60,7 +85,7 @@ export function FxProBoard({
     return () => clearInterval(interval);
   }, [router]);
 
-  const carregarPeriodo = async (p: "today" | "7d" | "30d" | "all"): Promise<void> => {
+  const carregarPeriodo = async (p: FxProPeriod): Promise<void> => {
     setPeriodo(p);
     setCarregandoTrades(true);
     const res = await buscarTradesFxPro({ periodo: p });
@@ -111,6 +136,14 @@ export function FxProBoard({
     });
   };
 
+  const confirmarFecharPosicao = (positionId: string, symbol: string): void => {
+    if (!confirm(`Encerrar a mercado a posição #${positionId} (${symbol}) na cTrader?`)) return;
+    startTransition(async () => {
+      await fecharPosicaoFxPro(positionId, symbol);
+      router.refresh();
+    });
+  };
+
   const confirmarExcluir = (strat: FxProStrategy): void => {
     const stratId = strat.id || strat._id || "";
     if (!confirm(`Excluir permanentemente a estratégia "${strat.name}"?`)) return;
@@ -145,6 +178,7 @@ export function FxProBoard({
             { key: "open", label: "Posições Abertas", count: posicoesAbertas.length },
             { key: "monitored", label: "Pares Monitorados", count: strategyList.length },
             { key: "closed", label: "Histórico de Trades", count: encerradas.length },
+            { key: "performance", label: "Lucro/Prejuízo por Ativo", count: null, icon: BarChart3 },
             { key: "aiStrategy", label: "IA Meta-Labeling (Gate 4)", count: null, icon: Brain },
           ] as const
         ).map((tab) => {
@@ -153,7 +187,12 @@ export function FxProBoard({
             <button
               key={tab.key}
               type="button"
-              onClick={() => setAba(tab.key)}
+              onClick={() => {
+                setAba(tab.key);
+                if (tab.key === "performance" && !perfConsulted) {
+                  void consultarPerformance(perfPeriod);
+                }
+              }}
               className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-colors ${
                 aba === tab.key
                   ? "bg-indigo-600 text-white"
@@ -212,20 +251,24 @@ export function FxProBoard({
                       </div>
                     </div>
                     <div className="text-right">
-                      <div
-                        className={`font-mono text-base font-black ${
-                          trade.pnlUsd > 0
-                            ? "text-emerald-400"
-                            : trade.pnlUsd < 0
-                              ? "text-rose-400"
-                              : "text-slate-300"
-                        }`}
-                      >
-                        {fmtUsd(trade.pnlUsd)}
-                      </div>
-                      <div className="text-[11px] text-slate-500">
-                        Posição #{trade.positionId}
-                      </div>
+                      {(() => {
+                        const currentPnl =
+                          strat && strat.currentPnlUsd !== 0 ? strat.currentPnlUsd : trade.pnlUsd;
+                        return (
+                          <div
+                            className={`font-mono text-base font-black ${
+                              currentPnl > 0
+                                ? "text-emerald-400"
+                                : currentPnl < 0
+                                  ? "text-rose-400"
+                                  : "text-slate-300"
+                            }`}
+                          >
+                            {fmtUsd(currentPnl)}
+                          </div>
+                        );
+                      })()}
+                      <div className="text-[11px] text-slate-500">Posição #{trade.positionId}</div>
                     </div>
                   </div>
 
@@ -250,7 +293,9 @@ export function FxProBoard({
                       </div>
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">TP / SL</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        TP / SL
+                      </span>
                       <div className="font-mono text-[11px] text-slate-300">
                         {strat ? `+${strat.takeProfitPips}p / -${strat.stopLossPips}p` : "—"}
                       </div>
@@ -262,28 +307,16 @@ export function FxProBoard({
                       Aberta em:{" "}
                       {trade.openedAt ? new Date(trade.openedAt).toLocaleTimeString() : "Agora"}
                     </span>
-                    {strat && (
-                      <button
-                        type="button"
-                        disabled={isPending}
-                        onClick={() => confirmarToggle(strat)}
-                        className={`inline-flex items-center gap-1 rounded-lg px-3 py-1 text-xs font-bold text-white ${
-                          strat.active
-                            ? "bg-amber-600 hover:bg-amber-500"
-                            : "bg-emerald-600 hover:bg-emerald-500"
-                        }`}
-                      >
-                        {strat.active ? (
-                          <>
-                            <Pause className="h-3 w-3" /> Pausar Robô
-                          </>
-                        ) : (
-                          <>
-                            <Play className="h-3 w-3" /> Ativar Robô
-                          </>
-                        )}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={() =>
+                        confirmarFecharPosicao(trade.positionId || trade.id, trade.symbol)
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600/90 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-rose-500 disabled:opacity-50"
+                    >
+                      <XCircle className="h-3.5 w-3.5" /> Encerrar Posição
+                    </button>
                   </div>
                 </div>
               );
@@ -504,6 +537,268 @@ export function FxProBoard({
                 ))
               )}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Aba: Lucro/Prejuízo por Ativo */}
+      {aba === "performance" && (
+        <div className="space-y-4">
+          {/* Barra de Seleção de Intervalo e Botão de Consulta Sob Demanda */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-slate-950/70 p-4 shadow-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+                <Clock className="h-4 w-4 text-cyan-400" />
+                Intervalo:
+              </span>
+              {(
+                [
+                  { id: "5m", label: "5 Min" },
+                  { id: "10m", label: "10 Min" },
+                  { id: "30m", label: "30 Min" },
+                  { id: "1h", label: "1 Hora" },
+                  { id: "2h", label: "2 Horas" },
+                  { id: "3h", label: "3 Horas" },
+                  { id: "5h", label: "5 Horas" },
+                  { id: "12h", label: "12 Horas" },
+                  { id: "24h", label: "24 Horas" },
+                  { id: "today", label: "Hoje" },
+                  { id: "7d", label: "7 Dias" },
+                  { id: "30d", label: "30 Dias" },
+                  { id: "all", label: "Tudo" },
+                ] as const
+              ).map((p) => {
+                const isSelected = perfPeriod === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setPerfPeriod(p.id);
+                      void consultarPerformance(p.id);
+                    }}
+                    disabled={loadingPerf}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                      isSelected
+                        ? "bg-cyan-600 text-white shadow-md shadow-cyan-500/20"
+                        : "bg-slate-900 text-slate-400 hover:bg-slate-850 hover:text-white"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => consultarPerformance(perfPeriod)}
+              disabled={loadingPerf}
+              className="flex items-center gap-1.5 rounded-lg bg-cyan-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-cyan-600/30 transition-all hover:bg-cyan-500 disabled:opacity-50"
+            >
+              <Search className={`h-3.5 w-3.5 ${loadingPerf ? "animate-spin" : ""}`} />
+              {loadingPerf ? "Consultando..." : "Consultar Agora"}
+            </button>
+          </div>
+
+          {/* Conteúdo Agregado por Ativo */}
+          {loadingPerf ? (
+            <div className="rounded-xl border border-white/10 bg-slate-950/70 p-12 text-center text-sm font-semibold text-cyan-400">
+              Carregando dados consolidados de desempenho...
+            </div>
+          ) : !perfConsulted ? (
+            <div className="rounded-xl border border-dashed border-white/10 bg-slate-950/70 p-12 text-center">
+              <BarChart3 className="mx-auto h-8 w-8 text-cyan-400 opacity-60" />
+              <h3 className="mt-3 text-base font-bold text-white">Consulta sob Demanda</h3>
+              <p className="mt-1 text-xs text-slate-400">
+                Selecione o intervalo de tempo acima e clique em Consultar para analisar os lucros e
+                prejuízos por ativo Forex/CFD.
+              </p>
+              <button
+                onClick={() => consultarPerformance(perfPeriod)}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-4 py-2 text-xs font-bold text-white hover:bg-cyan-500"
+              >
+                <Search className="h-4 w-4" />
+                Consultar Período ({perfPeriod})
+              </button>
+            </div>
+          ) : (
+            (() => {
+              const closedPerfTrades = perfTrades.filter(
+                (t) => t.status !== "open" && t.status !== "pending",
+              );
+
+              if (closedPerfTrades.length === 0) {
+                return (
+                  <div className="rounded-xl border border-white/10 bg-slate-950/70 p-12 text-center text-sm text-slate-400">
+                    Nenhuma operação encerrada encontrada no período selecionado ({perfPeriod}).
+                  </div>
+                );
+              }
+
+              const symbolMap = new Map<
+                string,
+                {
+                  symbol: string;
+                  totalTrades: number;
+                  wins: number;
+                  losses: number;
+                  lotSize: number;
+                  pnl: number;
+                }
+              >();
+
+              closedPerfTrades.forEach((t) => {
+                const sym = t.symbol || "OUTROS";
+                const pnl = t.pnlUsd || 0;
+                const isWin = pnl > 0 || (t.closeReason && t.closeReason.includes("tp"));
+                const isLoss = pnl < 0 || (t.closeReason && t.closeReason.includes("sl"));
+
+                const entry = symbolMap.get(sym);
+                if (entry) {
+                  entry.totalTrades += 1;
+                  if (isWin) entry.wins += 1;
+                  else if (isLoss) entry.losses += 1;
+                  entry.lotSize += t.lotSize || 0.01;
+                  entry.pnl += pnl;
+                } else {
+                  symbolMap.set(sym, {
+                    symbol: sym,
+                    totalTrades: 1,
+                    wins: isWin ? 1 : 0,
+                    losses: isLoss ? 1 : 0,
+                    lotSize: t.lotSize || 0.01,
+                    pnl,
+                  });
+                }
+              });
+
+              const groupedList = Array.from(symbolMap.values()).toSorted((a, b) => b.pnl - a.pnl);
+              const totalPeriodPnl = groupedList.reduce((acc, i) => acc + i.pnl, 0);
+              const totalPeriodTrades = groupedList.reduce((acc, i) => acc + i.totalTrades, 0);
+              const totalPeriodWins = groupedList.reduce((acc, i) => acc + i.wins, 0);
+              const totalPeriodLosses = groupedList.reduce((acc, i) => acc + i.losses, 0);
+              const totalPeriodWinRate =
+                totalPeriodTrades > 0 ? (totalPeriodWins / totalPeriodTrades) * 100 : 0;
+
+              return (
+                <div className="space-y-4">
+                  {/* Resumo do Período */}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 shadow-sm">
+                      <span className="text-[10px] font-semibold uppercase text-slate-400">
+                        P/L do Período
+                      </span>
+                      <div
+                        className={`mt-1 font-mono text-xl font-black ${
+                          totalPeriodPnl >= 0 ? "text-emerald-400" : "text-rose-400"
+                        }`}
+                      >
+                        {fmtUsd(totalPeriodPnl)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 shadow-sm">
+                      <span className="text-[10px] font-semibold uppercase text-slate-400">
+                        Total de Trades
+                      </span>
+                      <div className="mt-1 font-mono text-xl font-black text-white">
+                        {totalPeriodTrades}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 shadow-sm">
+                      <span className="text-[10px] font-semibold uppercase text-slate-400">
+                        Ganhos / Perdas
+                      </span>
+                      <div className="mt-1 flex items-baseline gap-2 font-mono text-base font-bold">
+                        <span className="text-emerald-400">{totalPeriodWins}W</span>
+                        <span className="text-slate-500">/</span>
+                        <span className="text-rose-400">{totalPeriodLosses}L</span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 shadow-sm">
+                      <span className="text-[10px] font-semibold uppercase text-slate-400">
+                        Taxa de Acerto
+                      </span>
+                      <div className="mt-1 font-mono text-xl font-black text-cyan-400">
+                        {totalPeriodWinRate.toFixed(1)}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tabela por Ativo */}
+                  <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/70">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="border-b border-white/10 bg-slate-900/50 text-xs font-semibold uppercase text-slate-400">
+                          <tr>
+                            <th className="p-3">Ativo (Symbol)</th>
+                            <th className="p-3 text-center">Trades</th>
+                            <th className="p-3 text-center">Ganhos (Wins)</th>
+                            <th className="p-3 text-center">Perdas (Losses)</th>
+                            <th className="p-3 text-center">Taxa de Acerto</th>
+                            <th className="p-3 text-right">Lotes Negociados</th>
+                            <th className="p-3 text-right">P/L Líquido</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {groupedList.map((item) => {
+                            const winRateItem =
+                              item.totalTrades > 0 ? (item.wins / item.totalTrades) * 100 : 0;
+                            const isPositive = item.pnl >= 0;
+
+                            return (
+                              <tr
+                                key={item.symbol}
+                                className={`transition-colors hover:bg-slate-800/30 ${
+                                  isPositive ? "bg-emerald-500/5" : "bg-rose-500/5"
+                                }`}
+                              >
+                                <td className="p-3 font-mono text-xs font-bold text-cyan-400">
+                                  {item.symbol}
+                                </td>
+                                <td className="p-3 text-center font-bold text-white">
+                                  {item.totalTrades}
+                                </td>
+                                <td className="p-3 text-center font-semibold text-emerald-400">
+                                  {item.wins}
+                                </td>
+                                <td className="p-3 text-center font-semibold text-rose-400">
+                                  {item.losses}
+                                </td>
+                                <td className="p-3 text-center">
+                                  <span
+                                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-bold ${
+                                      winRateItem >= 70
+                                        ? "bg-emerald-500/20 text-emerald-400"
+                                        : winRateItem >= 50
+                                          ? "bg-amber-500/20 text-amber-400"
+                                          : "bg-rose-500/20 text-rose-400"
+                                    }`}
+                                  >
+                                    {winRateItem.toFixed(1)}%
+                                  </span>
+                                </td>
+                                <td className="p-3 text-right font-mono text-slate-300">
+                                  {item.lotSize.toFixed(2)} lotes
+                                </td>
+                                <td
+                                  className={`p-3 text-right font-mono font-black ${
+                                    isPositive ? "text-emerald-400" : "text-rose-400"
+                                  }`}
+                                >
+                                  {fmtUsd(item.pnl)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()
           )}
         </div>
       )}

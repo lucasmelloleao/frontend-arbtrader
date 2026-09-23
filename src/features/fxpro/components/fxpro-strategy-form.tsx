@@ -37,9 +37,9 @@ export function FxProStrategyForm({
   const [timeframe, setTimeframe] = useState("5m");
   const [lotSize, setLotSize] = useState(0.01);
   const leverage = 1000;
-  const [takeProfitPips, setTakeProfitPips] = useState(20);
-  const [stopLossPips, setStopLossPips] = useState(15);
-  const [trailingStopPips, setTrailingStopPips] = useState(10);
+  const [takeProfitPips, setTakeProfitPips] = useState(8);
+  const [stopLossPips, setStopLossPips] = useState(6);
+  const [trailingStopPips, setTrailingStopPips] = useState(4);
   const [minVarianceRatio, setMinVarianceRatio] = useState(1.08);
   const minEfficiencyRatio = 0.35;
   const [maxSpreadPips, setMaxSpreadPips] = useState(2.5);

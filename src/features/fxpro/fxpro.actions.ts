@@ -114,12 +114,27 @@ export async function alternarEstrategiaFxPro(id: string): Promise<MutacaoResult
   return { ok: true };
 }
 
+export type FxProPeriod =
+  | "5m"
+  | "10m"
+  | "30m"
+  | "1h"
+  | "2h"
+  | "3h"
+  | "5h"
+  | "12h"
+  | "24h"
+  | "today"
+  | "7d"
+  | "30d"
+  | "all";
+
 /**
  * Busca trades FxPro por período.
  */
 export async function buscarTradesFxPro(
   opts: {
-    periodo?: "today" | "7d" | "30d" | "all";
+    periodo?: FxProPeriod;
     symbol?: string;
   } = {},
 ): Promise<{ ok: true; trades: FxProTrade[] } | { ok: false; erro: string }> {
@@ -196,4 +211,49 @@ export async function buscarLogsFxPro(
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
+}
+
+export type FxProBalanceInfo = {
+  balance: number;
+  equity: number;
+  leverage: number;
+  currency: string;
+  accountType: string;
+  accountId?: string;
+};
+
+/**
+ * Busca o saldo e métricas da conta cTrader FxPro.
+ */
+export async function buscarSaldoFxPro(): Promise<
+  { ok: true; data: FxProBalanceInfo } | { ok: false; erro: string }
+> {
+  try {
+    const res = await kyServer
+      .get(API_ENDPOINTS.fxpro.balance)
+      .json<{ ok: boolean; data: FxProBalanceInfo }>();
+    return { ok: true, data: res.data };
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+}
+
+/**
+ * Encerra uma posição a mercado na cTrader.
+ */
+export async function fecharPosicaoFxPro(
+  positionId: string,
+  symbol?: string,
+): Promise<MutacaoResult> {
+  try {
+    await kyServer
+      .post(API_ENDPOINTS.fxpro.close, {
+        json: { positionId, symbol },
+      })
+      .json();
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+  revalidatePath("/dashboard/fxpro");
+  return { ok: true };
 }

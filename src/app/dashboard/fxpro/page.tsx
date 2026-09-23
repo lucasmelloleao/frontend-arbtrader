@@ -6,6 +6,7 @@ import { FxProTerminalLogs } from "@/features/fxpro/components/fxpro-terminal-lo
 import {
   buscarEstrategiasFxPro,
   buscarFxProSettings,
+  buscarSaldoFxPro,
   buscarTradesFxPro,
 } from "@/features/fxpro/fxpro.actions";
 import { exchangeListSchema } from "@/features/exchanges/exchanges.schema";
@@ -14,12 +15,14 @@ import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
 
 async function FxProDashboardContent(): Promise<React.ReactNode> {
-  const [settingsRes, strategiesRes, tradesRes, exchangesRes] = await Promise.allSettled([
-    buscarFxProSettings(),
-    buscarEstrategiasFxPro(),
-    buscarTradesFxPro({ periodo: "today" }),
-    apiClient(kyServer, API_ENDPOINTS.exchanges.listar, exchangeListSchema),
-  ]);
+  const [settingsRes, strategiesRes, tradesRes, exchangesRes, balanceRes] =
+    await Promise.allSettled([
+      buscarFxProSettings(),
+      buscarEstrategiasFxPro(),
+      buscarTradesFxPro({ periodo: "today" }),
+      apiClient(kyServer, API_ENDPOINTS.exchanges.listar, exchangeListSchema),
+      buscarSaldoFxPro(),
+    ]);
 
   const settings =
     settingsRes.status === "fulfilled" && settingsRes.value.ok ? settingsRes.value.settings : null;
@@ -33,10 +36,12 @@ async function FxProDashboardContent(): Promise<React.ReactNode> {
   const fxProKeys = exchangesData.filter((k) =>
     ["fxpro", "fxpro-ctrader", "ctrader", "pepperstone"].includes(k.exchangeId),
   );
+  const accountBalance =
+    balanceRes.status === "fulfilled" && balanceRes.value.ok ? balanceRes.value.data : null;
 
   const totalLucro = strategies.reduce((acc, s) => acc + (s.totalProfitUsd || 0), 0);
   const totalTrades = strategies.reduce((acc, s) => acc + (s.totalTrades || 0), 0);
-  const posicoesAbertas = strategies.filter((s) => s.currentPositionId).length;
+  const posicoesAbertas = trades.filter((t) => t.status === "open").length;
 
   return (
     <div className="space-y-6">
@@ -45,16 +50,33 @@ async function FxProDashboardContent(): Promise<React.ReactNode> {
 
       {/* Header com Estatísticas */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border border-indigo-500/30 bg-slate-950/70 p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-indigo-400 font-bold uppercase">
+              Saldo cTrader ({accountBalance ? accountBalance.accountType.toUpperCase() : "DEMO"})
+            </span>
+            <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-bold text-indigo-300">
+              1:{accountBalance?.leverage || 1000}
+            </span>
+          </div>
+          <div className="mt-1 font-mono text-2xl font-black text-emerald-400">
+            $
+            {accountBalance
+              ? accountBalance.balance.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : "0.00"}
+          </div>
+          <p className="text-[11px] text-slate-500">
+            Conta #{accountBalance?.accountId || "—"} ({accountBalance?.currency || "USD"})
+          </p>
+        </div>
+
         <div className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
           <span className="text-xs text-slate-400 font-bold uppercase">Posições Abertas</span>
           <div className="mt-1 font-mono text-2xl font-black text-white">{posicoesAbertas}</div>
           <p className="text-[11px] text-slate-500">Gestão contínua em MKT</p>
-        </div>
-
-        <div className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
-          <span className="text-xs text-slate-400 font-bold uppercase">Total de Trades</span>
-          <div className="mt-1 font-mono text-2xl font-black text-white">{totalTrades}</div>
-          <p className="text-[11px] text-slate-500">Execuções auditadas</p>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
@@ -66,7 +88,7 @@ async function FxProDashboardContent(): Promise<React.ReactNode> {
           >
             {totalLucro >= 0 ? "+" : ""}${totalLucro.toFixed(2)}
           </div>
-          <p className="text-[11px] text-slate-500">Lucro acumulado</p>
+          <p className="text-[11px] text-slate-500">{totalTrades} trades finalizados</p>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-slate-950/70 p-4">

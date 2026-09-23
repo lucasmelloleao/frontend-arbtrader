@@ -147,5 +147,7 @@ export const API_ENDPOINTS = {
     metaModelStatus: "api/v1/fxpro/meta-model/status",
     metaModelTrain: "api/v1/fxpro/meta-model/train",
     logs: "api/v1/fxpro/logs",
+    balance: "api/v1/fxpro/balance",
+    close: "api/v1/fxpro/close",
   },
 } as const;

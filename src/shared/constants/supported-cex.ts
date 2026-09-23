@@ -25,12 +25,7 @@ export const SUPPORTED_CEX = [
  * Corretoras que usam o fluxo cTrader Open API (Client ID/Secret em vez de
  * API Key/Secret). O `apiKey` no backend é o espelho do `clientId`.
  */
-const CTRADER_CEX_IDS: ReadonlySet<string> = new Set([
-  "ctrader",
-  "pepperstone",
-  "fxpro",
-  "deriv",
-]);
+const CTRADER_CEX_IDS: ReadonlySet<string> = new Set(["ctrader", "pepperstone", "fxpro", "deriv"]);
 
 export function isCtraderId(exchangeId: string): boolean {
   return CTRADER_CEX_IDS.has(exchangeId);
