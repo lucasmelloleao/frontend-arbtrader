@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { Plus, Power, TrendingUp, X, XCircle } from "lucide-react";
+import { Brain, Plus, Power, TrendingUp, X, XCircle } from "lucide-react";
 
+import { PredictionAiStrategyView } from "@/features/prediction-arb/components/prediction-ai-strategy-view";
 import { PredictionStrategyForm } from "@/features/prediction-arb/components/prediction-strategy-form";
 import {
   aumentarAporte,
@@ -30,8 +31,8 @@ const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 const EMPTY_EXCHANGE_KEYS: readonly { id: string; exchangeId: string; nome: string }[] = [];
 
 /**
- * Painel principal do Polymarket Arb: abas para Posições Abertas, Estratégias Monitoradas
- * e Histórico de Trades com carregamento sob demanda por período.
+ * Painel principal do Polymarket Arb: abas para Posições Abertas, Estratégias Monitoradas,
+ * Histórico de Trades e IA Meta-Labeling (Gate 4).
  */
 export function PredictionArbBoard({
   strategies,
@@ -40,7 +41,7 @@ export function PredictionArbBoard({
 }: PredictionArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [aba, setAba] = useState<"open" | "monitored" | "closed">("open");
+  const [aba, setAba] = useState<"open" | "monitored" | "closed" | "aiStrategy">("open");
   const [criando, setCriando] = useState(false);
   const [periodo, setPeriodo] = useState<"today" | "7d" | "30d" | "all">("today");
   const [tradesList, setTradesList] = useState<readonly PredictionArbTrade[]>(initialTrades);
@@ -145,34 +146,41 @@ export function PredictionArbBoard({
       )}
 
       {/* Abas */}
-      <div className="flex gap-2 border-b border-white/10 pb-3">
+      <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">
         {(
           [
             { key: "open", label: "Posições Abertas", count: abertas.length },
             { key: "monitored", label: "Monitorando", count: monitorando.length },
             { key: "closed", label: "Histórico de Trades", count: encerradas.length },
+            { key: "aiStrategy", label: "IA Meta-Labeling (Gate 4)", count: null, icon: Brain },
           ] as const
-        ).map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setAba(tab.key)}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-colors ${
-              aba === tab.key
-                ? "bg-indigo-600 text-white"
-                : "text-slate-400 hover:bg-slate-800 hover:text-white"
-            }`}
-          >
-            {tab.label}
-            <span
-              className={`rounded-full px-1.5 text-[10px] font-bold ${
-                aba === tab.key ? "bg-white/20" : "bg-slate-800"
+        ).map((tab) => {
+          const Icon = "icon" in tab ? tab.icon : null;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setAba(tab.key)}
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-colors ${
+                aba === tab.key
+                  ? "bg-indigo-600 text-white"
+                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
               }`}
             >
-              {tab.count}
-            </span>
-          </button>
-        ))}
+              {Icon ? <Icon className="h-3.5 w-3.5 text-purple-400" /> : null}
+              {tab.label}
+              {tab.count !== null ? (
+                <span
+                  className={`rounded-full px-1.5 text-[10px] font-bold ${
+                    aba === tab.key ? "bg-white/20" : "bg-slate-800"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
       {/* Aba: Posições Abertas */}
@@ -694,6 +702,9 @@ export function PredictionArbBoard({
           )}
         </div>
       ) : null}
+
+      {/* Aba: IA Meta-Labeling (Gate 4) */}
+      {aba === "aiStrategy" ? <PredictionAiStrategyView /> : null}
     </div>
   );
 }

@@ -204,6 +204,29 @@ export const derivAiAnalysisSchema = object({
 
 export type DerivAiAnalysis = InferOutput<typeof derivAiAnalysisSchema>;
 
+const derivFeatureImportanceSchema = object({
+  feature: fallback(string(), ""),
+  importance: fallback(number(), 0),
+  description: fallback(string(), ""),
+});
+
+const derivDatasetSampleSchema = object({
+  id: fallback(string(), ""),
+  symbol: fallback(string(), ""),
+  contractType: fallback(string(), ""),
+  pnl: fallback(number(), 0),
+  isWin: fallback(boolean(), false),
+  er: fallback(number(), 0),
+  r2: fallback(number(), 0),
+  slope: fallback(number(), 0),
+  imbalance: fallback(number(), 0),
+  varianceRatio: fallback(number(), 0),
+  tickVolatility: fallback(number(), 0),
+  payoutRatio: fallback(number(), 0),
+  probWin: fallback(number(), 0),
+  openedAt: fallback(string(), ""),
+});
+
 /** Metadata do modelo de Meta-Labeling (Random Forest). */
 const derivMetaModelMetadataSchema = object({
   trainedAt: fallback(string(), ""),
@@ -212,6 +235,8 @@ const derivMetaModelMetadataSchema = object({
   accuracy: fallback(number(), 0),
   features: fallback(array(string()), []),
   nEstimators: fallback(number(), 0),
+  featureImportance: fallback(array(derivFeatureImportanceSchema), []),
+  recentDatasetSamples: fallback(array(derivDatasetSampleSchema), []),
 });
 
 /** Status do Gate 4 (Meta-Labeling). */

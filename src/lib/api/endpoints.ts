@@ -109,6 +109,8 @@ export const API_ENDPOINTS = {
     manualScan: "api/v1/prediction-arb/manual-scan",
     logs: "api/v1/prediction-arb/logs",
     limparTrades: "api/v1/prediction-arb/trades",
+    metaModelTrain: "api/v1/prediction-arb/meta-model/train",
+    metaModelStatus: "api/v1/prediction-arb/meta-model/status",
   },
 
   /** Consulta Processual TJPR / Datajud */
@@ -131,5 +133,17 @@ export const API_ENDPOINTS = {
     limparTrades: "api/v1/deriv/trades",
     metaModelTrain: "api/v1/deriv/meta-model/train",
     metaModelStatus: "api/v1/deriv/meta-model/status",
+  },
+
+  /** Robô Forex / CFD FxPro cTrader. */
+  fxpro: {
+    strategies: "api/v1/fxpro/strategies",
+    toggle: (id: string) => `api/v1/fxpro/strategies/${id}/toggle`,
+    trades: "api/v1/fxpro/trades",
+    botStatus: "api/v1/fxpro/bot/status",
+    botStart: "api/v1/fxpro/bot/start",
+    botStop: "api/v1/fxpro/bot/stop",
+    metaModelStatus: "api/v1/fxpro/meta-model/status",
+    metaModelTrain: "api/v1/fxpro/meta-model/train",
   },
 } as const;

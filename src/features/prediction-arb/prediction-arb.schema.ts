@@ -3,6 +3,7 @@ import {
   boolean,
   fallback,
   minValue,
+  nullable,
   number,
   object,
   optional,
@@ -204,3 +205,30 @@ const atualizarPredictionSettingsInputSchema = object({
 export type AtualizarPredictionSettingsInput = InferOutput<
   typeof atualizarPredictionSettingsInputSchema
 >;
+
+/** Metadata do modelo de Meta-Labeling (Random Forest) da Polymarket. */
+const predictionMetaFeatureImportanceSchema = object({
+  feature: fallback(string(), ""),
+  importance: fallback(number(), 0),
+  description: fallback(string(), ""),
+});
+
+const predictionMetaModelMetadataSchema = object({
+  trainedAt: fallback(string(), ""),
+  samplesCount: fallback(number(), 0),
+  winRateBaseline: fallback(number(), 0),
+  accuracy: fallback(number(), 0),
+  features: fallback(array(string()), []),
+  nEstimators: fallback(number(), 0),
+  featureImportance: fallback(array(predictionMetaFeatureImportanceSchema), []),
+});
+
+/** Status do Gate 4 (Meta-Labeling) da Polymarket. */
+export const predictionMetaModelStatusSchema = object({
+  isTrained: fallback(boolean(), false),
+  metadata: fallback(nullable(predictionMetaModelMetadataSchema), null),
+  totalExecutedTrades: fallback(number(), 0),
+  minTradesRequired: fallback(number(), 10),
+});
+
+export type PredictionMetaModelStatus = InferOutput<typeof predictionMetaModelStatusSchema>;

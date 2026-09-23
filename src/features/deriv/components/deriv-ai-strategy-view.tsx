@@ -10,6 +10,10 @@ import {
   RefreshCw,
   BarChart2,
   ShieldAlert,
+  Activity,
+  Layers,
+  Check,
+  X,
 } from "lucide-react";
 import {
   buscarStatusMetaLabeling,
@@ -65,6 +69,8 @@ export function DerivAiStrategyView(): React.ReactNode {
   };
 
   const hasEnoughData = (status?.totalExecutedTrades || 0) >= (status?.minTradesRequired || 15);
+  const featureList = status?.metadata?.featureImportance || [];
+  const datasetSamples = status?.metadata?.recentDatasetSamples || [];
 
   return (
     <div className="space-y-6">
@@ -182,6 +188,149 @@ export function DerivAiStrategyView(): React.ReactNode {
             Ensemble não-linear com bootstrapping
           </p>
         </div>
+      </div>
+
+      {/* Gráfico Visual: Peso e Importância das Features da IA (Gate 4) */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-cyan-400" />
+            <h3 className="text-sm font-bold text-white">
+              Gráfico de Importância das Features (Random Forest Feature Weights)
+            </h3>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            Impacto no Veto / Aprovação de cada sinal
+          </span>
+        </div>
+
+        <div className="mt-6 space-y-3.5">
+          {featureList.map((item, idx) => {
+            const colors = [
+              "bg-gradient-to-r from-cyan-500 to-teal-400",
+              "bg-gradient-to-r from-teal-500 to-emerald-400",
+              "bg-gradient-to-r from-purple-500 to-pink-400",
+              "bg-gradient-to-r from-blue-500 to-cyan-400",
+              "bg-gradient-to-r from-amber-500 to-orange-400",
+              "bg-gradient-to-r from-indigo-500 to-purple-400",
+              "bg-gradient-to-r from-emerald-500 to-teal-400",
+              "bg-gradient-to-r from-slate-500 to-slate-400",
+            ];
+            const barColor = colors[idx % colors.length];
+
+            return (
+              <div key={item.feature} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-white">{item.feature}</span>
+                    <span className="text-[11px] text-slate-400">({item.description})</span>
+                  </div>
+                  <span className="font-mono font-bold text-cyan-400">{item.importance}%</span>
+                </div>
+                <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-900">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${barColor}`}
+                    style={{ width: `${Math.max(item.importance * 3.5, 4)}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Tabela do Dataset de Treinamento da IA */}
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex items-center justify-between border-b border-border bg-muted/30 p-4">
+          <div className="flex items-center gap-2">
+            <Layers className="h-4 w-4 text-purple-400" />
+            <h3 className="text-sm font-bold text-white">
+              Tabela de Amostragem do Dataset (Features Gravadas a Cada Operação)
+            </h3>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {datasetSamples.length} amostras recentes analisadas
+          </span>
+        </div>
+
+        {datasetSamples.length === 0 ? (
+          <div className="p-8 text-center text-xs text-muted-foreground">
+            Nenhum dado gravado no dataset ainda. Conforme o robô operar na Deriv, os snapshots de
+            mercado serão catalogados automaticamente aqui para calibração contínua.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-border bg-slate-900/80 text-[11px] font-semibold uppercase text-slate-400">
+                <tr>
+                  <th className="p-3">Ativo</th>
+                  <th className="p-3">Tipo</th>
+                  <th className="p-3">Resultado</th>
+                  <th className="p-3 font-mono">ER (40)</th>
+                  <th className="p-3 font-mono">R²</th>
+                  <th className="p-3 font-mono">VR (Lo-Mac)</th>
+                  <th className="p-3 font-mono">Imbalance</th>
+                  <th className="p-3 font-mono">Volatilidade</th>
+                  <th className="p-3 font-mono">P(Win) IA</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {datasetSamples.map((row) => (
+                  <tr
+                    key={row.id}
+                    className={`transition-colors hover:bg-muted/30 ${
+                      row.isWin ? "bg-emerald-500/5" : "bg-rose-500/5"
+                    }`}
+                  >
+                    <td className="p-3 font-mono font-bold text-cyan-400">{row.symbol}</td>
+                    <td className="p-3">
+                      <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+                        {row.contractType}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          row.isWin
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : "bg-rose-500/20 text-rose-400"
+                        }`}
+                      >
+                        {row.isWin ? (
+                          <>
+                            <Check className="h-3 w-3" /> WIN (+${row.pnl.toFixed(2)})
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-3 w-3" /> LOSS (-${Math.abs(row.pnl).toFixed(2)})
+                          </>
+                        )}
+                      </span>
+                    </td>
+                    <td className="p-3 font-mono text-slate-300">{row.er.toFixed(2)}</td>
+                    <td className="p-3 font-mono text-slate-300">{row.r2.toFixed(2)}</td>
+                    <td className="p-3 font-mono text-slate-300">{row.varianceRatio.toFixed(2)}</td>
+                    <td className="p-3 font-mono text-slate-300">
+                      {(row.imbalance * 100).toFixed(0)}%
+                    </td>
+                    <td className="p-3 font-mono text-slate-300">
+                      {(row.tickVolatility * 100).toFixed(2)}%
+                    </td>
+                    <td className="p-3 font-mono font-bold">
+                      <span
+                        className={
+                          row.probWin >= 55 ? "text-emerald-400" : "text-amber-400"
+                        }
+                      >
+                        {row.probWin}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Como a IA Protege o Capital */}

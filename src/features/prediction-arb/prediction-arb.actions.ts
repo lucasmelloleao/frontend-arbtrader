@@ -6,8 +6,10 @@ import {
   type AtualizarPredictionSettingsInput,
   type CriarPredictionStrategyInput,
   type PredictionArbTrade,
+  type PredictionMetaModelStatus,
   predictionArbLogsSchema,
   predictionArbTradeListSchema,
+  predictionMetaModelStatusSchema,
 } from "@/features/prediction-arb/prediction-arb.schema";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
@@ -219,4 +221,41 @@ export async function limparHistoricoPrediction(): Promise<MutacaoResult> {
   }
   revalidatePath("/dashboard/polymarket-arb");
   return { ok: true };
+}
+
+export async function buscarStatusMetaLabelingPolymarket(): Promise<
+  { ok: true; data: PredictionMetaModelStatus } | { ok: false; erro: string }
+> {
+  try {
+    const data = await apiClient(
+      kyServer,
+      API_ENDPOINTS.predictionArb.metaModelStatus,
+      predictionMetaModelStatusSchema,
+      { method: "get" },
+    );
+    return { ok: true, data };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
+    };
+  }
+}
+
+export async function treinarModeloMetaLabelingPolymarket(): Promise<
+  { ok: true; message: string } | { ok: false; erro: string }
+> {
+  try {
+    await apiClient(kyServer, API_ENDPOINTS.predictionArb.metaModelTrain, undefined, {
+      method: "post",
+      timeout: 60000,
+    });
+    revalidatePath("/dashboard/polymarket-arb");
+    return { ok: true, message: "Modelo de IA Polymarket treinado com sucesso!" };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      erro: error instanceof Error ? error.message : ERRO_INESPERADO,
+    };
+  }
 }
