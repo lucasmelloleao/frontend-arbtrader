@@ -5,15 +5,12 @@ import { useEffect, useState, useTransition } from "react";
 import {
   Brain,
   Plus,
-  Power,
   Play,
   Pause,
   Trash2,
   TrendingUp,
-  Activity,
   ArrowUpRight,
   ArrowDownRight,
-  ShieldCheck,
   Settings,
 } from "lucide-react";
 import { FxProAiStrategyView } from "@/features/fxpro/components/fxpro-ai-strategy-view";
@@ -21,7 +18,6 @@ import { FxProStrategyForm } from "@/features/fxpro/components/fxpro-strategy-fo
 import { FxProStrategyModal } from "@/features/fxpro/components/fxpro-strategy-modal";
 import {
   alternarEstrategiaFxPro,
-  alternarMotorFxPro,
   buscarTradesFxPro,
   deletarEstrategiaFxPro,
 } from "@/features/fxpro/fxpro.actions";

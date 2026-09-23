@@ -1,11 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  type FxProSettings,
-  type FxProStrategy,
-  type FxProTrade,
-  type FxProMetaModelStatus,
+import type {
+  FxProSettings,
+  FxProStrategy,
+  FxProTrade,
+  FxProMetaModelStatus,
 } from "@/features/fxpro/fxpro.schema";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
