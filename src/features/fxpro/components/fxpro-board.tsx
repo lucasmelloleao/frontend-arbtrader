@@ -82,20 +82,22 @@ export function FxProBoard({
   const encerradas = tradesList.filter((t) => t.status === "closed");
 
   const confirmarToggle = (strat: FxProStrategy): void => {
+    const stratId = strat.id || strat._id || "";
     setStrategyList((prev) =>
-      prev.map((s) => (s.id === strat.id ? { ...s, active: !s.active } : s)),
+      prev.map((s) => ((s.id || s._id) === stratId ? { ...s, active: !s.active } : s)),
     );
     startTransition(async () => {
-      await alternarEstrategiaFxPro(strat.id);
+      await alternarEstrategiaFxPro(stratId);
       router.refresh();
     });
   };
 
   const confirmarExcluir = (strat: FxProStrategy): void => {
+    const stratId = strat.id || strat._id || "";
     if (!confirm(`Excluir permanentemente a estratégia "${strat.name}"?`)) return;
-    setStrategyList((prev) => prev.filter((s) => s.id !== strat.id));
+    setStrategyList((prev) => prev.filter((s) => (s.id || s._id) !== stratId));
     startTransition(async () => {
-      await deletarEstrategiaFxPro(strat.id);
+      await deletarEstrategiaFxPro(stratId);
       router.refresh();
     });
   };

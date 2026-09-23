@@ -33,7 +33,8 @@ export function FxProStrategyModal({
     setErro(null);
 
     startTransition(async () => {
-      const res = await atualizarEstrategiaFxPro(strategy.id, {
+      const stratId = strategy.id || strategy._id || "";
+      const res = await atualizarEstrategiaFxPro(stratId, {
         name: nome,
         symbol: strategy.symbol,
         timeframe,

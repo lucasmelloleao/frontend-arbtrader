@@ -32,6 +32,7 @@ export type FxProSettings = InferOutput<typeof fxProSettingsSchema>;
 /** Schema de uma estratégia FxPro cTrader. */
 const fxProStrategySchema = object({
   id: fallback(string(), ""),
+  _id: optional(nullable(string())),
   name: fallback(string(), ""),
   symbol: fallback(string(), "EURUSD"),
   active: fallback(boolean(), true),
