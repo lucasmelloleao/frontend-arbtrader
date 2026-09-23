@@ -173,3 +173,56 @@ export async function deletarTodasOperacoes(botType?: string): Promise<MutacaoRe
   revalidatePath("/dashboard/trend-grid");
   return { ok: true };
 }
+
+/**
+ * Busca trades por período no robô Pepperstone Forex.
+ */
+export async function buscarTradesPorPeriodo(
+  periodo: string,
+  symbol?: string,
+): Promise<{ ok: true; data: any[] } | { ok: false; erro: string }> {
+  try {
+    const searchParams: Record<string, string> = { periodo };
+    if (symbol) searchParams.symbol = symbol;
+
+    const res = await kyServer
+      .get(API_ENDPOINTS.forexArb.listarTrades, { searchParams })
+      .json<{ success: boolean; data: any[] }>();
+
+    return { ok: true, data: res.data || [] };
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+}
+
+/**
+ * Busca o status do modelo de IA Meta-Labeling da Pepperstone.
+ */
+export async function buscarStatusIaPepperstone(): Promise<
+  { ok: true; data: any } | { ok: false; erro: string }
+> {
+  try {
+    const res = await kyServer.get(API_ENDPOINTS.forexArb.aiStatus).json<{ ok: boolean; data: any }>();
+    return { ok: true, data: res.data };
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+}
+
+/**
+ * Treina o cérebro de IA Meta-Labeling da Pepperstone.
+ */
+export async function treinarIaPepperstone(): Promise<
+  { ok: true; message: string; metadata?: any } | { ok: false; erro: string }
+> {
+  try {
+    const res = await kyServer
+      .post(API_ENDPOINTS.forexArb.aiTrain)
+      .json<{ ok: boolean; message: string; metadata?: any }>();
+    revalidatePath("/dashboard/forex-arb");
+    return { ok: true, message: res.message, metadata: res.metadata };
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+}
+

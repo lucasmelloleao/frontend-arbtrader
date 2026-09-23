@@ -52,6 +52,8 @@ export function ForexSettingsPanel({
     takeProfitPct: 0.1,
     stopLossPct: 0.1,
     trailingStopPct: 0.01,
+    accountType: "demo",
+    accountId: "",
   };
 
   const executar = (acao: () => Promise<MutacaoResult>, mensagemSucesso: string): void => {
@@ -133,9 +135,9 @@ export function ForexSettingsPanel({
         <div className="flex items-center gap-3">
           <Wallet className="h-5 w-5 text-indigo-400" aria-hidden="true" />
           <div>
-            <h3 className="text-sm font-bold text-white">Configurações da Arbitragem Forex</h3>
+            <h3 className="text-sm font-bold text-white">Configurações Peperstone Forex</h3>
             <p className="text-xs text-slate-400">
-              Trade Size: <b className="text-white">${formAtual.tradeSize}</b> | Retorno Mín.:{" "}
+              Conta: <b className={(formAtual.accountType ?? "demo") === "live" ? "text-rose-400" : "text-emerald-400"}>{(formAtual.accountType ?? "demo").toUpperCase()}</b> {formAtual.accountId ? `(#${formAtual.accountId})` : ""} | Trade Size: <b className="text-white">${formAtual.tradeSize}</b> | Retorno Mín.:{" "}
               <b className="text-emerald-400">{formAtual.minProfitPct}%</b>
             </p>
           </div>
@@ -192,6 +194,42 @@ export function ForexSettingsPanel({
 
       {editando ? (
         <div className="mt-4 border-t border-white/10 pt-4">
+          {/* Identificação de Conta Pepperstone / cTrader (Demo ou Live) */}
+          <div className="mb-4 rounded-lg border border-indigo-500/30 bg-indigo-950/20 p-3">
+            <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-indigo-400">
+              🔌 Conexão Pepperstone (cTrader Open API)
+            </span>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs text-slate-300 font-semibold" htmlFor="fx-account-type">
+                  Tipo de Conta cTrader
+                </label>
+                <select
+                  id="fx-account-type"
+                  value={formAtual.accountType ?? "demo"}
+                  onChange={(e) => atualizar("accountType", e.target.value)}
+                  className="w-full rounded border border-indigo-500/30 bg-slate-900 px-2 py-1.5 text-xs font-bold text-white focus:border-indigo-400 focus:outline-none"
+                >
+                  <option value="demo">🟢 Demo (Simulação / Testes)</option>
+                  <option value="live">🔴 Live (Conta Real / Produção)</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-slate-300 font-semibold" htmlFor="fx-account-id">
+                  Número da Conta cTrader (Account ID / ctidTraderAccountId)
+                </label>
+                <input
+                  id="fx-account-id"
+                  type="text"
+                  placeholder="Ex: 3847291"
+                  value={formAtual.accountId ?? ""}
+                  onChange={(e) => atualizar("accountId", e.target.value)}
+                  className="w-full rounded border border-indigo-500/30 bg-slate-900 px-2 py-1.5 text-xs text-white placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-trade-size">

@@ -83,6 +83,8 @@ export const API_ENDPOINTS = {
     limparTrades: "api/v1/forex-arb/trades",
     logs: "api/v1/forex-arb/logs",
     livePrices: "api/v1/forex-arb/live-prices",
+    aiStatus: "api/v1/forex-arb/ai/status",
+    aiTrain: "api/v1/forex-arb/ai/train",
   },
 
   /** Arbitragem por Latência (cTrader -> MEXC). */

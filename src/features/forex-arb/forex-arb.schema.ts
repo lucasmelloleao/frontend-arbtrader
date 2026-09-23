@@ -243,6 +243,8 @@ export const forexArbSettingsSchema = object({
   stepPips: optional(number()),
   trailingPips: optional(number()),
   maxGridLevels: optional(number()),
+  accountType: optional(string()),
+  accountId: optional(string()),
   symbolProfiles: optional(record(string(), forexSymbolProfileSchema)),
   // Perfis efetivos por par (defaults do código + override do banco), usados pela
   // UI para exibir os valores reais que o robô utiliza (em vez de "padrão").
@@ -275,6 +277,8 @@ const atualizarForexSettingsSchema = object({
   stepPips: optional(number()),
   trailingPips: optional(number()),
   maxGridLevels: optional(number()),
+  accountType: optional(string()),
+  accountId: optional(string()),
   symbolProfiles: optional(record(string(), forexSymbolProfileSchema)),
   // Perfis efetivos por par (defaults do código + override do banco), usados pela
   // UI para exibir os valores reais que o robô utiliza (em vez de "padrão").

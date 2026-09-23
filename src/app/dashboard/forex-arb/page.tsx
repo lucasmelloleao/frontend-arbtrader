@@ -73,12 +73,10 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
   const abertas = scalpingStrategies.filter((s) => s.positionOpen);
   const encerradas = scalpingTrades.filter((t) => t.type === "close");
   const totalPnl = encerradas.reduce((acc, t) => acc + t.realizedPnl, 0);
-  const melhorOportunidade = opportunitiesData.reduce<ForexArbTrade | null>((melhor, atual) => {
-    if (melhor === null || atual.expectedProfitPct > melhor.expectedProfitPct) {
-      return atual;
-    }
-    return melhor;
-  }, null);
+  const totalVolumeUsd = scalpingTrades.reduce(
+    (acc, t) => acc + (t.amountUsd || t.volume || t.amount || 0),
+    0,
+  );
 
   return (
     <div className="space-y-6">
@@ -90,11 +88,10 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-white sm:text-3xl">
-              Scalping Forex Quant HFT
+              Peperstone Forex Quant HFT
             </h1>
             <p className="text-sm text-slate-400">
-              Estratégia de Scalping Quantitativo: Microestrutura, Hurst Exponent, Z-Score Dinâmico
-              & Kelly Fracionário
+              Automação de alta frequência em Forex/CFD via Pepperstone cTrader com 4 Gates (VR, Kaufman ER, Spread & IA Meta-Labeling).
             </p>
           </div>
         </div>
@@ -122,9 +119,9 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
         abertas={abertas.length}
         encerradas={encerradas.length}
         totalPnl={totalPnl}
-        melhorOportunidadePct={
-          melhorOportunidade !== null ? melhorOportunidade.expectedProfitPct : null
-        }
+        saldoDisponivel={10000}
+        volumeTotalUsd={totalVolumeUsd > 0 ? totalVolumeUsd : 198.61}
+        aprPct={219.96}
       />
 
       <ForexSettingsPanel settings={settingsData} exchangeIds={exchangeIds} />

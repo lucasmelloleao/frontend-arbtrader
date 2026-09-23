@@ -7,8 +7,11 @@ import { useState } from "react";
 
 import {
   Activity,
+  Bot,
   CalendarRange,
   ChevronDown,
+  ChevronRight,
+  Clock,
   Cpu,
   Globe,
   HelpCircle,
@@ -17,6 +20,7 @@ import {
   LayoutDashboard,
   Menu,
   ShieldAlert,
+  Sparkles,
   Timer,
   TrendingUp,
   User,
@@ -38,10 +42,19 @@ type SidebarLink = {
 };
 
 /**
- * Links da navegação principal, espelhando o painel legado. Apenas os itens
- * habilitados navegam; o resto fica visível como "em construção".
+ * Estratégias / Robôs agrupados no submenu "Estratégias".
  */
-const LINKS: readonly SidebarLink[] = [
+const ESTRATEGIAS_LINKS: readonly SidebarLink[] = [
+  { href: "/dashboard/forex-arb", label: "Peperstone Forex", icon: Globe, habilitado: true },
+  { href: "/dashboard/polymarket-arb", label: "Polymarket Arb", icon: Activity, habilitado: true },
+  { href: "/dashboard/deriv", label: "Deriv Bot", icon: Activity, habilitado: true },
+  { href: "/dashboard/fxpro", label: "FxPro cTrader", icon: Activity, habilitado: true },
+];
+
+/**
+ * Links gerais ativos da navegação principal.
+ */
+const LINKS_GERAIS: readonly SidebarLink[] = [
   { href: "/dashboard", label: "Visão Geral", icon: LayoutDashboard, habilitado: true },
   {
     href: "/dashboard/perpetual-arb",
@@ -55,7 +68,6 @@ const LINKS: readonly SidebarLink[] = [
     icon: Wallet,
     habilitado: true,
   },
-  { href: "/dashboard/forex-arb", label: "Scalping Forex", icon: Globe, habilitado: true },
   {
     href: "/dashboard/trend-grid",
     label: "Trend Grid Bot (cTrader)",
@@ -68,6 +80,12 @@ const LINKS: readonly SidebarLink[] = [
     icon: Timer,
     habilitado: true,
   },
+];
+
+/**
+ * Módulos em desenvolvimento agrupados no submenu "Em Breve".
+ */
+const EM_BREVE_LINKS: readonly SidebarLink[] = [
   { href: "/dashboard/hyperliquid", label: "Hyperliquid Arb", icon: Waves, habilitado: false },
   {
     href: "/dashboard/hyperliquid-mm",
@@ -75,9 +93,6 @@ const LINKS: readonly SidebarLink[] = [
     icon: Cpu,
     habilitado: false,
   },
-  { href: "/dashboard/polymarket-arb", label: "Polymarket Arb", icon: Activity, habilitado: true },
-  { href: "/dashboard/deriv", label: "Deriv Bot", icon: Activity, habilitado: true },
-  { href: "/dashboard/fxpro", label: "FxPro cTrader", icon: Activity, habilitado: true },
   { href: "/dashboard/liquidation", label: "Liquidação", icon: ShieldAlert, habilitado: false },
   { href: "/dashboard/flash-loan", label: "Flash Loans", icon: Zap, habilitado: false },
   {
@@ -115,6 +130,10 @@ export function DashboardShell({
   const nomeExibido = nome ?? "Usuário";
   const emailExibido = email ?? "usuario@email.com";
   const inicial = nomeExibido.trim().charAt(0).toUpperCase() || "U";
+
+  const isEstrategiaActive = ESTRATEGIAS_LINKS.some((link) => pathname === link.href);
+  const [isEstrategiasOpen, setIsEstrategiasOpen] = useState(true);
+  const [isEmBreveOpen, setIsEmBreveOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen overflow-hidden bg-slate-950 text-slate-200">
@@ -156,38 +175,16 @@ export function DashboardShell({
         </div>
 
         <nav className="mt-2 mb-4 flex-1 space-y-1 overflow-y-auto px-3">
-          {LINKS.map((link) => {
+          {/* Visão Geral (Topo) */}
+          {LINKS_GERAIS.slice(0, 1).map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
             const classeBase = `flex items-center rounded-lg text-sm font-medium transition-colors ${
               isCollapsed ? "justify-center py-3" : "gap-3 px-3 py-2.5"
             }`;
             const iconClass = `h-5 w-5 shrink-0 ${
-              link.habilitado ? (isActive ? "text-white" : "text-slate-500") : "text-slate-700"
+              isActive ? "text-white" : "text-slate-500"
             }`;
-
-            if (!link.habilitado) {
-              return (
-                <button
-                  key={link.label}
-                  type="button"
-                  disabled
-                  title={isCollapsed ? `${link.label} (em breve)` : undefined}
-                  className={`${classeBase} w-full cursor-not-allowed text-slate-600`}
-                  aria-disabled="true"
-                >
-                  <Icon className={iconClass} aria-hidden="true" />
-                  {!isCollapsed ? (
-                    <span className="truncate">
-                      {link.label}
-                      <span className="ml-2 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
-                        em breve
-                      </span>
-                    </span>
-                  ) : null}
-                </button>
-              );
-            }
 
             return (
               <Link
@@ -206,6 +203,156 @@ export function DashboardShell({
               </Link>
             );
           })}
+
+          {/* Submenu Agrupado: Estratégias */}
+          <div className="pt-2">
+            {!isCollapsed ? (
+              <button
+                type="button"
+                onClick={() => setIsEstrategiasOpen((prev) => !prev)}
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                  isEstrategiaActive
+                    ? "text-indigo-400 bg-indigo-950/30 border border-indigo-500/20"
+                    : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-indigo-400" />
+                  <span>Estratégias</span>
+                  <span className="rounded bg-indigo-500/20 px-1.5 py-0.2 text-[10px] font-bold text-indigo-300">
+                    {ESTRATEGIAS_LINKS.length}
+                  </span>
+                </div>
+                {isEstrategiasOpen ? (
+                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                )}
+              </button>
+            ) : null}
+
+            {/* Itens do Submenu de Estratégias */}
+            {(isEstrategiasOpen || isCollapsed) && (
+              <div className={`space-y-1 ${!isCollapsed ? "mt-1 pl-2 border-l border-indigo-500/20 ml-2" : ""}`}>
+                {ESTRATEGIAS_LINKS.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = pathname === link.href;
+                  const classeBase = `flex items-center rounded-lg text-sm font-medium transition-colors ${
+                    isCollapsed ? "justify-center py-2.5" : "gap-2.5 px-3 py-2"
+                  }`;
+                  const iconClass = `h-4 w-4 shrink-0 ${
+                    isActive ? "text-indigo-300" : "text-slate-500"
+                  }`;
+
+                  return (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      title={isCollapsed ? link.label : undefined}
+                      className={`${classeBase} ${
+                        isActive
+                          ? "bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30"
+                          : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                      }`}
+                    >
+                      <Icon className={iconClass} aria-hidden="true" />
+                      {!isCollapsed ? <span className="truncate text-xs">{link.label}</span> : null}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Demais Links Gerais Ativos */}
+          <div className="pt-2 space-y-1 border-t border-slate-800/80">
+            {LINKS_GERAIS.slice(1).map((link) => {
+              const Icon = link.icon;
+              const isActive = pathname === link.href;
+              const classeBase = `flex items-center rounded-lg text-sm font-medium transition-colors ${
+                isCollapsed ? "justify-center py-3" : "gap-3 px-3 py-2.5"
+              }`;
+              const iconClass = `h-5 w-5 shrink-0 ${
+                isActive ? "text-white" : "text-slate-500"
+              }`;
+
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  title={isCollapsed ? link.label : undefined}
+                  className={`${classeBase} ${
+                    isActive
+                      ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+                      : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
+                  }`}
+                >
+                  <Icon className={iconClass} aria-hidden="true" />
+                  {!isCollapsed ? <span className="truncate">{link.label}</span> : null}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Submenu Agrupado: Em Breve */}
+          <div className="pt-2">
+            {!isCollapsed ? (
+              <button
+                type="button"
+                onClick={() => setIsEmBreveOpen((prev) => !prev)}
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-500 hover:bg-slate-800/30 hover:text-slate-300 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-500/70" />
+                  <span>Em Breve</span>
+                  <span className="rounded bg-slate-800 px-1.5 py-0.2 text-[10px] font-semibold text-slate-400">
+                    {EM_BREVE_LINKS.length}
+                  </span>
+                </div>
+                {isEmBreveOpen ? (
+                  <ChevronDown className="h-4 w-4 text-slate-500" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-slate-500" />
+                )}
+              </button>
+            ) : null}
+
+            {/* Itens do Submenu Em Breve */}
+            {(isEmBreveOpen || isCollapsed) && (
+              <div className={`space-y-1 ${!isCollapsed ? "mt-1 pl-2 border-l border-slate-800 ml-2" : ""}`}>
+                {EM_BREVE_LINKS.map((link) => {
+                  const Icon = link.icon;
+                  const classeBase = `flex items-center rounded-lg text-sm font-medium transition-colors ${
+                    isCollapsed ? "justify-center py-2.5" : "gap-2.5 px-3 py-2"
+                  }`;
+                  const iconClass = "h-4 w-4 shrink-0 text-slate-600";
+
+                  return (
+                    <button
+                      key={link.label}
+                      type="button"
+                      disabled
+                      title={isCollapsed ? `${link.label} (em breve)` : undefined}
+                      className={`${classeBase} w-full cursor-not-allowed text-slate-500 opacity-70`}
+                      aria-disabled="true"
+                    >
+                      <Icon className={iconClass} aria-hidden="true" />
+                      {!isCollapsed ? (
+                        <span className="truncate text-xs flex items-center justify-between w-full">
+                          {link.label}
+                          <span className="text-[9px] font-semibold uppercase tracking-wide text-amber-500/80 bg-amber-500/10 px-1 rounded">
+                            em breve
+                          </span>
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Ajuda */}
           <button
