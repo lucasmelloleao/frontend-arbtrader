@@ -203,3 +203,23 @@ export const derivAiAnalysisSchema = object({
 });
 
 export type DerivAiAnalysis = InferOutput<typeof derivAiAnalysisSchema>;
+
+/** Metadata do modelo de Meta-Labeling (Random Forest). */
+const derivMetaModelMetadataSchema = object({
+  trainedAt: fallback(string(), ""),
+  samplesCount: fallback(number(), 0),
+  winRateBaseline: fallback(number(), 0),
+  accuracy: fallback(number(), 0),
+  features: fallback(array(string()), []),
+  nEstimators: fallback(number(), 0),
+});
+
+/** Status do Gate 4 (Meta-Labeling). */
+export const derivMetaModelStatusSchema = object({
+  isTrained: fallback(boolean(), false),
+  metadata: fallback(nullable(derivMetaModelMetadataSchema), null),
+  totalExecutedTrades: fallback(number(), 0),
+  minTradesRequired: fallback(number(), 15),
+});
+
+export type DerivMetaModelStatus = InferOutput<typeof derivMetaModelStatusSchema>;

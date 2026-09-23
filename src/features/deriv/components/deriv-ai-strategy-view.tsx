@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Brain,
   Cpu,
@@ -14,17 +14,16 @@ import {
 import {
   buscarStatusMetaLabeling,
   treinarModeloMetaLabeling,
-  MetaModelStatus,
-} from "../deriv.actions";
+} from "@/features/deriv/deriv.actions";
+import type { DerivMetaModelStatus } from "@/features/deriv/deriv.schema";
 
-export function DerivAiStrategyView() {
-  const [status, setStatus] = useState<MetaModelStatus | null>(null);
+export function DerivAiStrategyView(): React.ReactNode {
+  const [status, setStatus] = useState<DerivMetaModelStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [training, setTraining] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
 
-  const carregarStatus = async () => {
-    setLoading(true);
+  const carregarStatus = async (): Promise<void> => {
     const res = await buscarStatusMetaLabeling();
     if (res.ok) {
       setStatus(res.data);
@@ -32,11 +31,27 @@ export function DerivAiStrategyView() {
     setLoading(false);
   };
 
+  const handleRefresh = async (): Promise<void> => {
+    setLoading(true);
+    await carregarStatus();
+  };
+
   useEffect(() => {
-    void carregarStatus();
+    let ativo = true;
+    const fetchStatus = async (): Promise<void> => {
+      const res = await buscarStatusMetaLabeling();
+      if (ativo) {
+        if (res.ok) setStatus(res.data);
+        setLoading(false);
+      }
+    };
+    void fetchStatus();
+    return () => {
+      ativo = false;
+    };
   }, []);
 
-  const handleTreinar = async () => {
+  const handleTreinar = async (): Promise<void> => {
     setTraining(true);
     setFeedback(null);
     const res = await treinarModeloMetaLabeling();
@@ -81,7 +96,7 @@ export function DerivAiStrategyView() {
               {training ? "Treinando IA..." : "Treinar Cérebro IA"}
             </button>
             <button
-              onClick={carregarStatus}
+              onClick={handleRefresh}
               disabled={loading}
               className="rounded-xl border border-slate-700 bg-slate-900 p-2.5 text-slate-300 hover:bg-slate-800"
               title="Atualizar Status"
