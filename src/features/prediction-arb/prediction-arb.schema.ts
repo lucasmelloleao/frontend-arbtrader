@@ -213,6 +213,25 @@ const predictionMetaFeatureImportanceSchema = object({
   description: fallback(string(), ""),
 });
 
+const predictionMetaDatasetSampleSchema = object({
+  id: fallback(string(), ""),
+  question: fallback(string(), ""),
+  slug: optional(string()),
+  side: fallback(string(), "YES"),
+  pnl: fallback(number(), 0),
+  isWin: fallback(boolean(), false),
+  er: fallback(number(), 0),
+  varianceRatio: fallback(number(), 1.0),
+  spotDistancePct: fallback(number(), 0),
+  atrPct: fallback(number(), 0),
+  expectedValue: fallback(number(), 0),
+  edgePct: fallback(number(), 0),
+  entryPrice: fallback(number(), 0),
+  segsRestantes: fallback(number(), 0),
+  probWin: fallback(number(), 50),
+  openedAt: fallback(string(), ""),
+});
+
 const predictionMetaModelMetadataSchema = object({
   trainedAt: fallback(string(), ""),
   samplesCount: fallback(number(), 0),
@@ -221,6 +240,7 @@ const predictionMetaModelMetadataSchema = object({
   features: fallback(array(string()), []),
   nEstimators: fallback(number(), 0),
   featureImportance: fallback(array(predictionMetaFeatureImportanceSchema), []),
+  recentDatasetSamples: optional(array(predictionMetaDatasetSampleSchema)),
 });
 
 /** Status do Gate 4 (Meta-Labeling) da Polymarket. */

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Activity, ShieldCheck } from "lucide-react";
 import { FxProBoard } from "@/features/fxpro/components/fxpro-board";
 import { FxProSettingsPanel } from "@/features/fxpro/components/fxpro-settings-panel";
+import { FxProTerminalLogs } from "@/features/fxpro/components/fxpro-terminal-logs";
 import {
   buscarEstrategiasFxPro,
   buscarFxProSettings,
@@ -21,9 +22,7 @@ async function FxProDashboardContent(): Promise<React.ReactNode> {
   ]);
 
   const settings =
-    settingsRes.status === "fulfilled" && settingsRes.value.ok
-      ? settingsRes.value.settings
-      : null;
+    settingsRes.status === "fulfilled" && settingsRes.value.ok ? settingsRes.value.settings : null;
   const strategies =
     strategiesRes.status === "fulfilled" && strategiesRes.value.ok
       ? strategiesRes.value.strategies
@@ -31,15 +30,9 @@ async function FxProDashboardContent(): Promise<React.ReactNode> {
   const trades =
     tradesRes.status === "fulfilled" && tradesRes.value.ok ? tradesRes.value.trades : [];
   const exchangesData = exchangesRes.status === "fulfilled" ? exchangesRes.value : [];
-  const fxProKeys = exchangesData
-    .filter((k) =>
-      ["fxpro", "fxpro-ctrader", "ctrader", "pepperstone"].includes(k.exchangeId),
-    )
-    .map((k) => ({
-      id: k.id,
-      exchangeId: k.exchangeId,
-      nome: k.nome,
-    }));
+  const fxProKeys = exchangesData.filter((k) =>
+    ["fxpro", "fxpro-ctrader", "ctrader", "pepperstone"].includes(k.exchangeId),
+  );
 
   const totalLucro = strategies.reduce((acc, s) => acc + (s.totalProfitUsd || 0), 0);
   const totalTrades = strategies.reduce((acc, s) => acc + (s.totalTrades || 0), 0);
@@ -86,11 +79,10 @@ async function FxProDashboardContent(): Promise<React.ReactNode> {
       </div>
 
       {/* Board com Abas */}
-      <FxProBoard
-        strategies={strategies}
-        trades={trades}
-        exchangeKeys={fxProKeys}
-      />
+      <FxProBoard strategies={strategies} trades={trades} exchangeKeys={fxProKeys} />
+
+      {/* Terminal de Logs ao Vivo */}
+      <FxProTerminalLogs />
     </div>
   );
 }
@@ -101,12 +93,11 @@ export default function FxProPage(): React.ReactNode {
       <div>
         <div className="flex items-center gap-2">
           <Activity className="h-6 w-6 text-indigo-400" />
-          <h1 className="text-2xl font-black tracking-tight text-white">
-            FxPro cTrader Bot
-          </h1>
+          <h1 className="text-2xl font-black tracking-tight text-white">FxPro cTrader Bot</h1>
         </div>
         <p className="mt-1 text-xs text-slate-400">
-          Automação de alta frequência em Forex/CFD com filtros de Random Walk, Kaufman ER e Gate 4 (IA Meta-Labeling).
+          Automação de alta frequência em Forex/CFD com filtros de Random Walk, Kaufman ER e Gate 4
+          (IA Meta-Labeling).
         </p>
       </div>
 

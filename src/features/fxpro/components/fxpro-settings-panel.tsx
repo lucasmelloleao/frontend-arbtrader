@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, Save, Settings, ShieldCheck, Power } from "lucide-react";
+import { ChevronDown, Save, Settings } from "lucide-react";
 import { salvarFxProSettings } from "@/features/fxpro/fxpro.actions";
 import type { FxProSettings } from "@/features/fxpro/fxpro.schema";
 
@@ -23,13 +23,13 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
   const [maxDailyProfit, setMaxDailyProfit] = useState(settings?.maxDailyProfit ?? 100);
   const [defaultLotSize, setDefaultLotSize] = useState(settings?.defaultLotSize ?? 0.01);
   const [defaultLeverage, setDefaultLeverage] = useState(settings?.defaultLeverage ?? 1000);
-  const [globalTrailingStop, setGlobalTrailingStop] = useState(settings?.globalTrailingStop ?? true);
+  const globalTrailingStop = settings?.globalTrailingStop ?? true;
   const [useAiMetaLabeling, setUseAiMetaLabeling] = useState(settings?.useAiMetaLabeling ?? true);
   const [minAiConfidence, setMinAiConfidence] = useState(
-    Math.round((settings?.minAiConfidence ?? 0.55) * 100)
+    Math.round((settings?.minAiConfidence ?? 0.55) * 100),
   );
   const [allowedSymbolsStr, setAllowedSymbolsStr] = useState(
-    (settings?.allowedSymbols ?? ["EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "BTCUSD"]).join(", ")
+    (settings?.allowedSymbols ?? ["EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "BTCUSD"]).join(", "),
   );
 
   const handleSubmit = (e: React.FormEvent): void => {
@@ -47,11 +47,11 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
         accountId,
         isScanningEnabled,
         allowLiveTrading,
-        maxOpenPositions: Number(maxOpenPositions),
-        maxDailyLoss: Number(maxDailyLoss),
-        maxDailyProfit: Number(maxDailyProfit),
-        defaultLotSize: Number(defaultLotSize),
-        defaultLeverage: Number(defaultLeverage),
+        maxOpenPositions,
+        maxDailyLoss,
+        maxDailyProfit,
+        defaultLotSize,
+        defaultLeverage,
         globalTrailingStop,
         useAiMetaLabeling,
         minAiConfidence: Number((minAiConfidence / 100).toFixed(2)),
@@ -108,10 +108,13 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="text-xs font-semibold text-slate-300">Tipo de Conta cTrader</label>
+              <label htmlFor="fxpro-account-type" className="text-xs font-semibold text-slate-300">
+                Tipo de Conta cTrader
+              </label>
               <select
+                id="fxpro-account-type"
                 value={accountType}
-                onChange={(e) => setAccountType(e.target.value as "demo" | "real")}
+                onChange={(e) => setAccountType(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
               >
                 <option value="demo">Demo (Hedging)</option>
@@ -120,8 +123,11 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Número da Conta</label>
+              <label htmlFor="fxpro-account-id" className="text-xs font-semibold text-slate-300">
+                Número da Conta
+              </label>
               <input
+                id="fxpro-account-id"
                 type="text"
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
@@ -131,8 +137,11 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Max Posições Globais</label>
+              <label htmlFor="fxpro-max-positions" className="text-xs font-semibold text-slate-300">
+                Max Posições Globais
+              </label>
               <input
+                id="fxpro-max-positions"
                 type="number"
                 min="1"
                 max="20"
@@ -143,8 +152,11 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Alavancagem Padrão</label>
+              <label htmlFor="fxpro-leverage" className="text-xs font-semibold text-slate-300">
+                Alavancagem Padrão
+              </label>
               <input
+                id="fxpro-leverage"
                 type="number"
                 value={defaultLeverage}
                 onChange={(e) => setDefaultLeverage(Number(e.target.value))}
@@ -154,8 +166,11 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Stop Loss Diário ($)</label>
+              <label htmlFor="fxpro-daily-loss" className="text-xs font-semibold text-slate-300">
+                Stop Loss Diário ($)
+              </label>
               <input
+                id="fxpro-daily-loss"
                 type="number"
                 value={maxDailyLoss}
                 onChange={(e) => setMaxDailyLoss(Number(e.target.value))}
@@ -164,8 +179,11 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Meta Diária de Lucro ($)</label>
+              <label htmlFor="fxpro-daily-profit" className="text-xs font-semibold text-slate-300">
+                Meta Diária de Lucro ($)
+              </label>
               <input
+                id="fxpro-daily-profit"
                 type="number"
                 value={maxDailyProfit}
                 onChange={(e) => setMaxDailyProfit(Number(e.target.value))}
@@ -174,8 +192,11 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Lote Padrão</label>
+              <label htmlFor="fxpro-default-lot" className="text-xs font-semibold text-slate-300">
+                Lote Padrão
+              </label>
               <input
+                id="fxpro-default-lot"
                 type="number"
                 step="0.01"
                 min="0.01"
@@ -186,8 +207,11 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Confiança Mínima da IA (%)</label>
+              <label htmlFor="fxpro-min-ai-conf" className="text-xs font-semibold text-slate-300">
+                Confiança Mínima da IA (%)
+              </label>
               <input
+                id="fxpro-min-ai-conf"
                 type="number"
                 min="50"
                 max="95"
@@ -199,10 +223,11 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300">
+            <label htmlFor="fxpro-allowed-symbols" className="text-xs font-semibold text-slate-300">
               Pares Autorizados para Monitoramento Automático
             </label>
             <input
+              id="fxpro-allowed-symbols"
               type="text"
               value={allowedSymbolsStr}
               onChange={(e) => setAllowedSymbolsStr(e.target.value)}

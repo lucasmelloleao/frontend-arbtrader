@@ -317,11 +317,7 @@ export function DerivAiStrategyView(): React.ReactNode {
                       {(row.tickVolatility * 100).toFixed(2)}%
                     </td>
                     <td className="p-3 font-mono font-bold">
-                      <span
-                        className={
-                          row.probWin >= 55 ? "text-emerald-400" : "text-amber-400"
-                        }
-                      >
+                      <span className={row.probWin >= 55 ? "text-emerald-400" : "text-amber-400"}>
                         {row.probWin}%
                       </span>
                     </td>

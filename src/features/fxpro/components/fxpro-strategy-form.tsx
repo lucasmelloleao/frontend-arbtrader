@@ -25,22 +25,23 @@ const PARES_FOREX = [
   "BTCUSD",
 ];
 
+const EMPTY_EXCHANGE_KEYS: readonly { id: string; exchangeId: string; nome: string }[] = [];
+
 export function FxProStrategyForm({
-  exchangeKeys = [],
+  exchangeKeys: _exchangeKeys = EMPTY_EXCHANGE_KEYS,
   onFechar,
 }: FxProStrategyFormProps): React.ReactNode {
   const [isPending, startTransition] = useTransition();
   const [nome, setNome] = useState("");
   const [symbol, setSymbol] = useState("EURUSD");
-  const [exchangeKeyId, setExchangeKeyId] = useState(exchangeKeys[0]?.id || "");
   const [timeframe, setTimeframe] = useState("5m");
   const [lotSize, setLotSize] = useState(0.01);
-  const [leverage, setLeverage] = useState(1000);
+  const leverage = 1000;
   const [takeProfitPips, setTakeProfitPips] = useState(20);
   const [stopLossPips, setStopLossPips] = useState(15);
   const [trailingStopPips, setTrailingStopPips] = useState(10);
   const [minVarianceRatio, setMinVarianceRatio] = useState(1.08);
-  const [minEfficiencyRatio, setMinEfficiencyRatio] = useState(0.35);
+  const minEfficiencyRatio = 0.35;
   const [maxSpreadPips, setMaxSpreadPips] = useState(2.5);
   const [useAiMetaLabeling, setUseAiMetaLabeling] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -53,14 +54,14 @@ export function FxProStrategyForm({
       name: nome.trim() || `Robô FxPro ${symbol}`,
       symbol,
       timeframe,
-      lotSize: Number(lotSize),
-      leverage: Number(leverage),
-      takeProfitPips: Number(takeProfitPips),
-      stopLossPips: Number(stopLossPips),
-      trailingStopPips: Number(trailingStopPips),
-      minVarianceRatio: Number(minVarianceRatio),
-      minEfficiencyRatio: Number(minEfficiencyRatio),
-      maxSpreadPips: Number(maxSpreadPips),
+      lotSize,
+      leverage,
+      takeProfitPips,
+      stopLossPips,
+      trailingStopPips,
+      minVarianceRatio,
+      minEfficiencyRatio,
+      maxSpreadPips,
       useAiMetaLabeling,
     };
 
@@ -78,11 +79,7 @@ export function FxProStrategyForm({
     <div className="rounded-xl border border-indigo-500/30 bg-slate-950/90 p-5 shadow-2xl backdrop-blur">
       <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3">
         <h3 className="text-sm font-bold text-white">Criar Nova Estratégia FxPro cTrader</h3>
-        <button
-          type="button"
-          onClick={onFechar}
-          className="text-slate-400 hover:text-white"
-        >
+        <button type="button" onClick={onFechar} className="text-slate-400 hover:text-white">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -96,10 +93,11 @@ export function FxProStrategyForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
           <div>
-            <label className="text-[11px] font-bold text-slate-300 uppercase">
+            <label htmlFor="fxpro-nome" className="text-[11px] font-bold text-slate-300 uppercase">
               Nome da Estratégia
             </label>
             <input
+              id="fxpro-nome"
               type="text"
               placeholder={`Ex: Scalper ${symbol}`}
               value={nome}
@@ -109,8 +107,14 @@ export function FxProStrategyForm({
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-300 uppercase">Par Forex / CFD</label>
+            <label
+              htmlFor="fxpro-symbol"
+              className="text-[11px] font-bold text-slate-300 uppercase"
+            >
+              Par Forex / CFD
+            </label>
             <select
+              id="fxpro-symbol"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
               className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
@@ -124,8 +128,14 @@ export function FxProStrategyForm({
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-300 uppercase">Timeframe</label>
+            <label
+              htmlFor="fxpro-timeframe"
+              className="text-[11px] font-bold text-slate-300 uppercase"
+            >
+              Timeframe
+            </label>
             <select
+              id="fxpro-timeframe"
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
               className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
@@ -138,8 +148,11 @@ export function FxProStrategyForm({
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-300 uppercase">Lote Inicial</label>
+            <label htmlFor="fxpro-lote" className="text-[11px] font-bold text-slate-300 uppercase">
+              Lote Inicial
+            </label>
             <input
+              id="fxpro-lote"
               type="number"
               step="0.01"
               min="0.01"
@@ -150,8 +163,11 @@ export function FxProStrategyForm({
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-300 uppercase">Take Profit (Pips)</label>
+            <label htmlFor="fxpro-tp" className="text-[11px] font-bold text-slate-300 uppercase">
+              Take Profit (Pips)
+            </label>
             <input
+              id="fxpro-tp"
               type="number"
               value={takeProfitPips}
               onChange={(e) => setTakeProfitPips(Number(e.target.value))}
@@ -160,8 +176,11 @@ export function FxProStrategyForm({
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-300 uppercase">Stop Loss (Pips)</label>
+            <label htmlFor="fxpro-sl" className="text-[11px] font-bold text-slate-300 uppercase">
+              Stop Loss (Pips)
+            </label>
             <input
+              id="fxpro-sl"
               type="number"
               value={stopLossPips}
               onChange={(e) => setStopLossPips(Number(e.target.value))}
@@ -170,8 +189,14 @@ export function FxProStrategyForm({
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-300 uppercase">Trailing Stop (Pips)</label>
+            <label
+              htmlFor="fxpro-trailing"
+              className="text-[11px] font-bold text-slate-300 uppercase"
+            >
+              Trailing Stop (Pips)
+            </label>
             <input
+              id="fxpro-trailing"
               type="number"
               value={trailingStopPips}
               onChange={(e) => setTrailingStopPips(Number(e.target.value))}
@@ -180,8 +205,11 @@ export function FxProStrategyForm({
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-300 uppercase">Filtro Random Walk (VR)</label>
+            <label htmlFor="fxpro-vr" className="text-[11px] font-bold text-slate-300 uppercase">
+              Filtro Random Walk (VR)
+            </label>
             <input
+              id="fxpro-vr"
               type="number"
               step="0.01"
               value={minVarianceRatio}
@@ -191,8 +219,14 @@ export function FxProStrategyForm({
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-300 uppercase">Max Spread (Pips)</label>
+            <label
+              htmlFor="fxpro-spread"
+              className="text-[11px] font-bold text-slate-300 uppercase"
+            >
+              Max Spread (Pips)
+            </label>
             <input
+              id="fxpro-spread"
               type="number"
               step="0.1"
               value={maxSpreadPips}

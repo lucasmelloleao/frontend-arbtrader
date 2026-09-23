@@ -17,14 +17,14 @@ export function FxProStrategyModal({
   const [isPending, startTransition] = useTransition();
   const [nome, setNome] = useState(strategy.name);
   const [lotSize, setLotSize] = useState(strategy.lotSize);
-  const [leverage, setLeverage] = useState(strategy.leverage);
+  const leverage = strategy.leverage;
   const [timeframe, setTimeframe] = useState(strategy.timeframe);
   const [takeProfitPips, setTakeProfitPips] = useState(strategy.takeProfitPips);
   const [stopLossPips, setStopLossPips] = useState(strategy.stopLossPips);
   const [trailingStopPips, setTrailingStopPips] = useState(strategy.trailingStopPips);
   const [minVarianceRatio, setMinVarianceRatio] = useState(strategy.minVarianceRatio);
-  const [minEfficiencyRatio, setMinEfficiencyRatio] = useState(strategy.minEfficiencyRatio);
-  const [maxSpreadPips, setMaxSpreadPips] = useState(strategy.maxSpreadPips);
+  const minEfficiencyRatio = strategy.minEfficiencyRatio;
+  const maxSpreadPips = strategy.maxSpreadPips;
   const [useAiMetaLabeling, setUseAiMetaLabeling] = useState(strategy.useAiMetaLabeling);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -38,14 +38,14 @@ export function FxProStrategyModal({
         name: nome,
         symbol: strategy.symbol,
         timeframe,
-        lotSize: Number(lotSize),
-        leverage: Number(leverage),
-        takeProfitPips: Number(takeProfitPips),
-        stopLossPips: Number(stopLossPips),
-        trailingStopPips: Number(trailingStopPips),
-        minVarianceRatio: Number(minVarianceRatio),
-        minEfficiencyRatio: Number(minEfficiencyRatio),
-        maxSpreadPips: Number(maxSpreadPips),
+        lotSize,
+        leverage,
+        takeProfitPips,
+        stopLossPips,
+        trailingStopPips,
+        minVarianceRatio,
+        minEfficiencyRatio,
+        maxSpreadPips,
         useAiMetaLabeling,
       });
 
@@ -65,11 +65,7 @@ export function FxProStrategyModal({
             <h3 className="text-base font-bold text-white">Configurar Ativo {strategy.symbol}</h3>
             <p className="text-xs text-slate-400">Ajuste os parâmetros exclusivos para este par</p>
           </div>
-          <button
-            type="button"
-            onClick={onFechar}
-            className="text-slate-400 hover:text-white"
-          >
+          <button type="button" onClick={onFechar} className="text-slate-400 hover:text-white">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -83,8 +79,11 @@ export function FxProStrategyModal({
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="text-xs font-semibold text-slate-300">Nome da Estratégia</label>
+              <label htmlFor="modal-nome" className="text-xs font-semibold text-slate-300">
+                Nome da Estratégia
+              </label>
               <input
+                id="modal-nome"
                 type="text"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
@@ -93,8 +92,11 @@ export function FxProStrategyModal({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Timeframe</label>
+              <label htmlFor="modal-timeframe" className="text-xs font-semibold text-slate-300">
+                Timeframe
+              </label>
               <select
+                id="modal-timeframe"
                 value={timeframe}
                 onChange={(e) => setTimeframe(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
@@ -107,8 +109,11 @@ export function FxProStrategyModal({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Lote por Operação</label>
+              <label htmlFor="modal-lote" className="text-xs font-semibold text-slate-300">
+                Lote por Operação
+              </label>
               <input
+                id="modal-lote"
                 type="number"
                 step="0.01"
                 min="0.01"
@@ -119,8 +124,11 @@ export function FxProStrategyModal({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Take Profit (Pips)</label>
+              <label htmlFor="modal-tp" className="text-xs font-semibold text-slate-300">
+                Take Profit (Pips)
+              </label>
               <input
+                id="modal-tp"
                 type="number"
                 value={takeProfitPips}
                 onChange={(e) => setTakeProfitPips(Number(e.target.value))}
@@ -129,8 +137,11 @@ export function FxProStrategyModal({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Stop Loss (Pips)</label>
+              <label htmlFor="modal-sl" className="text-xs font-semibold text-slate-300">
+                Stop Loss (Pips)
+              </label>
               <input
+                id="modal-sl"
                 type="number"
                 value={stopLossPips}
                 onChange={(e) => setStopLossPips(Number(e.target.value))}
@@ -139,8 +150,11 @@ export function FxProStrategyModal({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Trailing Stop (Pips)</label>
+              <label htmlFor="modal-trailing" className="text-xs font-semibold text-slate-300">
+                Trailing Stop (Pips)
+              </label>
               <input
+                id="modal-trailing"
                 type="number"
                 value={trailingStopPips}
                 onChange={(e) => setTrailingStopPips(Number(e.target.value))}
@@ -149,8 +163,11 @@ export function FxProStrategyModal({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300">Random Walk (VR Mínimo)</label>
+              <label htmlFor="modal-vr" className="text-xs font-semibold text-slate-300">
+                Random Walk (VR Mínimo)
+              </label>
               <input
+                id="modal-vr"
                 type="number"
                 step="0.01"
                 value={minVarianceRatio}

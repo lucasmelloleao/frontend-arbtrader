@@ -11,6 +11,9 @@ import {
   BarChart2,
   ShieldAlert,
   Activity,
+  Layers,
+  Check,
+  X,
 } from "lucide-react";
 import {
   buscarStatusMetaLabelingPolymarket,
@@ -75,6 +78,7 @@ export function PredictionAiStrategyView(): React.ReactNode {
     { feature: "Preço de Entrada", importance: 8, description: "Cotação da Opção" },
     { feature: "Segundos para Vencimento", importance: 6, description: "Tempo Restante (<= 1h)" },
   ];
+  const datasetSamples = status?.metadata?.recentDatasetSamples || [];
 
   return (
     <div className="space-y-6">
@@ -90,8 +94,9 @@ export function PredictionAiStrategyView(): React.ReactNode {
             </div>
             <p className="max-w-2xl text-xs leading-relaxed text-slate-300">
               Random Forest não-linear com 100 árvores de decisão. Atua como um{" "}
-              <strong>Filtro Guardião de Risco</strong>: avalia a probabilidade real de vitória de cada
-              aposta direcional na Polymarket (sub-1h) e veta ordens com armadilhas de reversão.
+              <strong>Filtro Guardião de Risco</strong>: avalia a probabilidade real de vitória de
+              cada aposta direcional na Polymarket (sub-1h) e veta ordens com armadilhas de
+              reversão.
             </p>
           </div>
 
@@ -208,37 +213,136 @@ export function PredictionAiStrategyView(): React.ReactNode {
         </div>
 
         <div className="mt-6 space-y-3.5">
-          {featureList.map((item: { feature: string; importance: number; description: string }, idx: number) => {
-            const colors = [
-              "bg-gradient-to-r from-purple-500 to-indigo-400",
-              "bg-gradient-to-r from-cyan-500 to-teal-400",
-              "bg-gradient-to-r from-emerald-500 to-teal-400",
-              "bg-gradient-to-r from-amber-500 to-orange-400",
-              "bg-gradient-to-r from-pink-500 to-rose-400",
-              "bg-gradient-to-r from-blue-500 to-cyan-400",
-              "bg-gradient-to-r from-slate-500 to-slate-400",
-            ];
-            const barColor = colors[idx % colors.length];
+          {featureList.map(
+            (item: { feature: string; importance: number; description: string }, idx: number) => {
+              const colors = [
+                "bg-gradient-to-r from-purple-500 to-indigo-400",
+                "bg-gradient-to-r from-cyan-500 to-teal-400",
+                "bg-gradient-to-r from-emerald-500 to-teal-400",
+                "bg-gradient-to-r from-amber-500 to-orange-400",
+                "bg-gradient-to-r from-pink-500 to-rose-400",
+                "bg-gradient-to-r from-blue-500 to-cyan-400",
+                "bg-gradient-to-r from-slate-500 to-slate-400",
+              ];
+              const barColor = colors[idx % colors.length];
 
-            return (
-              <div key={item.feature} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-white">{item.feature}</span>
-                    <span className="text-[11px] text-slate-400">({item.description})</span>
+              return (
+                <div key={item.feature} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-white">{item.feature}</span>
+                      <span className="text-[11px] text-slate-400">({item.description})</span>
+                    </div>
+                    <span className="font-mono font-bold text-purple-400">{item.importance}%</span>
                   </div>
-                  <span className="font-mono font-bold text-purple-400">{item.importance}%</span>
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-900">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${barColor}`}
+                      style={{ width: `${Math.max(item.importance * 3.5, 4)}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-900">
-                  <div
-                    className={`h-full rounded-full transition-all duration-700 ${barColor}`}
-                    style={{ width: `${Math.max(item.importance * 3.5, 4)}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
+              );
+            },
+          )}
         </div>
+      </div>
+
+      {/* Tabela do Dataset de Treinamento da IA */}
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex items-center justify-between border-b border-border bg-muted/30 p-4">
+          <div className="flex items-center gap-2">
+            <Layers className="h-4 w-4 text-purple-400" />
+            <h3 className="text-sm font-bold text-white">
+              Tabela de Amostragem do Dataset (Features Gravadas a Cada Operação)
+            </h3>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {datasetSamples.length} amostras recentes analisadas
+          </span>
+        </div>
+
+        {datasetSamples.length === 0 ? (
+          <div className="p-8 text-center text-xs text-muted-foreground">
+            Nenhum dado gravado no dataset ainda. Conforme o robô operar na Polymarket, os snapshots
+            de mercado serão catalogados automaticamente aqui para calibração contínua.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-border bg-slate-900/80 text-[11px] font-semibold uppercase text-slate-400">
+                <tr>
+                  <th className="p-3">Mercado / Pergunta</th>
+                  <th className="p-3">Lado</th>
+                  <th className="p-3">Resultado</th>
+                  <th className="p-3 font-mono">ER</th>
+                  <th className="p-3 font-mono">VR</th>
+                  <th className="p-3 font-mono">Spot Dist (%)</th>
+                  <th className="p-3 font-mono">ATR (%)</th>
+                  <th className="p-3 font-mono">EV ($)</th>
+                  <th className="p-3 font-mono">P(Win) IA</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {datasetSamples.map((row) => (
+                  <tr
+                    key={row.id}
+                    className={`transition-colors hover:bg-muted/30 ${
+                      row.isWin ? "bg-emerald-500/5" : "bg-rose-500/5"
+                    }`}
+                  >
+                    <td
+                      className="max-w-[200px] truncate p-3 font-mono font-medium text-purple-300"
+                      title={row.question}
+                    >
+                      {row.question}
+                    </td>
+                    <td className="p-3">
+                      <span
+                        className={`rounded px-2 py-0.5 text-[10px] font-semibold ${row.side === "YES" ? "bg-emerald-950 text-emerald-300 border border-emerald-800/50" : "bg-rose-950 text-rose-300 border border-rose-800/50"}`}
+                      >
+                        {row.side}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          row.isWin
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : "bg-rose-500/20 text-rose-400"
+                        }`}
+                      >
+                        {row.isWin ? (
+                          <>
+                            <Check className="h-3 w-3" /> WIN (+${row.pnl.toFixed(2)})
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-3 w-3" /> LOSS (-${Math.abs(row.pnl).toFixed(2)})
+                          </>
+                        )}
+                      </span>
+                    </td>
+                    <td className="p-3 font-mono text-slate-300">{row.er.toFixed(2)}</td>
+                    <td className="p-3 font-mono text-slate-300">{row.varianceRatio.toFixed(2)}</td>
+                    <td className="p-3 font-mono text-slate-300">
+                      {row.spotDistancePct.toFixed(2)}%
+                    </td>
+                    <td className="p-3 font-mono text-slate-300">{row.atrPct.toFixed(2)}%</td>
+                    <td className="p-3 font-mono text-slate-300">
+                      ${row.expectedValue.toFixed(2)}
+                    </td>
+                    <td className="p-3 font-mono font-bold">
+                      <span className={row.probWin >= 55 ? "text-emerald-400" : "text-amber-400"}>
+                        {row.probWin}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Explicação Teórica do Gate 4 */}
@@ -251,19 +355,22 @@ export function PredictionAiStrategyView(): React.ReactNode {
           <div className="rounded-lg bg-slate-900/60 p-3">
             <span className="font-bold text-cyan-400">1. Veto Anti-Armadilha</span>
             <p className="mt-1 text-slate-400">
-              Impede entradas quando a cotação da opção está inflada mas o preço spot colou no strike com volatilidade alta.
+              Impede entradas quando a cotação da opção está inflada mas o preço spot colou no
+              strike com volatilidade alta.
             </p>
           </div>
           <div className="rounded-lg bg-slate-900/60 p-3">
             <span className="font-bold text-purple-400">2. Exigência de $EV &gt; 0</span>
             <p className="mt-1 text-slate-400">
-              Garante que o retorno oferecido pelo mercado seja estatisticamente superior ao risco assumido antes da execução.
+              Garante que o retorno oferecido pelo mercado seja estatisticamente superior ao risco
+              assumido antes da execução.
             </p>
           </div>
           <div className="rounded-lg bg-slate-900/60 p-3">
             <span className="font-bold text-emerald-400">3. Treinamento Adaptativo</span>
             <p className="mt-1 text-slate-400">
-              Permite retreinar o cérebro da IA com 1 clique usando o histórico real de vitórias e derrotas gravadas no banco.
+              Permite retreinar o cérebro da IA com 1 clique usando o histórico real de vitórias e
+              derrotas gravadas no banco.
             </p>
           </div>
         </div>

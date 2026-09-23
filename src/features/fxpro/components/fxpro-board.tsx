@@ -31,10 +31,12 @@ type FxProBoardProps = {
 
 const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
 
+const EMPTY_EXCHANGE_KEYS: readonly { id: string; exchangeId: string; nome: string }[] = [];
+
 export function FxProBoard({
   strategies,
   trades: initialTrades,
-  exchangeKeys = [],
+  exchangeKeys = EMPTY_EXCHANGE_KEYS,
 }: FxProBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -239,10 +241,7 @@ export function FxProBoard({
             </div>
           ) : (
             monitorando.map((strat) => (
-              <div
-                key={strat.id}
-                className="rounded-xl border border-white/10 bg-slate-950/70 p-4"
-              >
+              <div key={strat.id} className="rounded-xl border border-white/10 bg-slate-950/70 p-4">
                 <div className="flex items-center justify-between">
                   <span className="truncate text-sm font-bold text-white">{strat.name}</span>
                   <div className="flex items-center gap-1.5">
@@ -264,7 +263,11 @@ export function FxProBoard({
                       }`}
                       title={strat.active ? "Pausar" : "Ativar"}
                     >
-                      {strat.active ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+                      {strat.active ? (
+                        <Play className="h-3.5 w-3.5" />
+                      ) : (
+                        <Pause className="h-3.5 w-3.5" />
+                      )}
                     </button>
                     <button
                       type="button"
@@ -296,7 +299,10 @@ export function FxProBoard({
                     Max Spread: <b className="text-white">{strat.maxSpreadPips}p</b>
                   </span>
                   <span className="text-slate-400">
-                    Trades: <b className="text-white">{strat.totalTrades} ({strat.winningTrades}W)</b>
+                    Trades:{" "}
+                    <b className="text-white">
+                      {strat.totalTrades} ({strat.winningTrades}W)
+                    </b>
                   </span>
                 </div>
 
@@ -374,7 +380,9 @@ export function FxProBoard({
                         <span>{t.symbol}</span>
                         <span
                           className={`text-xs px-1.5 py-0.5 rounded ${
-                            t.side === "BUY" ? "bg-emerald-500/20 text-emerald-300" : "bg-rose-500/20 text-rose-300"
+                            t.side === "BUY"
+                              ? "bg-emerald-500/20 text-emerald-300"
+                              : "bg-rose-500/20 text-rose-300"
                           }`}
                         >
                           {t.side}
@@ -396,7 +404,9 @@ export function FxProBoard({
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-500 uppercase">Saída</span>
-                        <div className="font-mono text-slate-300">{t.exitPrice?.toFixed(5) || "—"}</div>
+                        <div className="font-mono text-slate-300">
+                          {t.exitPrice?.toFixed(5) || "—"}
+                        </div>
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-500 uppercase">Lote</span>
@@ -421,10 +431,7 @@ export function FxProBoard({
 
       {/* Modal de Configuração por Ativo */}
       {editingStrategy !== null && (
-        <FxProStrategyModal
-          strategy={editingStrategy}
-          onFechar={() => setEditingStrategy(null)}
-        />
+        <FxProStrategyModal strategy={editingStrategy} onFechar={() => setEditingStrategy(null)} />
       )}
     </div>
   );

@@ -11,7 +11,7 @@ import {
 } from "valibot";
 
 /** Schema de Configurações Globais do Robô FxPro cTrader. */
-export const fxProSettingsSchema = object({
+const fxProSettingsSchema = object({
   accountType: fallback(string(), "demo"),
   accountId: fallback(string(), "10650441"),
   isScanningEnabled: fallback(boolean(), false),
@@ -30,7 +30,7 @@ export const fxProSettingsSchema = object({
 export type FxProSettings = InferOutput<typeof fxProSettingsSchema>;
 
 /** Schema de uma estratégia FxPro cTrader. */
-export const fxProStrategySchema = object({
+const fxProStrategySchema = object({
   id: fallback(string(), ""),
   name: fallback(string(), ""),
   symbol: fallback(string(), "EURUSD"),
@@ -62,11 +62,10 @@ export const fxProStrategySchema = object({
   createdAt: fallback(string(), ""),
 });
 
-export const fxProStrategyListSchema = array(fxProStrategySchema);
 export type FxProStrategy = InferOutput<typeof fxProStrategySchema>;
 
 /** Schema de Métricas de Trade FxPro. */
-export const fxProTradeMetricsSchema = object({
+const fxProTradeMetricsSchema = object({
   er: fallback(number(), 0),
   varianceRatio: fallback(number(), 1.0),
   atrPct: fallback(number(), 0),
@@ -77,7 +76,7 @@ export const fxProTradeMetricsSchema = object({
 });
 
 /** Schema de um Trade FxPro cTrader. */
-export const fxProTradeSchema = object({
+const fxProTradeSchema = object({
   id: fallback(string(), ""),
   strategyId: fallback(string(), ""),
   positionId: fallback(string(), ""),
@@ -106,7 +105,6 @@ export const fxProTradeSchema = object({
   createdAt: fallback(string(), ""),
 });
 
-export const fxProTradeListSchema = array(fxProTradeSchema);
 export type FxProTrade = InferOutput<typeof fxProTradeSchema>;
 
 /** Schema do status da IA Meta-Labeling. */
@@ -114,6 +112,23 @@ const fxProMetaFeatureImportanceSchema = object({
   feature: fallback(string(), ""),
   importance: fallback(number(), 0),
   description: fallback(string(), ""),
+});
+
+const fxProMetaDatasetSampleSchema = object({
+  id: fallback(string(), ""),
+  symbol: fallback(string(), ""),
+  side: fallback(string(), "BUY"),
+  pnl: fallback(number(), 0),
+  pips: fallback(number(), 0),
+  isWin: fallback(boolean(), false),
+  er: fallback(number(), 0),
+  varianceRatio: fallback(number(), 1.0),
+  atrPips: fallback(number(), 0),
+  spreadPips: fallback(number(), 0),
+  expectedValue: fallback(number(), 0),
+  lotSize: fallback(number(), 0.01),
+  probWin: fallback(number(), 50),
+  openedAt: fallback(string(), ""),
 });
 
 const fxProMetaModelMetadataSchema = object({
@@ -124,9 +139,10 @@ const fxProMetaModelMetadataSchema = object({
   features: fallback(array(string()), []),
   nEstimators: fallback(number(), 0),
   featureImportance: fallback(array(fxProMetaFeatureImportanceSchema), []),
+  recentDatasetSamples: optional(array(fxProMetaDatasetSampleSchema)),
 });
 
-export const fxProMetaModelStatusSchema = object({
+const fxProMetaModelStatusSchema = object({
   isTrained: fallback(boolean(), false),
   metadata: fallback(nullable(fxProMetaModelMetadataSchema), null),
   totalExecutedTrades: fallback(number(), 0),

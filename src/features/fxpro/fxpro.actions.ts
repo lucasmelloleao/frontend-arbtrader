@@ -17,9 +17,13 @@ const ERRO_INESPERADO = "Não foi possível concluir a operação. Tente novamen
 /**
  * Busca as configurações globais do robô FxPro.
  */
-export async function buscarFxProSettings(): Promise<{ ok: true; settings: FxProSettings } | { ok: false; erro: string }> {
+export async function buscarFxProSettings(): Promise<
+  { ok: true; settings: FxProSettings } | { ok: false; erro: string }
+> {
   try {
-    const res = await kyServer.get(API_ENDPOINTS.fxpro.settings).json<{ ok: boolean; settings: FxProSettings }>();
+    const res = await kyServer
+      .get(API_ENDPOINTS.fxpro.settings)
+      .json<{ ok: boolean; settings: FxProSettings }>();
     return { ok: true, settings: res.settings };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
@@ -42,9 +46,13 @@ export async function salvarFxProSettings(dados: Partial<FxProSettings>): Promis
 /**
  * Busca a lista de estratégias da FxPro.
  */
-export async function buscarEstrategiasFxPro(): Promise<{ ok: true; strategies: FxProStrategy[] } | { ok: false; erro: string }> {
+export async function buscarEstrategiasFxPro(): Promise<
+  { ok: true; strategies: FxProStrategy[] } | { ok: false; erro: string }
+> {
   try {
-    const res = await kyServer.get(API_ENDPOINTS.fxpro.strategies).json<{ ok: boolean; strategies: FxProStrategy[] }>();
+    const res = await kyServer
+      .get(API_ENDPOINTS.fxpro.strategies)
+      .json<{ ok: boolean; strategies: FxProStrategy[] }>();
     return { ok: true, strategies: res.strategies };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
@@ -93,34 +101,24 @@ export async function alternarEstrategiaFxPro(id: string): Promise<MutacaoResult
 /**
  * Busca trades FxPro por período.
  */
-export async function buscarTradesFxPro(opts: {
-  periodo?: "today" | "7d" | "30d" | "all";
-  symbol?: string;
-} = {}): Promise<{ ok: true; trades: FxProTrade[] } | { ok: false; erro: string }> {
+export async function buscarTradesFxPro(
+  opts: {
+    periodo?: "today" | "7d" | "30d" | "all";
+    symbol?: string;
+  } = {},
+): Promise<{ ok: true; trades: FxProTrade[] } | { ok: false; erro: string }> {
   try {
     const searchParams: Record<string, string> = {};
     if (opts.periodo) searchParams.periodo = opts.periodo;
     if (opts.symbol) searchParams.symbol = opts.symbol;
 
-    const res = await kyServer.get(API_ENDPOINTS.fxpro.trades, { searchParams }).json<{ ok: boolean; trades: FxProTrade[] }>();
+    const res = await kyServer
+      .get(API_ENDPOINTS.fxpro.trades, { searchParams })
+      .json<{ ok: boolean; trades: FxProTrade[] }>();
     return { ok: true, trades: res.trades };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
-}
-
-/**
- * Inicia ou pausa o motor da FxPro.
- */
-export async function alternarMotorFxPro(start: boolean): Promise<MutacaoResult> {
-  try {
-    const endpoint = start ? API_ENDPOINTS.fxpro.botStart : API_ENDPOINTS.fxpro.botStop;
-    await kyServer.post(endpoint).json();
-  } catch (error: unknown) {
-    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
-  }
-  revalidatePath("/dashboard/fxpro");
-  return { ok: true };
 }
 
 /**
@@ -130,7 +128,9 @@ export async function buscarStatusMetaLabelingFxPro(): Promise<
   { ok: true; data: FxProMetaModelStatus } | { ok: false; erro: string }
 > {
   try {
-    const res = await kyServer.get(API_ENDPOINTS.fxpro.metaModelStatus).json<{ ok: boolean; data: FxProMetaModelStatus }>();
+    const res = await kyServer
+      .get(API_ENDPOINTS.fxpro.metaModelStatus)
+      .json<{ ok: boolean; data: FxProMetaModelStatus }>();
     return { ok: true, data: res.data };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
@@ -144,9 +144,39 @@ export async function treinarModeloMetaLabelingFxPro(): Promise<
   { ok: true; message: string } | { ok: false; erro: string }
 > {
   try {
-    const res = await kyServer.post(API_ENDPOINTS.fxpro.metaModelTrain).json<{ ok: boolean; message: string }>();
+    const res = await kyServer
+      .post(API_ENDPOINTS.fxpro.metaModelTrain)
+      .json<{ ok: boolean; message: string }>();
     revalidatePath("/dashboard/fxpro");
     return { ok: true, message: res.message || "IA FxPro treinada com sucesso!" };
+  } catch (error: unknown) {
+    return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
+  }
+}
+
+/**
+ * Busca logs do robô FxPro cTrader.
+ */
+export async function buscarLogsFxPro(
+  lines: number = 150,
+): Promise<{ ok: true; logs: string[] } | { ok: false; erro: string }> {
+  try {
+    const res = await kyServer
+      .get(API_ENDPOINTS.fxpro.logs, {
+        searchParams: { lines: String(lines) },
+      })
+      .json<
+        | { linesCount: number; logs: string[]; timestamp: string }
+        | { success: boolean; data: { logs: string[] } }
+      >();
+
+    if ("logs" in res && Array.isArray(res.logs)) {
+      return { ok: true, logs: res.logs };
+    }
+    if ("data" in res && Array.isArray(res.data.logs)) {
+      return { ok: true, logs: res.data.logs };
+    }
+    return { ok: true, logs: [] };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
