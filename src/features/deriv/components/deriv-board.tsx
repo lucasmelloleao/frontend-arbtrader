@@ -595,9 +595,9 @@ export function DerivBoard({
                       <div className="rounded-lg bg-slate-950/50 p-2">
                         <span className="text-[10px] text-muted-foreground">TP / Stop Loss</span>
                         <p className="font-semibold text-slate-200">
-                          <span className="text-emerald-400">+{strat.minTakeProfitPct ?? 15}%</span>
+                          <span className="text-emerald-400">+{strat.minTakeProfitPct}%</span>
                           {" / "}
-                          <span className="text-rose-400">-{strat.emergencyStopPct ?? 70}%</span>
+                          <span className="text-rose-400">-{strat.emergencyStopPct}%</span>
                         </p>
                       </div>
                     </div>
