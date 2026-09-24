@@ -10,20 +10,7 @@ type FxProStrategyFormProps = {
   onFechar: () => void;
 };
 
-const PARES_FOREX = [
-  "EURUSD",
-  "GBPUSD",
-  "USDJPY",
-  "USDCHF",
-  "AUDUSD",
-  "USDCAD",
-  "NZDUSD",
-  "EURGBP",
-  "EURJPY",
-  "GBPJPY",
-  "XAUUSD",
-  "BTCUSD",
-];
+import { FXPRO_SUPPORTED_MARKETS } from "@/features/fxpro/fxpro-markets";
 
 const EMPTY_EXCHANGE_KEYS: readonly { id: string; exchangeId: string; nome: string }[] = [];
 
@@ -34,6 +21,8 @@ export function FxProStrategyForm({
   const [isPending, startTransition] = useTransition();
   const [nome, setNome] = useState("");
   const [symbol, setSymbol] = useState("EURUSD");
+  const [isCustomSymbol, setIsCustomSymbol] = useState(false);
+  const [customSymbol, setCustomSymbol] = useState("");
   const [timeframe, setTimeframe] = useState("5m");
   const [lotSize, setLotSize] = useState(0.01);
   const leverage = 1000;
@@ -46,13 +35,21 @@ export function FxProStrategyForm({
   const [useAiMetaLabeling, setUseAiMetaLabeling] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  const activeSymbol = (isCustomSymbol ? customSymbol : symbol).trim().toUpperCase() || "EURUSD";
+
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     setErro(null);
 
+    const targetSymbol = activeSymbol;
+    if (!targetSymbol) {
+      setErro("Por favor, selecione ou digite o símbolo do ativo.");
+      return;
+    }
+
     const dados: Partial<FxProStrategy> = {
-      name: nome.trim() || `Robô FxPro ${symbol}`,
-      symbol,
+      name: nome.trim() || `Robô FxPro ${targetSymbol}`,
+      symbol: targetSymbol,
       timeframe,
       lotSize,
       leverage,
@@ -107,24 +104,47 @@ export function FxProStrategyForm({
           </div>
 
           <div>
-            <label
-              htmlFor="fxpro-symbol"
-              className="text-[11px] font-bold text-slate-300 uppercase"
-            >
-              Par Forex / CFD
-            </label>
-            <select
-              id="fxpro-symbol"
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
-            >
-              {PARES_FOREX.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="fxpro-symbol"
+                className="text-[11px] font-bold text-slate-300 uppercase"
+              >
+                Mercado (Forex, CFD, Crypto)
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsCustomSymbol((v) => !v)}
+                className="text-[10px] text-indigo-400 hover:underline"
+              >
+                {isCustomSymbol ? "Lista de Ativos" : "Digitar Símbolo"}
+              </button>
+            </div>
+            {isCustomSymbol ? (
+              <input
+                type="text"
+                value={customSymbol}
+                onChange={(e) => setCustomSymbol(e.target.value.toUpperCase())}
+                placeholder="Ex: EURJPY, NAS100, SOLUSD"
+                className="mt-1 w-full rounded-lg border border-indigo-500/40 bg-slate-900 px-3 py-2 text-xs text-white uppercase placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none"
+              />
+            ) : (
+              <select
+                id="fxpro-symbol"
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
+              >
+                {FXPRO_SUPPORTED_MARKETS.map((cat) => (
+                  <optgroup key={cat.category} label={cat.category} className="bg-slate-950 font-bold text-indigo-300">
+                    {cat.symbols.map((item) => (
+                      <option key={item.symbol} value={item.symbol} className="bg-slate-900 text-white">
+                        {item.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            )}
           </div>
 
           <div>

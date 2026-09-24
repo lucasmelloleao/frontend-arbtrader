@@ -113,7 +113,6 @@ async function TrendGridCarregado(): Promise<React.ReactNode> {
         abertas={abertas.length}
         encerradas={encerradas.length}
         totalPnl={totalPnl}
-        melhorOportunidadePct={null}
       />
 
       <ForexSettingsPanel settings={settingsData} exchangeIds={exchangeIds} />

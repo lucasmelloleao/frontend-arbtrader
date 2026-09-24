@@ -137,7 +137,18 @@ export function ForexSettingsPanel({
           <div>
             <h3 className="text-sm font-bold text-white">Configurações Peperstone Forex</h3>
             <p className="text-xs text-slate-400">
-              Conta: <b className={(formAtual.accountType ?? "demo") === "live" ? "text-rose-400" : "text-emerald-400"}>{(formAtual.accountType ?? "demo").toUpperCase()}</b> {formAtual.accountId ? `(#${formAtual.accountId})` : ""} | Trade Size: <b className="text-white">${formAtual.tradeSize}</b> | Retorno Mín.:{" "}
+              Conta:{" "}
+              <b
+                className={
+                  (formAtual.accountType ?? "demo") === "live"
+                    ? "text-rose-400"
+                    : "text-emerald-400"
+                }
+              >
+                {(formAtual.accountType ?? "demo").toUpperCase()}
+              </b>{" "}
+              {formAtual.accountId ? `(#${formAtual.accountId})` : ""} | Trade Size:{" "}
+              <b className="text-white">${formAtual.tradeSize}</b> | Retorno Mín.:{" "}
               <b className="text-emerald-400">{formAtual.minProfitPct}%</b>
             </p>
           </div>
@@ -201,7 +212,10 @@ export function ForexSettingsPanel({
             </span>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-xs text-slate-300 font-semibold" htmlFor="fx-account-type">
+                <label
+                  className="mb-1 block text-xs text-slate-300 font-semibold"
+                  htmlFor="fx-account-type"
+                >
                   Tipo de Conta cTrader
                 </label>
                 <select
@@ -215,7 +229,10 @@ export function ForexSettingsPanel({
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs text-slate-300 font-semibold" htmlFor="fx-account-id">
+                <label
+                  className="mb-1 block text-xs text-slate-300 font-semibold"
+                  htmlFor="fx-account-id"
+                >
                   Número da Conta cTrader (Account ID / ctidTraderAccountId)
                 </label>
                 <input

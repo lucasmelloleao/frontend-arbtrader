@@ -11,7 +11,6 @@ import {
   CalendarRange,
   ChevronDown,
   ChevronRight,
-  Clock,
   Cpu,
   Globe,
   HelpCircle,
@@ -46,6 +45,7 @@ type SidebarLink = {
  */
 const ESTRATEGIAS_LINKS: readonly SidebarLink[] = [
   { href: "/dashboard/forex-arb", label: "Peperstone Forex", icon: Globe, habilitado: true },
+  { href: "/dashboard/icmarkets", label: "IC Markets cTrader", icon: Activity, habilitado: true },
   { href: "/dashboard/polymarket-arb", label: "Polymarket Arb", icon: Activity, habilitado: true },
   { href: "/dashboard/deriv", label: "Deriv Bot", icon: Activity, habilitado: true },
   { href: "/dashboard/fxpro", label: "FxPro cTrader", icon: Activity, habilitado: true },
@@ -182,9 +182,7 @@ export function DashboardShell({
             const classeBase = `flex items-center rounded-lg text-sm font-medium transition-colors ${
               isCollapsed ? "justify-center py-3" : "gap-3 px-3 py-2.5"
             }`;
-            const iconClass = `h-5 w-5 shrink-0 ${
-              isActive ? "text-white" : "text-slate-500"
-            }`;
+            const iconClass = `h-5 w-5 shrink-0 ${isActive ? "text-white" : "text-slate-500"}`;
 
             return (
               <Link
@@ -233,7 +231,9 @@ export function DashboardShell({
 
             {/* Itens do Submenu de Estratégias */}
             {(isEstrategiasOpen || isCollapsed) && (
-              <div className={`space-y-1 ${!isCollapsed ? "mt-1 pl-2 border-l border-indigo-500/20 ml-2" : ""}`}>
+              <div
+                className={`space-y-1 ${!isCollapsed ? "mt-1 pl-2 border-l border-indigo-500/20 ml-2" : ""}`}
+              >
                 {ESTRATEGIAS_LINKS.map((link) => {
                   const Icon = link.icon;
                   const isActive = pathname === link.href;
@@ -273,9 +273,7 @@ export function DashboardShell({
               const classeBase = `flex items-center rounded-lg text-sm font-medium transition-colors ${
                 isCollapsed ? "justify-center py-3" : "gap-3 px-3 py-2.5"
               }`;
-              const iconClass = `h-5 w-5 shrink-0 ${
-                isActive ? "text-white" : "text-slate-500"
-              }`;
+              const iconClass = `h-5 w-5 shrink-0 ${isActive ? "text-white" : "text-slate-500"}`;
 
               return (
                 <Link
@@ -321,7 +319,9 @@ export function DashboardShell({
 
             {/* Itens do Submenu Em Breve */}
             {(isEmBreveOpen || isCollapsed) && (
-              <div className={`space-y-1 ${!isCollapsed ? "mt-1 pl-2 border-l border-slate-800 ml-2" : ""}`}>
+              <div
+                className={`space-y-1 ${!isCollapsed ? "mt-1 pl-2 border-l border-slate-800 ml-2" : ""}`}
+              >
                 {EM_BREVE_LINKS.map((link) => {
                   const Icon = link.icon;
                   const classeBase = `flex items-center rounded-lg text-sm font-medium transition-colors ${

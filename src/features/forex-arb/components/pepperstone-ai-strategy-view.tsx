@@ -3,25 +3,21 @@
 import { useEffect, useState } from "react";
 import {
   Brain,
-  Cpu,
   Sparkles,
   CheckCircle2,
   AlertTriangle,
   RefreshCw,
   BarChart2,
-  ShieldAlert,
-  Activity,
   Layers,
-  Check,
-  X,
 } from "lucide-react";
 import {
   buscarStatusIaPepperstone,
   treinarIaPepperstone,
 } from "@/features/forex-arb/forex-arb.actions";
+import type { ForexArbAiStatus } from "@/features/forex-arb/forex-arb.schema";
 
 export function PepperstoneAiStrategyView(): React.ReactNode {
-  const [status, setStatus] = useState<any | null>(null);
+  const [status, setStatus] = useState<ForexArbAiStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [training, setTraining] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -72,13 +68,25 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
 
   const features = meta?.featureImportance || [
     { feature: "Kaufman ER", importance: 24, description: "Eficiência de Tendência Forex" },
-    { feature: "Variance Ratio", importance: 21, description: "Detecção de Random Walk / Persistência" },
+    {
+      feature: "Variance Ratio",
+      importance: 21,
+      description: "Detecção de Random Walk / Persistência",
+    },
     { feature: "ATR (Volatilidade)", importance: 16, description: "Range Médio de Volatilidade" },
-    { feature: "Spread (Fricção)", importance: 14, description: "Custo Operacional e Spread cTrader" },
+    {
+      feature: "Spread (Fricção)",
+      importance: 14,
+      description: "Custo Operacional e Spread cTrader",
+    },
     { feature: "Expected Value (EV)", importance: 11, description: "Retorno Matemático Esperado" },
     { feature: "Edge %", importance: 7, description: "Assimetria de Ganho vs Perda" },
     { feature: "Tamanho do Lote", importance: 4, description: "Dimensionamento Fractional Kelly" },
-    { feature: "Horário do Dia (Sessão)", importance: 3, description: "Horário das Sessões Londres / NY" },
+    {
+      feature: "Horário do Dia (Sessão)",
+      importance: 3,
+      description: "Horário das Sessões Londres / NY",
+    },
   ];
 
   return (
@@ -102,8 +110,9 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
                 </span>
               </div>
               <p className="mt-1 text-xs text-slate-400 max-w-2xl">
-                Arquitetura quantitativa inspirada em Marcos López de Prado. A IA avalia a microestrutura
-                de cada ordem Forex/CFD e veta entradas em armadilhas de reversão (probabilidade de vitória &lt; 55%).
+                Arquitetura quantitativa inspirada em Marcos López de Prado. A IA avalia a
+                microestrutura de cada ordem Forex/CFD e veta entradas em armadilhas de reversão
+                (probabilidade de vitória &lt; 55%).
               </p>
             </div>
           </div>
@@ -171,10 +180,15 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
               Acurácia do Modelo
             </span>
             <div className="mt-2 font-mono text-2xl font-black text-white">
-              {meta?.accuracy ? `${(meta.accuracy * 100).toFixed(1)}%` : isTrained ? "92.4%" : "Aguardando"}
+              {meta?.accuracy
+                ? `${(meta.accuracy * 100).toFixed(1)}%`
+                : isTrained
+                  ? "92.4%"
+                  : "Aguardando"}
             </div>
             <p className="mt-1 text-[11px] text-slate-500">
-              WinRate Base: {meta?.winRateBaseline ? `${(meta.winRateBaseline * 100).toFixed(1)}%` : "—"}
+              WinRate Base:{" "}
+              {meta?.winRateBaseline ? `${(meta.winRateBaseline * 100).toFixed(1)}%` : "—"}
             </p>
           </div>
 
@@ -219,8 +233,8 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
           </div>
 
           <div className="mt-4 space-y-3">
-            {features.map((f, idx) => (
-              <div key={idx} className="space-y-1">
+            {features.map((f) => (
+              <div key={f.feature} className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-slate-200">{f.feature}</span>
                   <span className="font-mono text-indigo-400 font-bold">{f.importance}%</span>
@@ -250,41 +264,61 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
             <div className="mt-4 space-y-3">
               <div className="rounded-lg border border-white/5 bg-slate-900/40 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-indigo-300">Gate 1: Variance Ratio (VR)</span>
-                  <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-mono text-indigo-300">VR &gt; 1.08</span>
+                  <span className="font-bold text-xs text-indigo-300">
+                    Gate 1: Variance Ratio (VR)
+                  </span>
+                  <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-mono text-indigo-300">
+                    VR &gt; 1.08
+                  </span>
                 </div>
                 <p className="mt-1 text-[11px] text-slate-400">
-                  Rejeita regimes de Random Walk estocástico puro. Apenas séries temporais com persistência comprovada passam.
+                  Rejeita regimes de Random Walk estocástico puro. Apenas séries temporais com
+                  persistência comprovada passam.
                 </p>
               </div>
 
               <div className="rounded-lg border border-white/5 bg-slate-900/40 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-indigo-300">Gate 2: Kaufman Efficiency Ratio (ER)</span>
-                  <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-mono text-indigo-300">ER &gt; 0.35</span>
+                  <span className="font-bold text-xs text-indigo-300">
+                    Gate 2: Kaufman Efficiency Ratio (ER)
+                  </span>
+                  <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-mono text-indigo-300">
+                    ER &gt; 0.35
+                  </span>
                 </div>
                 <p className="mt-1 text-[11px] text-slate-400">
-                  Mede a razão entre o deslocamento líquido e o caminho total percorrido para filtrar ruído intraday.
+                  Mede a razão entre o deslocamento líquido e o caminho total percorrido para
+                  filtrar ruído intraday.
                 </p>
               </div>
 
               <div className="rounded-lg border border-white/5 bg-slate-900/40 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-indigo-300">Gate 3: Spread & Custo Operacional cTrader</span>
-                  <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-mono text-indigo-300">Spread &lt; 2.5 pips</span>
+                  <span className="font-bold text-xs text-indigo-300">
+                    Gate 3: Spread & Custo Operacional cTrader
+                  </span>
+                  <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-mono text-indigo-300">
+                    Spread &lt; 2.5 pips
+                  </span>
                 </div>
                 <p className="mt-1 text-[11px] text-slate-400">
-                  Garante que o custo de spread + comissão fixa da Pepperstone não corroa o Expected Value positivo da entrada.
+                  Garante que o custo de spread + comissão fixa da Pepperstone não corroa o Expected
+                  Value positivo da entrada.
                 </p>
               </div>
 
               <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-emerald-400">Gate 4: IA Meta-Labeling (Random Forest)</span>
-                  <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-mono text-emerald-300">P(Win) &ge; 55%</span>
+                  <span className="font-bold text-xs text-emerald-400">
+                    Gate 4: IA Meta-Labeling (Random Forest)
+                  </span>
+                  <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-mono text-emerald-300">
+                    P(Win) &ge; 55%
+                  </span>
                 </div>
                 <p className="mt-1 text-[11px] text-slate-400">
-                  Validação final com ensemble de 100 árvores que veta a ordem se a probabilidade estatística de vitória for baixa.
+                  Validação final com ensemble de 100 árvores que veta a ordem se a probabilidade
+                  estatística de vitória for baixa.
                 </p>
               </div>
             </div>

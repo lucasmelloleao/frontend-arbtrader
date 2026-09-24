@@ -113,7 +113,7 @@ export function ForexArbBoard({
 
   // Performance por Ativo (Consulta sob demanda)
   const [perfPeriod, setPerfPeriod] = useState<string>("1h");
-  const [perfTrades, setPerfTrades] = useState<readonly any[]>([]);
+  const [perfTrades, setPerfTrades] = useState<readonly ForexArbTrade[]>([]);
   const [loadingPerf, setLoadingPerf] = useState(false);
   const [perfConsulted, setPerfConsulted] = useState(false);
 
@@ -888,13 +888,16 @@ export function ForexArbBoard({
               >();
 
               closedPerfTrades.forEach((t) => {
-                const sym = t.legs?.[0]?.symbol || t.strategyName?.replace('Scalping ', '').replace(/ \(.*\)/, '') || "OUTROS";
-                const pnl = Number(t.realizedPnl || t.pnl || 0);
+                const sym =
+                  t.legs.at(0)?.symbol ||
+                  t.strategyName.replace("Scalping ", "").replace(/ \(.*\)/, "") ||
+                  "OUTROS";
+                const pnl = t.realizedPnl || 0;
                 const isWin = pnl > 0 || (t.reason && t.reason.toLowerCase().includes("lucro"));
                 const isLoss = pnl < 0 || (t.reason && t.reason.toLowerCase().includes("perda"));
 
                 const entry = symbolMap.get(sym);
-                const vol = Number(t.volume || t.legs?.[0]?.volume || t.amount || 1000);
+                const vol = t.volume || t.legs.at(0)?.volume || t.amount || 1000;
                 if (entry) {
                   entry.totalTrades += 1;
                   if (isWin) entry.wins += 1;
@@ -913,7 +916,7 @@ export function ForexArbBoard({
                 }
               });
 
-              const groupedList = Array.from(symbolMap.values()).sort((a, b) => b.pnl - a.pnl);
+              const groupedList = Array.from(symbolMap.values()).toSorted((a, b) => b.pnl - a.pnl);
               const totalPeriodPnl = groupedList.reduce((acc, i) => acc + i.pnl, 0);
               const totalPeriodTrades = groupedList.reduce((acc, i) => acc + i.totalTrades, 0);
               const totalPeriodWins = groupedList.reduce((acc, i) => acc + i.wins, 0);
@@ -942,7 +945,9 @@ export function ForexArbBoard({
                       <span className="text-[10px] font-semibold uppercase text-slate-400">
                         Total de Trades
                       </span>
-                      <div className="mt-1 font-mono text-xl font-black text-white">{totalPeriodTrades}</div>
+                      <div className="mt-1 font-mono text-xl font-black text-white">
+                        {totalPeriodTrades}
+                      </div>
                     </div>
 
                     <div className="rounded-xl border border-white/10 bg-slate-950/70 p-3 shadow-sm">
@@ -986,7 +991,7 @@ export function ForexArbBoard({
                             const winRateItem =
                               item.totalTrades > 0 ? (item.wins / item.totalTrades) * 100 : 0;
                             const isPositive = item.pnl >= 0;
-                            const isGold = item.symbol.includes('XAU');
+                            const isGold = item.symbol.includes("XAU");
                             const lotes = isGold ? item.volume / 100 : item.volume / 100000;
 
                             return (

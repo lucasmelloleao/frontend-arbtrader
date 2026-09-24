@@ -165,30 +165,37 @@ export async function buscarLogsPrediction(
   }
 }
 
+export type PredictionPeriod =
+  | "5m"
+  | "10m"
+  | "30m"
+  | "1h"
+  | "2h"
+  | "3h"
+  | "5h"
+  | "12h"
+  | "24h"
+  | "today"
+  | "7d"
+  | "30d"
+  | "all";
+
 /**
  * Busca trades com filtro de período ou dia atual.
  */
 export async function buscarTradesPrediction(filtro?: {
-  periodo?: "today" | "7d" | "30d" | "all";
+  periodo?: PredictionPeriod;
   startDate?: string;
   endDate?: string;
 }): Promise<{ ok: true; trades: PredictionArbTrade[] } | { ok: false; erro: string }> {
   try {
     const searchParams: Record<string, string> = {};
-    if (filtro?.periodo === "all") {
-      searchParams.all = "true";
-    } else if (filtro?.periodo === "7d") {
-      const d = new Date();
-      d.setDate(d.getDate() - 7);
-      searchParams.startDate = d.toISOString();
-    } else if (filtro?.periodo === "30d") {
-      const d = new Date();
-      d.setDate(d.getDate() - 30);
-      searchParams.startDate = d.toISOString();
-    } else if (filtro?.startDate || filtro?.endDate) {
-      if (filtro.startDate) searchParams.startDate = filtro.startDate;
-      if (filtro.endDate) searchParams.endDate = filtro.endDate;
+    if (filtro?.periodo) {
+      searchParams.periodo = filtro.periodo;
+      if (filtro.periodo === "all") searchParams.all = "true";
     }
+    if (filtro?.startDate) searchParams.startDate = filtro.startDate;
+    if (filtro?.endDate) searchParams.endDate = filtro.endDate;
 
     const trades = await apiClient(
       kyServer,

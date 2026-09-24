@@ -74,6 +74,7 @@ export const API_ENDPOINTS = {
     criarStrategy: "api/v1/forex-arb/strategies",
     deletarStrategy: "api/v1/forex-arb/strategies",
     listarTrades: "api/v1/forex-arb/trades",
+    balance: "api/v1/forex-arb/balance",
     oportunidades: "api/v1/forex-arb/opportunities",
     settings: "api/v1/forex-arb/settings",
     ctraderCredentials: "api/v1/forex-arb/ctrader-credentials",
@@ -151,5 +152,21 @@ export const API_ENDPOINTS = {
     logs: "api/v1/fxpro/logs",
     balance: "api/v1/fxpro/balance",
     close: "api/v1/fxpro/close",
+  },
+
+  /** Robô Forex / CFD IC Markets cTrader (ic.com). */
+  icmarkets: {
+    settings: "api/v1/icmarkets/settings",
+    strategies: "api/v1/icmarkets/strategies",
+    toggle: (id: string) => `api/v1/icmarkets/strategies/${id}/toggle`,
+    trades: "api/v1/icmarkets/trades",
+    botStatus: "api/v1/icmarkets/bot/status",
+    botStart: "api/v1/icmarkets/bot/start",
+    botStop: "api/v1/icmarkets/bot/stop",
+    metaModelStatus: "api/v1/icmarkets/meta-model/status",
+    metaModelTrain: "api/v1/icmarkets/meta-model/train",
+    logs: "api/v1/icmarkets/logs",
+    balance: "api/v1/icmarkets/balance",
+    close: "api/v1/icmarkets/close",
   },
 } as const;

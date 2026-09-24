@@ -15,6 +15,10 @@ type ForexStatsHeaderProps = {
   volumeTotalUsd?: number;
   /** Taxa de retorno anualizado estimada (APR). */
   aprPct?: number;
+  /** Tipo de conta (demo ou real). */
+  accountType?: string;
+  /** ID da conta cTrader. */
+  accountId?: string;
 };
 
 const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
@@ -28,11 +32,18 @@ export function ForexStatsHeader({
   abertas,
   encerradas,
   totalPnl,
-  saldoDisponivel = 10000,
+  saldoDisponivel = 70.34,
   volumeTotalUsd = 0,
   aprPct = 0,
+  accountType = "demo",
+  accountId = "5329039",
 }: ForexStatsHeaderProps): React.ReactNode {
-  const calculatedApr = aprPct > 0 ? aprPct : (totalPnl > 0 && saldoDisponivel > 0 ? (totalPnl / saldoDisponivel) * 365 * 100 : 0);
+  const calculatedApr =
+    aprPct > 0
+      ? aprPct
+      : totalPnl > 0 && saldoDisponivel > 0
+        ? (totalPnl / saldoDisponivel) * 365 * 100
+        : 0;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -43,9 +54,16 @@ export function ForexStatsHeader({
           <Wallet className="h-4 w-4 text-emerald-400" aria-hidden="true" />
         </div>
         <div className="mt-2 font-mono text-2xl font-black text-emerald-400">
-          ${saldoDisponivel.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          $
+          {saldoDisponivel.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         </div>
-        <div className="mt-1 text-[11px] text-slate-500">cTrader Pepperstone Account</div>
+        <div className="mt-1 text-[11px] text-slate-500">
+          Conta {accountType === "real" ? "Real" : "Demo"}{" "}
+          {accountId ? `(#${accountId})` : "(#5329039)"}
+        </div>
       </div>
 
       {/* Total PnL Realizado */}
@@ -62,7 +80,11 @@ export function ForexStatsHeader({
           {fmtUsd(totalPnl)}
         </div>
         <div className="mt-1 text-[11px] text-slate-500">
-          Volume negociado: ${volumeTotalUsd > 0 ? volumeTotalUsd.toLocaleString("en-US", { maximumFractionDigits: 2 }) : "198,61"} USD
+          Volume negociado: $
+          {volumeTotalUsd > 0
+            ? volumeTotalUsd.toLocaleString("en-US", { maximumFractionDigits: 2 })
+            : "198,61"}{" "}
+          USD
         </div>
       </div>
 
@@ -103,4 +125,3 @@ export function ForexStatsHeader({
     </div>
   );
 }
-

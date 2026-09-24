@@ -222,17 +222,66 @@ export function FxProSettingsPanel({ settings }: FxProSettingsPanelProps): React
             </div>
           </div>
 
-          <div>
-            <label htmlFor="fxpro-allowed-symbols" className="text-xs font-semibold text-slate-300">
-              Pares Autorizados para Monitoramento Automático
-            </label>
+          {/* Mercados e Ativos Permitidos */}
+          <div className="space-y-2 border-t border-white/5 pt-3">
+            <div className="flex items-center justify-between">
+              <label htmlFor="fxpro-allowed-symbols" className="text-xs font-semibold text-slate-300">
+                Mercados & Símbolos Permitidos (Separados por vírgula)
+              </label>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const set = new Set(allowedSymbolsStr.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean));
+                    ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD"].forEach((s) => set.add(s));
+                    setAllowedSymbolsStr(Array.from(set).join(", "));
+                  }}
+                  className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-indigo-300 hover:bg-slate-700"
+                >
+                  + Forex Majors
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const set = new Set(allowedSymbolsStr.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean));
+                    ["EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "CADJPY", "CHFJPY", "EURAUD", "AUDCAD"].forEach((s) => set.add(s));
+                    setAllowedSymbolsStr(Array.from(set).join(", "));
+                  }}
+                  className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-indigo-300 hover:bg-slate-700"
+                >
+                  + Forex Minors
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const set = new Set(allowedSymbolsStr.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean));
+                    ["US30", "NAS100", "US500", "GER40", "UK100", "JP225", "XAUUSD"].forEach((s) => set.add(s));
+                    setAllowedSymbolsStr(Array.from(set).join(", "));
+                  }}
+                  className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-indigo-300 hover:bg-slate-700"
+                >
+                  + Índices/CFDs
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const set = new Set(allowedSymbolsStr.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean));
+                    ["BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD", "DOGEUSD", "LTCUSD"].forEach((s) => set.add(s));
+                    setAllowedSymbolsStr(Array.from(set).join(", "));
+                  }}
+                  className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-indigo-300 hover:bg-slate-700"
+                >
+                  + Cryptos
+                </button>
+              </div>
+            </div>
             <input
               id="fxpro-allowed-symbols"
               type="text"
               value={allowedSymbolsStr}
-              onChange={(e) => setAllowedSymbolsStr(e.target.value)}
-              placeholder="EURUSD, GBPUSD, USDJPY, XAUUSD, BTCUSD"
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
+              onChange={(e) => setAllowedSymbolsStr(e.target.value.toUpperCase())}
+              placeholder="EURUSD, GBPUSD, EURJPY, US30, NAS100, BTCUSD, ETHUSD, SOLUSD"
+              className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-xs font-mono text-white focus:border-indigo-500 focus:outline-none"
             />
           </div>
 

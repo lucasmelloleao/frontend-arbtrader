@@ -7,7 +7,10 @@ import {
   forexArbLogsSchema,
   type AtualizarForexSettingsInput,
   type CriarForexStrategyInput,
+  type ForexArbAiMetadata,
+  type ForexArbAiStatus,
   type ForexArbLogs,
+  type ForexArbTrade,
 } from "@/features/forex-arb/forex-arb.schema";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
@@ -180,16 +183,16 @@ export async function deletarTodasOperacoes(botType?: string): Promise<MutacaoRe
 export async function buscarTradesPorPeriodo(
   periodo: string,
   symbol?: string,
-): Promise<{ ok: true; data: any[] } | { ok: false; erro: string }> {
+): Promise<{ ok: true; data: readonly ForexArbTrade[] } | { ok: false; erro: string }> {
   try {
     const searchParams: Record<string, string> = { periodo };
     if (symbol) searchParams.symbol = symbol;
 
     const res = await kyServer
       .get(API_ENDPOINTS.forexArb.listarTrades, { searchParams })
-      .json<{ success: boolean; data: any[] }>();
+      .json<{ success: boolean; data: ForexArbTrade[] }>();
 
-    return { ok: true, data: res.data || [] };
+    return { ok: true, data: res.data };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
@@ -199,10 +202,12 @@ export async function buscarTradesPorPeriodo(
  * Busca o status do modelo de IA Meta-Labeling da Pepperstone.
  */
 export async function buscarStatusIaPepperstone(): Promise<
-  { ok: true; data: any } | { ok: false; erro: string }
+  { ok: true; data: ForexArbAiStatus } | { ok: false; erro: string }
 > {
   try {
-    const res = await kyServer.get(API_ENDPOINTS.forexArb.aiStatus).json<{ ok: boolean; data: any }>();
+    const res = await kyServer
+      .get(API_ENDPOINTS.forexArb.aiStatus)
+      .json<{ ok: boolean; data: ForexArbAiStatus }>();
     return { ok: true, data: res.data };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
@@ -213,16 +218,15 @@ export async function buscarStatusIaPepperstone(): Promise<
  * Treina o cérebro de IA Meta-Labeling da Pepperstone.
  */
 export async function treinarIaPepperstone(): Promise<
-  { ok: true; message: string; metadata?: any } | { ok: false; erro: string }
+  { ok: true; message: string; metadata?: ForexArbAiMetadata } | { ok: false; erro: string }
 > {
   try {
     const res = await kyServer
       .post(API_ENDPOINTS.forexArb.aiTrain)
-      .json<{ ok: boolean; message: string; metadata?: any }>();
+      .json<{ ok: boolean; message: string; metadata?: ForexArbAiMetadata }>();
     revalidatePath("/dashboard/forex-arb");
     return { ok: true, message: res.message, metadata: res.metadata };
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
 }
-

@@ -204,6 +204,32 @@ export const forexArbTradeListSchema = array(forexArbTradeSchema);
 /** Lista de oportunidades (data do GET — mesmo shape do trade). */
 export const forexArbOpportunityListSchema = array(forexArbTradeSchema);
 
+/** Item de importância de feature do modelo IA Pepperstone. */
+type ForexArbFeatureImportance = {
+  feature: string;
+  importance: number;
+  description: string;
+};
+
+/** Metadados do modelo IA Meta-Labeling da Pepperstone (Gate 4). */
+export type ForexArbAiMetadata = {
+  trainedAt: string;
+  samplesCount: number;
+  winRateBaseline: number;
+  accuracy: number;
+  features: string[];
+  nEstimators: number;
+  featureImportance?: ForexArbFeatureImportance[];
+};
+
+/** Status do modelo IA Meta-Labeling da Pepperstone (data do GET ai/status). */
+export type ForexArbAiStatus = {
+  isTrained: boolean;
+  metadata: ForexArbAiMetadata | null;
+  totalExecutedTrades: number;
+  minTradesRequired: number;
+};
+
 /** Perfil de configuração por par (overrides do `symbolProfiles`). */
 const forexSymbolProfileSchema = object({
   enabled: optional(boolean()),
@@ -331,3 +357,15 @@ export const forexArbLivePricesSchema = record(
 
 /** Tipo dos preços ao vivo. */
 export type ForexArbLivePrices = InferOutput<typeof forexArbLivePricesSchema>;
+
+/** Saldo da conta cTrader Pepperstone (data do GET /forex-arb/balance). */
+export const forexBalanceSchema = object({
+  balance: number(),
+  equity: number(),
+  currency: string(),
+  accountType: string(),
+  accountId: string(),
+});
+
+/** Tipo do saldo retornado da cTrader Pepperstone. */
+export type ForexBalance = InferOutput<typeof forexBalanceSchema>;
