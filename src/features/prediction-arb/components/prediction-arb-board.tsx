@@ -15,6 +15,7 @@ import {
   buscarTradesPrediction,
   type PredictionPeriod,
 } from "@/features/prediction-arb/prediction-arb.actions";
+import { UniversalTimelineChart } from "@/components/charts/universal-timeline-chart";
 import type {
   PredictionArbStrategy,
   PredictionArbTrade,
@@ -978,6 +979,23 @@ export function PredictionArbBoard({
                       </div>
                     </div>
                   </div>
+
+                  {/* Gráfico de Linha do Tempo de P/L por Ativo */}
+                  <UniversalTimelineChart
+                    title="Curva de Ganho e Perda na Linha do Tempo Polymarket (P/L Acumulado por Ativo)"
+                    subtitle="Evolução cumulativa de resultados por criptoativo operado no período selecionado."
+                    badgeColor="bg-cyan-400"
+                    trades={closedPerfTrades.map((t) => {
+                      const { coin } = getCoinDetails((t.question || "") + " " + (t.slug || ""));
+                      return {
+                        id: t.id,
+                        symbol: coin,
+                        pnl: t.pnl || 0,
+                        status: t.status,
+                        timestamp: new Date(t.createdAt || t.openedAt || 0).getTime(),
+                      };
+                    })}
+                  />
 
                   {/* Tabela Agrupada por Moeda / Criptoativo */}
                   <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/70 shadow-sm">
