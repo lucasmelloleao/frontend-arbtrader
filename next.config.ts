@@ -47,10 +47,7 @@ const nextConfig: NextConfig = {
       return proxyRewrites;
     }
 
-    return [
-      ...proxyRewrites,
-      { source: "/api/:path*", destination: `${apiBaseUrl}/api/:path*` },
-    ];
+    return [...proxyRewrites, { source: "/api/:path*", destination: `${apiBaseUrl}/api/:path*` }];
   },
 };
 
