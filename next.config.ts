@@ -28,11 +28,29 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const apiBaseUrl = process.env.INTERNAL_API_URL;
 
+    const proxyRewrites = [
+      {
+        source: "/api/proxy/clob/:path*",
+        destination: "https://clob.polymarket.com/:path*",
+      },
+      {
+        source: "/api/proxy/gamma/:path*",
+        destination: "https://gamma-api.polymarket.com/:path*",
+      },
+      {
+        source: "/api/proxy/data/:path*",
+        destination: "https://data-api.polymarket.com/:path*",
+      },
+    ];
+
     if (!apiBaseUrl || apiBaseUrl === "/") {
-      return [];
+      return proxyRewrites;
     }
 
-    return [{ source: "/api/:path*", destination: `${apiBaseUrl}/api/:path*` }];
+    return [
+      ...proxyRewrites,
+      { source: "/api/:path*", destination: `${apiBaseUrl}/api/:path*` },
+    ];
   },
 };
 
