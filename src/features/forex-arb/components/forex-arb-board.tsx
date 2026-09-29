@@ -21,12 +21,16 @@ import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strateg
 import { PepperstoneAiStrategyView } from "@/features/forex-arb/components/pepperstone-ai-strategy-view";
 import {
   buscarCotacoesAoVivo,
+  buscarEstrategiasForex,
+  buscarSaldoForex,
+  buscarTradesForex,
   buscarTradesPorPeriodo,
   deletarStrategy,
   deletarTodasOperacoes,
   fecharPosicao,
   fecharTodasPosicoes,
   voidClosePosicao,
+  type MutacaoResult,
 } from "@/features/forex-arb/forex-arb.actions";
 import type {
   ForexArbLeg,
@@ -43,7 +47,8 @@ type ForexArbBoardProps = {
   exchangeIds: readonly string[];
   /** Chaves cadastradas (id + exchangeId + nome). */
   exchangeKeys: readonly { id: string; exchangeId: string; nome: string }[];
-  botType?: "trend_grid" | "scalping";
+  botType?: "scalping";
+  initialBalance?: number;
 };
 
 const fmtPct = (v: number): string => `${v >= 0 ? "+" : ""}${v.toFixed(3)}%`;
@@ -105,9 +110,21 @@ export function ForexArbBoard({
 }: ForexArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [localStrategies, setLocalStrategies] = useState<readonly ForexArbStrategy[]>(strategies);
+  const [localTrades, setLocalTrades] = useState<readonly ForexArbTrade[]>(trades);
+  const [localBalance, setLocalBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    setLocalStrategies(strategies);
+  }, [strategies]);
+
+  useEffect(() => {
+    setLocalTrades(trades);
+  }, [trades]);
+
   const [aba, setAba] = useState<
     "opportunities" | "open" | "closed" | "performance" | "aiStrategy"
-  >(opportunities.length > 0 ? "opportunities" : "open");
+  >(strategies.some((s) => s.positionOpen) ? "open" : opportunities.length > 0 ? "opportunities" : "open");
   const [criando, setCriando] = useState(false);
   const [livePrices, setLivePrices] = useState<ForexArbLivePrices>({});
 
@@ -128,14 +145,27 @@ export function ForexArbBoard({
     setLoadingPerf(false);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      startTransition(() => {
-        router.refresh();
-      });
-    }, 5000); // Atualização do servidor a cada 5 segundos em background
-    return () => clearInterval(interval);
-  }, [router]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
+
+  const recarregarDados = async (): Promise<void> => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      const [novasStrats, novosTrades, novoSaldo, novasCotacoes] = await Promise.all([
+        buscarEstrategiasForex(),
+        buscarTradesForex(),
+        buscarSaldoForex(),
+        buscarCotacoesAoVivo(),
+      ]);
+      if (novasStrats && novasStrats.length >= 0) setLocalStrategies(novasStrats);
+      if (novosTrades && novosTrades.length >= 0) setLocalTrades(novosTrades);
+      if (novoSaldo !== null && !isNaN(novoSaldo)) setLocalBalance(novoSaldo);
+      if (novasCotacoes !== null) setLivePrices(novasCotacoes);
+    } catch {} finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     let ativo = true;
@@ -148,30 +178,33 @@ export function ForexArbBoard({
       }
     };
     void buscar();
-    const interval = setInterval(() => {
-      void buscar();
-    }, 2000);
     return () => {
       ativo = false;
-      clearInterval(interval);
     };
   }, []);
 
-  const abertas = strategies.filter((s) => s.positionOpen);
-  const encerradas = trades.filter((t) => t.type === "close");
+  const abertas = localStrategies.filter((s) => s.positionOpen);
+  const encerradas = localTrades.filter((t) => t.type === "close");
 
-  const executar = (acao: () => Promise<{ ok: boolean }>): void => {
-    startTransition(async () => {
-      await acao();
-      router.refresh();
-    });
+  const executar = async (acao: () => Promise<MutacaoResult>): Promise<void> => {
+    if (isExecuting) return;
+    setIsExecuting(true);
+    try {
+      const res = await acao();
+      if (!res.ok) {
+        alert(`Erro ao executar ação: ${res.erro}`);
+      }
+      await recarregarDados();
+    } finally {
+      setIsExecuting(false);
+    }
   };
 
   const confirmarFechar = (strat: ForexArbStrategy): void => {
     const caminho = strat.legs.map((l) => l.symbol).join(" → ");
     if (
       !confirm(
-        `Encerrar a arbitragem ${strat.name} (${caminho})? O robô executará as pernas inversas para zerar a posição.`,
+        `Encerrar ${strat.name} (${caminho})? A ordem de fechamento será enviada para a corretora cTrader.`,
       )
     ) {
       return;
@@ -217,22 +250,42 @@ export function ForexArbBoard({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={() => setCriando(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-500"
-        >
-          <Plus className="h-3.5 w-3.5" aria-hidden="true" /> Nova Estratégia
-        </button>
-        <button
-          type="button"
-          onClick={confirmarDeletarTodas}
-          disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-lg bg-red-950/40 border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-900/60 disabled:opacity-50"
-        >
-          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Limpar Banco/Histórico
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {localBalance !== null ? (
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              Saldo cTrader ao vivo: ${localBalance.toFixed(2)} USD
+            </span>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={isRefreshing}
+            onClick={() => void recarregarDados()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700 disabled:opacity-50"
+            title="Atualizar cotações e posições agora"
+          >
+            <Activity className={`h-3.5 w-3.5 text-indigo-400 ${isRefreshing ? "animate-spin" : ""}`} />
+            {isRefreshing ? "Atualizando..." : "Atualizar Dados"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setCriando(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-500"
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" /> Nova Estratégia
+          </button>
+          <button
+            type="button"
+            onClick={confirmarDeletarTodas}
+            disabled={isExecuting}
+            className="inline-flex items-center gap-2 rounded-lg bg-red-950/40 border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-900/60 disabled:opacity-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Limpar Banco/Histórico
+          </button>
+        </div>
       </div>
 
       {criando ? (
@@ -247,12 +300,12 @@ export function ForexArbBoard({
       <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">
         {(
           [
+            { key: "open", label: "Em Aberto", count: abertas.length },
             {
               key: "opportunities",
               label: "🎯 Oportunidades",
               count: opportunities.length,
             },
-            { key: "open", label: "Em Aberto", count: abertas.length },
             { key: "closed", label: "Encerradas", count: encerradas.length },
             { key: "performance", label: "Lucro/Prejuízo por Ativo", count: null, icon: BarChart3 },
             { key: "aiStrategy", label: "IA Meta-Labeling (Gate 4)", count: null, icon: Brain },
@@ -349,8 +402,10 @@ export function ForexArbBoard({
               abertas.map((strat) => {
                 const primaryLeg = strat.legs[0] || { symbol: "—", side: "BUY", price: 0 };
                 const sym = primaryLeg.symbol || "—";
-                const liveMid = livePrices[sym]?.mid;
-                const currentPrice = liveMid;
+                const slashSym = sym.includes("/") ? sym : `${sym.slice(0, 3)}/${sym.slice(3)}`;
+                const unslashSym = sym.replace("/", "");
+                const liveMid = livePrices[sym]?.mid || livePrices[slashSym]?.mid || livePrices[unslashSym]?.mid;
+                let currentPrice = liveMid || (primaryLeg.currentPrice && primaryLeg.currentPrice > 0 ? primaryLeg.currentPrice : null) || (strat.currentPrice && strat.currentPrice > 0 ? strat.currentPrice : null);
 
                 let livePnl = strat.pnl || 0;
                 let livePct = strat.pnlPct || 0;
@@ -360,16 +415,28 @@ export function ForexArbBoard({
                 const volField =
                   primaryLeg.volume || strat.positionVolume || strat.tradeSize || 0.01;
                 const amtField = primaryLeg.amount || strat.positionSize || 0;
-                // Se amtField for em unidades (ex: 100000 para 1 lote, ou 1000 para 0.01 lote):
-                // Se volField for em lotes (ex: 1000.00 lote vindo de erro anterior no backend, ou 0.01 lote normal):
                 let contractUnits = amtField > 0 ? amtField : volField * 100000;
                 if (contractUnits > 10000000) {
-                  // Se estiver inflado (ex: 1000 lotes * 100000 = 100.000.000)
                   contractUnits = contractUnits / 100000;
                 }
                 const rawUnits = contractUnits;
 
-                // Comissão estimada por lote (mesma regra do backend).
+                const refPrice = primaryLeg.price || 0;
+
+                // Se não há spot direto mas temos PnL real da corretora e entrada, deriva o preço e a porcentagem
+                if (!currentPrice && refPrice > 0 && livePnl !== 0) {
+                  const sideUpper = (primaryLeg.side || "BUY").toUpperCase();
+                  if (isJpyPair) {
+                    const pnlJPY = livePnl * refPrice;
+                    const delta = pnlJPY / rawUnits;
+                    currentPrice = sideUpper === "BUY" ? refPrice + delta : refPrice - delta;
+                  } else {
+                    const delta = livePnl / rawUnits;
+                    currentPrice = sideUpper === "BUY" ? refPrice + delta : refPrice - delta;
+                  }
+                  livePct = ((Math.abs(currentPrice - refPrice)) / refPrice) * 100;
+                }
+
                 const lotesReais = isGoldPair
                   ? rawUnits >= 100
                     ? rawUnits / 100
@@ -380,14 +447,14 @@ export function ForexArbBoard({
                 const numLotes001 = lotesReais / 0.01;
                 const comm = Number(((isGoldPair ? 0.09 : 0.06) * numLotes001).toFixed(2));
 
-                // Se temos o preço atual e o preço de entrada da perna, calcula matematicamente em tempo real
-                if (currentPrice && primaryLeg.price && primaryLeg.price > 0) {
+                // Se temos o preço atual e o preço de entrada (ou médio ponderado), calcula matematicamente em tempo real
+                if (currentPrice && refPrice > 0) {
                   const sideUpper = (primaryLeg.side || "BUY").toUpperCase();
                   const diff =
                     sideUpper === "BUY"
-                      ? currentPrice - primaryLeg.price
-                      : primaryLeg.price - currentPrice;
-                  const calculatedPct = (diff / primaryLeg.price) * 100;
+                      ? currentPrice - refPrice
+                      : refPrice - currentPrice;
+                  const calculatedPct = (diff / refPrice) * 100;
 
                   let grossPnl: number | null = null;
                   if (isGoldPair) {
@@ -398,18 +465,8 @@ export function ForexArbBoard({
                     grossPnl = diff * rawUnits;
                   }
 
-                  // Com preço ao vivo, recalcula sempre para acompanhar o tick.
-                  if (liveMid) {
-                    livePnl = grossPnl - comm;
-                    livePct = calculatedPct;
-                  } else {
-                    if (!livePct || livePct === 0) {
-                      livePct = calculatedPct;
-                    }
-                    if (livePnl === 0) {
-                      livePnl = grossPnl - comm;
-                    }
-                  }
+                  livePnl = grossPnl - comm;
+                  livePct = calculatedPct;
                 }
 
                 const isLucro = livePnl >= 0;
@@ -468,13 +525,32 @@ export function ForexArbBoard({
                               </span>
                               {(() => {
                                 const symKey = leg.symbol || "";
-                                const current =
+                                const slashSym = symKey.includes("/") ? symKey : `${symKey.slice(0, 3)}/${symKey.slice(3)}`;
+                                const unslashSym = symKey.replace("/", "");
+                                let current =
                                   livePrices[symKey]?.mid ||
-                                  (strat.currentPrice && strat.currentPrice > 0
-                                    ? strat.currentPrice
-                                    : null);
+                                  livePrices[slashSym]?.mid ||
+                                  livePrices[unslashSym]?.mid ||
+                                  (leg.currentPrice && leg.currentPrice > 0 ? leg.currentPrice : null) ||
+                                  (strat.currentPrice && strat.currentPrice > 0 ? strat.currentPrice : null);
+
+                                // Fallback matemático: se ainda não carregou o spot, deriva da entrada e do PnL real da cTrader
+                                if (!current && leg.price && leg.price > 0 && strat.pnl !== 0) {
+                                  const sideUpper = (leg.side || "BUY").toUpperCase();
+                                  const units = (leg.volume || strat.tradeSize || 0.01) * 100000;
+                                  if (symKey.includes("JPY")) {
+                                    // PnL_USD = (diff * units) / price => price = entry / (1 - (pnl * entry / units)) para SELL
+                                    const pnlJPY = strat.pnl * leg.price;
+                                    const delta = pnlJPY / units;
+                                    current = sideUpper === "BUY" ? leg.price + delta : leg.price - delta;
+                                  } else {
+                                    const delta = strat.pnl / units;
+                                    current = sideUpper === "BUY" ? leg.price + delta : leg.price - delta;
+                                  }
+                                }
+
                                 const currentFormatted =
-                                  typeof current === "number" ? current.toFixed(5) : "—";
+                                  typeof current === "number" && !isNaN(current) ? current.toFixed(3) : "—";
                                 return (
                                   <span className="text-amber-300 font-extrabold bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
                                     Preço Atual: {currentFormatted}
@@ -533,14 +609,12 @@ export function ForexArbBoard({
                               <Activity className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
                             )}
                             <span className="font-mono uppercase tracking-wider text-[11px]">
-                              {strat.trailingActive
-                                ? "Trailing Stop Ativado"
-                                : "Monitoramento Ativo"}
+                              {strat.trailingActive ? "Trailing Stop Ativado" : "Trailing Stop Monitorando"}
                             </span>
                           </div>
-                          {strat.trailingActive ? (
+                          {strat.trailingActive && strat.trailingFloorUsd > 0 ? (
                             <span className="inline-flex items-center gap-1 rounded bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[10px] font-extrabold text-emerald-300 border border-emerald-500/30">
-                              <Lock className="h-3 w-3" /> PISO TRAVADO: +$
+                              <Lock className="h-3 w-3" /> PISO: +$
                               {strat.trailingFloorUsd.toFixed(2)} USD
                             </span>
                           ) : (
@@ -553,7 +627,7 @@ export function ForexArbBoard({
                           {strat.currentAction ||
                             (strat.trailingActive
                               ? "Protegendo lucro e acompanhando subida do preço"
-                              : "Aguardando gatilho de trailing")}
+                              : "Aguardando gatilho de trailing stop")}
                         </div>
                       </div>
 
@@ -562,23 +636,19 @@ export function ForexArbBoard({
                           <span className="block text-[9px] text-slate-500">Pico Máximo</span>
                           <span className="font-bold text-emerald-400">
                             +$
-                            {Math.max(strat.peakProfitUsd, strat.pnl > 0 ? strat.pnl : 0).toFixed(
+                            {Math.max(strat.peakProfitUsd, livePnl > 0 ? livePnl : 0).toFixed(
                               2,
                             )}
                           </span>
                         </div>
                         <div>
-                          <span className="block text-[9px] text-slate-500">Piso de Saída</span>
-                          <span
-                            className={`font-bold ${strat.trailingActive && strat.trailingFloorUsd > 0 ? "text-emerald-300" : "text-slate-500"}`}
-                          >
-                            {strat.trailingActive && strat.trailingFloorUsd > 0
-                              ? `+$${strat.trailingFloorUsd.toFixed(2)}`
-                              : "—"}
+                          <span className="block text-[9px] text-slate-500">Preço Entrada</span>
+                          <span className="font-bold text-slate-300">
+                            {primaryLeg.price ? primaryLeg.price.toFixed(5) : "—"}
                           </span>
                         </div>
                         <div>
-                          <span className="block text-[9px] text-slate-500">Preço Fechamento</span>
+                          <span className="block text-[9px] text-slate-500">Piso de Saída</span>
                           <span
                             className={`font-bold ${strat.trailingFloorPrice ? "text-amber-300" : "text-slate-500"}`}
                           >
@@ -608,7 +678,7 @@ export function ForexArbBoard({
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          disabled={isPending}
+                          disabled={isExecuting}
                           onClick={() => confirmarFechar(strat)}
                           className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
                           title="Encerrar posição enviando ordens para cTrader"
@@ -617,7 +687,7 @@ export function ForexArbBoard({
                         </button>
                         <button
                           type="button"
-                          disabled={isPending}
+                          disabled={isExecuting}
                           onClick={() => confirmarVoidClose(strat)}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600/50 bg-slate-700/80 px-3 py-1.5 text-xs font-bold text-slate-300 transition-colors hover:bg-slate-600 hover:text-white disabled:opacity-50"
                           title="Marcar como encerrada pela corretora (sem enviar ordens na cTrader)"
@@ -690,7 +760,7 @@ export function ForexArbBoard({
                           isLucro ? "text-emerald-400" : "text-rose-400"
                         }`}
                       >
-                        {isLucro ? "+" : ""}${trade.realizedPnl.toFixed(2)} USD
+                        {trade.realizedPnl >= 0 ? `+$${trade.realizedPnl.toFixed(2)} USD` : `-$${Math.abs(trade.realizedPnl).toFixed(2)} USD`}
                       </div>
                       <div className="font-mono text-[10px] font-bold text-slate-400">
                         P&L Líquido Real

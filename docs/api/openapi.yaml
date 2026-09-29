@@ -2391,47 +2391,49 @@ components:
         createdAt:
           type: string
           format: date-time
+    ForexSymbolProfile:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        maxSpreadPct:
+          type: number
+        trailingActivationUsd:
+          type: number
+        trailingDistanceUsd:
+          type: number
+        minFeeProtectionUsd:
+          type: number
+        defaultTradeSize:
+          type: number
+        takeProfitPct:
+          type: number
+        stopLossPct:
+          type: number
     ForexArbSettings:
       type: object
       properties:
         isScanningEnabled:
           type: boolean
-        lastScannedAt:
-          type: string
-          format: date-time
-          nullable: true
         tradeSize:
-          type: number
-        minProfitPct:
-          type: number
-        minVolume24hUSD:
-          type: number
-        maxStrategiesPerScan:
-          type: number
-        scanIntervalMs:
           type: number
         maxDailyLoss:
           type: number
-        maxSlippagePct:
-          type: number
         autoExecute:
           type: boolean
-        simpleEnabled:
-          type: boolean
-        triangularEnabled:
-          type: boolean
-        allowedExchanges:
-          type: array
-          items:
-            type: string
-        gridEnabled:
-          type: boolean
-        stepPips:
-          type: number
-        trailingPips:
-          type: number
-        maxGridLevels:
-          type: number
+        accountType:
+          type: string
+          enum: [demo, live, real]
+        accountId:
+          type: string
+        symbolProfiles:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ForexSymbolProfile"
+        resolvedSymbolProfiles:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ForexSymbolProfile"
     ForexArbSettingsUpdateRequest:
       type: object
       properties:
@@ -2439,36 +2441,19 @@ components:
           type: boolean
         tradeSize:
           type: number
-        minProfitPct:
-          type: number
-        minVolume24hUSD:
-          type: number
-        maxStrategiesPerScan:
-          type: number
-        scanIntervalMs:
-          type: number
         maxDailyLoss:
-          type: number
-        maxSlippagePct:
-          type: number
-        gridEnabled:
-          type: boolean
-        stepPips:
-          type: number
-        trailingPips:
-          type: number
-        maxGridLevels:
           type: number
         autoExecute:
           type: boolean
-        simpleEnabled:
-          type: boolean
-        triangularEnabled:
-          type: boolean
-        allowedExchanges:
-          type: array
-          items:
-            type: string
+        accountType:
+          type: string
+          enum: [demo, live, real]
+        accountId:
+          type: string
+        symbolProfiles:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ForexSymbolProfile"
     CtraderCredentialsUpdateRequest:
       type: object
       properties:

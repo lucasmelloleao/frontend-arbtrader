@@ -61,28 +61,16 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
   const exchangeIds = exchangesData.map((e) => e.exchangeId);
   const balanceData: ForexBalance | null = balance.status === "fulfilled" ? balance.value : null;
 
-  const scalpingStrategies = strategiesData.filter(
-    (s) =>
-      !s.isGrid &&
-      s.type !== "trend_grid" &&
-      !(typeof s.name === "string" && s.name.includes("TrendGrid")) &&
-      !(s.gridLevelsCount > 0),
-  );
-  const scalpingTrades = tradesData.filter(
-    (t) =>
-      !(typeof t.strategyName === "string" && t.strategyName.includes("TrendGrid")) &&
-      !(typeof t.reason === "string" && t.reason.includes("grid")),
-  );
-
-  const abertas = scalpingStrategies.filter((s) => s.positionOpen);
-  const encerradas = scalpingTrades.filter((t) => t.type === "close");
+  // No painel da Pepperstone, exibe todas as posições e estratégias ativas vinculadas à conta
+  const abertas = strategiesData.filter((s) => s.positionOpen);
+  const encerradas = tradesData.filter((t) => t.type === "close");
   const totalPnl = encerradas.reduce((acc, t) => acc + t.realizedPnl, 0);
-  const totalVolumeUsd = scalpingTrades.reduce(
+  const totalVolumeUsd = tradesData.reduce(
     (acc, t) => acc + (t.amountUsd || t.volume || t.amount || 0),
     0,
   );
 
-  const finalBalance = balanceData?.balance ?? 70.34;
+  const finalBalance = balanceData?.balance ?? 0;
   const finalAccountType = balanceData?.accountType ?? settingsData?.accountType ?? "demo";
   const finalAccountId = balanceData?.accountId ?? settingsData?.accountId ?? "5329039";
 
@@ -135,11 +123,11 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
         aprPct={219.96}
       />
 
-      <ForexSettingsPanel settings={settingsData} exchangeIds={exchangeIds} />
+      <ForexSettingsPanel settings={settingsData} />
 
       <ForexArbBoard
-        strategies={scalpingStrategies}
-        trades={scalpingTrades}
+        strategies={strategiesData}
+        trades={tradesData}
         opportunities={opportunitiesData}
         exchangeIds={exchangeIds}
         exchangeKeys={exchangesData}

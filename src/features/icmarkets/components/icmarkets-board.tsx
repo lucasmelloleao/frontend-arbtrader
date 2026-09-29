@@ -8,14 +8,19 @@ import {
   fecharPosicaoIcMarkets,
   buscarTradesIcMarkets,
   buscarEstrategiasIcMarkets,
+  buscarSaldoIcMarkets,
   type IcMarketsPeriod,
 } from "@/features/icmarkets/icmarkets.actions";
 import { IcMarketsAiStrategyView } from "@/features/icmarkets/components/icmarkets-ai-strategy-view";
+import { IcMarketsStatsHeader } from "@/features/icmarkets/components/icmarkets-stats-header";
 import { IcMarketsStrategyModal } from "@/features/icmarkets/components/icmarkets-strategy-modal";
+import { UniversalTimelineChart } from "@/components/charts/universal-timeline-chart";
 import type {
   IcMarketsStrategy,
   IcMarketsTrade,
   IcMarketsAiMetadata,
+  IcMarketsBalance,
+  IcMarketsSettings,
 } from "@/features/icmarkets/icmarkets.schema";
 
 type IcMarketsBoardProps = {
@@ -23,6 +28,8 @@ type IcMarketsBoardProps = {
   trades: readonly IcMarketsTrade[];
   initialOpenTrades?: readonly IcMarketsTrade[];
   aiMetadata: IcMarketsAiMetadata | null;
+  initialBalance?: IcMarketsBalance | null;
+  initialSettings?: IcMarketsSettings | null;
 };
 
 export function IcMarketsBoard({
@@ -30,6 +37,8 @@ export function IcMarketsBoard({
   trades: initialTrades,
   initialOpenTrades = [],
   aiMetadata,
+  initialBalance = null,
+  initialSettings = null,
 }: IcMarketsBoardProps): React.ReactNode {
   const [aba, setAba] = useState<"open" | "monitored" | "closed" | "performance" | "aiStrategy">(
     "open",
@@ -43,6 +52,7 @@ export function IcMarketsBoard({
   const [openTradesList, setOpenTradesList] = useState<readonly IcMarketsTrade[]>(
     initialOpenTrades.length > 0 ? initialOpenTrades : initialTrades.filter((t) => t.status === "open")
   );
+  const [balance, setBalance] = useState<IcMarketsBalance | null>(initialBalance);
 
   // Sincroniza estado quando o servidor ou revalidação trouxer novas props
   const [prevStrategies, setPrevStrategies] = useState(strategies);
@@ -61,6 +71,12 @@ export function IcMarketsBoard({
   if (initialTrades !== prevInitialTrades) {
     setPrevInitialTrades(initialTrades);
     setTradesList(initialTrades);
+  }
+
+  const [prevBalance, setPrevBalance] = useState(initialBalance);
+  if (initialBalance !== prevBalance) {
+    setPrevBalance(initialBalance);
+    setBalance(initialBalance);
   }
 
   // Estado da aba Lucro/Prejuízo por Ativo
@@ -83,10 +99,11 @@ export function IcMarketsBoard({
   };
 
   const recarregarDados = async (): Promise<void> => {
-    const [stratRes, openRes, closedRes] = await Promise.all([
+    const [stratRes, openRes, closedRes, balRes] = await Promise.all([
       buscarEstrategiasIcMarkets(),
       buscarTradesIcMarkets({ status: "open" }),
       buscarTradesIcMarkets({ periodo, status: "closed" }),
+      buscarSaldoIcMarkets(),
     ]);
     if (stratRes.ok) {
       setStrategyList(stratRes.strategies);
@@ -97,6 +114,9 @@ export function IcMarketsBoard({
     if (closedRes.ok) {
       setTradesList(closedRes.trades);
     }
+    if (balRes.ok) {
+      setBalance(balRes.balance);
+    }
   };
 
   useEffect(() => {
@@ -106,18 +126,44 @@ export function IcMarketsBoard({
 
   const carregarTrades = async (p: IcMarketsPeriod): Promise<void> => {
     setPeriodo(p);
-    const res = await buscarTradesIcMarkets({ periodo: p, status: "closed" });
-    if (res.ok) {
-      setTradesList(res.trades);
+    const [tradesRes, balRes] = await Promise.all([
+      buscarTradesIcMarkets({ periodo: p, status: "closed" }),
+      buscarSaldoIcMarkets(),
+    ]);
+    if (tradesRes.ok) {
+      setTradesList(tradesRes.trades);
+    }
+    if (balRes.ok) {
+      setBalance(balRes.balance);
     }
   };
 
-  const closedTrades = tradesList.filter((t) => t.status === "closed");
   const openPositions = openTradesList.filter((t) => t.status === "open");
+  const openPosIdSet = new Set(openPositions.map((p) => String(p.positionId || p.id)));
+  const closedTrades = tradesList.filter(
+    (t) => t.status === "closed" && !openPosIdSet.has(String(t.positionId || t.id))
+  );
   const monitoredStrategies = strategyList;
 
+  const totalTrades = closedTrades.length;
+  const winningTrades = closedTrades.filter((t) => (t.pnlUsd || 0) > 0).length;
+  const totalPnlUsd = closedTrades.reduce((acc, t) => acc + (t.pnlUsd || 0), 0);
+  const openPositionsCount = openPositions.length;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Cabeçalho Estatístico Reativo */}
+      <IcMarketsStatsHeader
+        balanceUsd={balance?.balance ?? 0}
+        currency={balance?.currency ?? "USD"}
+        accountType={balance?.accountType ?? initialSettings?.accountType ?? "demo"}
+        accountId={balance?.accountId ?? initialSettings?.accountId ?? "10117517"}
+        leverage={balance?.leverage}
+        totalPnlUsd={totalPnlUsd}
+        openPositionsCount={openPositionsCount}
+        totalTrades={totalTrades}
+        winningTrades={winningTrades}
+      />
       {/* Abas Superiores */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
         <div className="flex flex-wrap gap-2">
@@ -597,6 +643,20 @@ export function IcMarketsBoard({
                       </div>
                     </div>
                   </div>
+
+                  {/* Gráfico de Linha do Tempo de P/L por Ativo */}
+                  <UniversalTimelineChart
+                    title="Curva de Ganho e Perda na Linha do Tempo IC Markets (P/L Acumulado por Par)"
+                    subtitle="Evolução cumulativa de resultados por par cTrader Forex/CFD operado no período selecionado."
+                    badgeColor="bg-indigo-400"
+                    trades={closedPerfTrades.map((t) => ({
+                      id: t.id,
+                      symbol: t.symbol,
+                      pnl: t.pnlUsd || 0,
+                      status: t.status,
+                      timestamp: new Date(t.closedAt || t.openedAt || t.createdAt || 0).getTime(),
+                    }))}
+                  />
 
                   {/* Tabela por Ativo */}
                   <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/70">

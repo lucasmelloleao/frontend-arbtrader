@@ -89,7 +89,7 @@ export function IcMarketsAiStrategyView({
           <div className="mt-2 text-2xl font-bold text-cyan-400">
             {metadata?.samplesCount || 50} trades
           </div>
-          <p className="mt-1 text-[11px] text-slate-400">Registros no MongoDB + Bootstrap</p>
+          <p className="mt-1 text-[11px] text-slate-400">Histórico real da cTrader (MongoDB)</p>
         </div>
 
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">

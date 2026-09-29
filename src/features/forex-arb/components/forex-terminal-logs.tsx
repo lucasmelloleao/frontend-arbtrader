@@ -6,41 +6,18 @@ import { Download, RefreshCw, Terminal } from "lucide-react";
 
 import { buscarLogs } from "@/features/forex-arb/forex-arb.actions";
 
+/** Processo PM2 do robô Forex Pepperstone (único processo de scalping). */
+const PROCESSO = "pepperstone-engine";
+
 /** Regex de escape ANSI (construído sem literal de controle). */
 const ANSI_ESCAPE = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*[mK]`, "g");
 
-function getBotLabel(bot: string): string {
-  switch (bot) {
-    case "forex-trend-grid":
-      return "Trend Grid Bot";
-    case "forex-scalper":
-      return "Scalper HFT / Trailing";
-    case "forex-scalp-scanner":
-      return "Scalp Scanner";
-    case "forex-scalp-executor":
-      return "Scalp Executor";
-    case "forex-arb":
-      return "Arbitragem";
-    default:
-      return "Scanner";
-  }
-}
-
 /**
- * Terminal de logs do robô Forex: liga/desliga, alterna entre processos
- * (forex-trend-grid / forex-scalper / forex-arb / forex-scanner), auto-refresh a cada 7s, seleção de linhas e
- * download. O fetch é via Server Action `buscarLogs`.
+ * Terminal de logs do robô Forex (Pepperstone): liga/desliga, auto-refresh a cada
+ * 7s, seleção de linhas e download. O fetch é via Server Action `buscarLogs`.
  */
 export function ForexTerminalLogs(): React.ReactNode {
   const [showLogs, setShowLogs] = useState(false);
-  const [selectedBot, setSelectedBot] = useState<
-    | "forex-trend-grid"
-    | "forex-scalper"
-    | "forex-scalp-executor"
-    | "forex-scalp-scanner"
-    | "forex-arb"
-    | "forex-scanner"
-  >("forex-trend-grid");
   const [logs, setLogs] = useState<{ id: number; texto: string }[]>([]);
   const nextLogId = useRef(0);
   const [loading, setLoading] = useState(false);
@@ -56,7 +33,7 @@ export function ForexTerminalLogs(): React.ReactNode {
       texto: linha.replace(ANSI_ESCAPE, ""),
     }));
 
-  // Fetch inicial ao ligar/trocar bot/linhas
+  // Fetch inicial ao ligar/trocar linhas
   useEffect(() => {
     if (!showLogs) {
       return undefined;
@@ -66,7 +43,7 @@ export function ForexTerminalLogs(): React.ReactNode {
       setLoading(true);
       setError(null);
       try {
-        const resultado = await buscarLogs(selectedBot, logLines);
+        const resultado = await buscarLogs(PROCESSO, logLines);
         if (!ativo) return;
         setLoading(false);
         if (!resultado.ok) {
@@ -85,7 +62,7 @@ export function ForexTerminalLogs(): React.ReactNode {
     return () => {
       ativo = false;
     };
-  }, [selectedBot, logLines, showLogs]);
+  }, [logLines, showLogs]);
 
   // Auto-refresh a cada 7s
   useEffect(() => {
@@ -96,7 +73,7 @@ export function ForexTerminalLogs(): React.ReactNode {
       setLoading(true);
       setError(null);
       try {
-        const resultado = await buscarLogs(selectedBot, logLines);
+        const resultado = await buscarLogs(PROCESSO, logLines);
         setLoading(false);
         if (!resultado.ok) {
           setError(resultado.erro);
@@ -111,7 +88,7 @@ export function ForexTerminalLogs(): React.ReactNode {
     };
     const interval = setInterval(() => void buscar(), 7000);
     return () => clearInterval(interval);
-  }, [autoRefresh, selectedBot, logLines, showLogs]);
+  }, [autoRefresh, logLines, showLogs]);
 
   useEffect(() => {
     if (containerRef.current !== null && showLogs) {
@@ -126,7 +103,7 @@ export function ForexTerminalLogs(): React.ReactNode {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `logs-${selectedBot}-${new Date().toISOString().slice(0, 10)}.log`;
+    a.download = `logs-${PROCESSO}-${new Date().toISOString().slice(0, 10)}.log`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -151,33 +128,6 @@ export function ForexTerminalLogs(): React.ReactNode {
             {showLogs ? "⏹️ Desligar Logs" : "⚡ Ligar Logs"}
           </button>
         </div>
-        {showLogs ? (
-          <div className="flex items-center gap-2">
-            {(
-              [
-                "forex-trend-grid",
-                "forex-scalper",
-                "forex-scalp-scanner",
-                "forex-scalp-executor",
-                "forex-arb",
-                "forex-scanner",
-              ] as const
-            ).map((bot) => (
-              <button
-                key={bot}
-                type="button"
-                onClick={() => setSelectedBot(bot)}
-                className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-all ${
-                  selectedBot === bot
-                    ? "border-indigo-500/40 bg-indigo-600/20 text-indigo-300"
-                    : "border-slate-800 bg-slate-900 text-slate-400 hover:text-white"
-                }`}
-              >
-                {getBotLabel(bot)}
-              </button>
-            ))}
-          </div>
-        ) : null}
       </div>
 
       {showLogs ? (
@@ -185,7 +135,7 @@ export function ForexTerminalLogs(): React.ReactNode {
           <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-2.5 text-xs text-slate-400">
             <div className="flex items-center gap-3">
               <span className="rounded border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 font-mono text-indigo-400">
-                {getBotLabel(selectedBot)}
+                📡 Pepperstone Engine (Scalping)
               </span>
               <button
                 type="button"

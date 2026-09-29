@@ -20,6 +20,7 @@ import { serverEnv } from "@/lib/env";
 export const kyServer = ky.create({
   baseUrl: serverEnv.INTERNAL_API_URL,
   throwHttpErrors: true,
+  timeout: 30000,
   headers: {
     Accept: "application/json",
   },

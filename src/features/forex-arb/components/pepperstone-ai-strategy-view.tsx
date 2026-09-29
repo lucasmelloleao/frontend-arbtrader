@@ -23,7 +23,7 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
   const [feedback, setFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const carregarStatus = async (): Promise<void> => {
-    const res = await buscarStatusIaPepperstone();
+    const res = await buscarStatusIaPepperstone("scalping");
     if (res.ok) {
       setStatus(res.data);
     }
@@ -37,8 +37,9 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
 
   useEffect(() => {
     let ativo = true;
+    setLoading(true);
     const fetchStatus = async (): Promise<void> => {
-      const res = await buscarStatusIaPepperstone();
+      const res = await buscarStatusIaPepperstone("scalping");
       if (ativo) {
         if (res.ok) setStatus(res.data);
         setLoading(false);
@@ -53,7 +54,7 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
   const handleTreinar = async (): Promise<void> => {
     setTraining(true);
     setFeedback(null);
-    const res = await treinarIaPepperstone();
+    const res = await treinarIaPepperstone("scalping");
     setTraining(false);
     if (res.ok) {
       setFeedback({ ok: true, msg: res.message });
@@ -134,7 +135,7 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
               className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500 disabled:opacity-50"
             >
               <Sparkles className={`h-4 w-4 ${training ? "animate-spin" : ""}`} />
-              {training ? "Treinando Cérebro..." : "Treinar Cérebro IA"}
+              {training ? "Treinando Cérebro..." : "Treinar Cérebro (Scalping)"}
             </button>
           </div>
         </div>

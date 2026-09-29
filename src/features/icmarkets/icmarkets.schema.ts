@@ -13,7 +13,7 @@ import {
 /** Schema de Configurações Globais do Robô IC Markets cTrader. */
 const icMarketsSettingsSchema = object({
   accountType: fallback(string(), "demo"),
-  accountId: fallback(string(), "10102182"),
+  accountId: fallback(string(), "10117517"),
   isScanningEnabled: fallback(boolean(), false),
   allowLiveTrading: fallback(boolean(), false),
   maxOpenPositions: fallback(number(), 3),

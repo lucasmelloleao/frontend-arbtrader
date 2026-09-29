@@ -18,10 +18,11 @@ export function IcMarketsSettingsPanel({ settings }: IcMarketsSettingsPanelProps
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState<string | null>(null);
 
+  const [prevSettings, setPrevSettings] = useState(settings);
   const [form, setForm] = useState<IcMarketsSettings>(
     settings || {
       accountType: "demo",
-      accountId: "10102182",
+      accountId: "10117517",
       isScanningEnabled: false,
       allowLiveTrading: false,
       maxOpenPositions: 3,
@@ -35,6 +36,11 @@ export function IcMarketsSettingsPanel({ settings }: IcMarketsSettingsPanelProps
       allowedSymbols: ["EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "BTCUSD"],
     },
   );
+
+  if (settings && settings !== prevSettings) {
+    setPrevSettings(settings);
+    setForm(settings);
+  }
 
   const salvar = (): void => {
     setErro(null);

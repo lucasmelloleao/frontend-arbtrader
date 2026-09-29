@@ -32,7 +32,7 @@ export function ForexStatsHeader({
   abertas,
   encerradas,
   totalPnl,
-  saldoDisponivel = 70.34,
+  saldoDisponivel = 0,
   volumeTotalUsd = 0,
   aprPct = 0,
   accountType = "demo",

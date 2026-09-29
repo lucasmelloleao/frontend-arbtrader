@@ -89,8 +89,7 @@ async function requestEnvelope(
       }
       throw new Error(`Erro no servidor HTTP ${error.response.status}`, { cause: error });
     }
-    const causeText =
-      error instanceof Error && error.cause instanceof Error ? ` (${error.cause.message})` : "";
+    const causeText = error instanceof Error ? ` (${error.message})` : "";
     throw new Error(`${CONNECTION_ERROR_MESSAGE}${causeText}`, { cause: error });
   }
 }

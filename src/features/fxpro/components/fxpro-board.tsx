@@ -27,6 +27,7 @@ import {
   fecharPosicaoFxPro,
   type FxProPeriod,
 } from "@/features/fxpro/fxpro.actions";
+import { UniversalTimelineChart } from "@/components/charts/universal-timeline-chart";
 import type { FxProStrategy, FxProTrade } from "@/features/fxpro/fxpro.schema";
 
 type FxProBoardProps = {
@@ -725,6 +726,20 @@ export function FxProBoard({
                       </div>
                     </div>
                   </div>
+
+                  {/* Gráfico de Linha do Tempo de P/L por Ativo */}
+                  <UniversalTimelineChart
+                    title="Curva de Ganho e Perda na Linha do Tempo FxPro (P/L Acumulado por Par)"
+                    subtitle="Evolução cumulativa de resultados por par Forex/CFD operado no período selecionado."
+                    badgeColor="bg-amber-400"
+                    trades={closedPerfTrades.map((t) => ({
+                      id: t.id,
+                      symbol: t.symbol,
+                      pnl: t.pnlUsd || 0,
+                      status: t.status,
+                      timestamp: new Date(t.closedAt || t.openedAt || t.createdAt || 0).getTime(),
+                    }))}
+                  />
 
                   {/* Tabela por Ativo */}
                   <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/70">

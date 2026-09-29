@@ -35,6 +35,7 @@ import {
 } from "@/features/deriv/deriv.actions";
 import { DerivStrategyForm } from "@/features/deriv/components/deriv-strategy-form";
 import { DerivAiStrategyView } from "@/features/deriv/components/deriv-ai-strategy-view";
+import { DerivTimelineChart } from "@/features/deriv/components/deriv-timeline-chart";
 import type {
   DerivAiAnalysis,
   DerivBalance,
@@ -943,6 +944,9 @@ export function DerivBoard({
                       </div>
                     </div>
                   </div>
+
+                  {/* Gráfico de Linha do Tempo de P/L por Ativo */}
+                  <DerivTimelineChart trades={closedPerfTrades} />
 
                   {/* Tabela por Ativo */}
                   <div className="overflow-hidden rounded-xl border border-border bg-card">

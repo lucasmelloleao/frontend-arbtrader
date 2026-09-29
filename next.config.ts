@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   reactCompiler: true,
   typedRoutes: true,
   // Shell estático + buraco dinâmico em streaming. NÃO é cache: cada request

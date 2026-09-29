@@ -10,6 +10,7 @@ import {
   type ForexArbAiMetadata,
   type ForexArbAiStatus,
   type ForexArbLogs,
+  type ForexArbStrategy,
   type ForexArbTrade,
 } from "@/features/forex-arb/forex-arb.schema";
 import { apiClient } from "@/lib/api/client";
@@ -28,7 +29,7 @@ export type LogsResult = { ok: true; logs: readonly string[] } | { ok: false; er
 /**
  * Busca os logs do robô Forex (GET /forex-arb/logs?process=&lines=).
  *
- * @param process - Nome do processo (forex-arb | forex-scanner).
+ * @param process - Nome do processo PM2 (pepperstone-engine).
  * @param lines - Quantidade de linhas.
  * @returns `{ ok: true, logs }` ou `{ ok: false, erro }`.
  */
@@ -58,6 +59,43 @@ export async function buscarCotacoesAoVivo(): Promise<Record<
 > | null> {
   try {
     return await apiClient(kyServer, API_ENDPOINTS.forexArb.livePrices, forexArbLivePricesSchema);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Busca a lista atualizada de estratégias Forex diretamente no servidor.
+ */
+export async function buscarEstrategiasForex(): Promise<readonly ForexArbStrategy[]> {
+  try {
+    const { forexArbStrategyListSchema } = await import("@/features/forex-arb/forex-arb.schema");
+    return await apiClient(kyServer, API_ENDPOINTS.forexArb.listarStrategies, forexArbStrategyListSchema);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Busca a lista atualizada de trades Forex diretamente no servidor.
+ */
+export async function buscarTradesForex(): Promise<readonly ForexArbTrade[]> {
+  try {
+    const { forexArbTradeListSchema } = await import("@/features/forex-arb/forex-arb.schema");
+    return await apiClient(kyServer, API_ENDPOINTS.forexArb.listarTrades, forexArbTradeListSchema);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Busca o saldo real da conta cTrader (GET /forex-arb/balance).
+ */
+export async function buscarSaldoForex(): Promise<number | null> {
+  try {
+    const { forexBalanceSchema } = await import("@/features/forex-arb/forex-arb.schema");
+    const data = await apiClient(kyServer, API_ENDPOINTS.forexArb.balance, forexBalanceSchema);
+    return data?.balance ?? null;
   } catch {
     return null;
   }
@@ -103,6 +141,7 @@ export async function fecharPosicao(strategyId: string): Promise<MutacaoResult> 
     await apiClient(kyServer, API_ENDPOINTS.forexArb.fechar, undefined, {
       method: "post",
       json: { strategyId },
+      timeout: 45000,
     });
   } catch (error: unknown) {
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
@@ -156,7 +195,6 @@ export async function fecharTodasPosicoes(botType?: string): Promise<MutacaoResu
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
   revalidatePath("/dashboard/forex-arb");
-  revalidatePath("/dashboard/trend-grid");
   return { ok: true };
 }
 
@@ -173,7 +211,6 @@ export async function deletarTodasOperacoes(botType?: string): Promise<MutacaoRe
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
   revalidatePath("/dashboard/forex-arb");
-  revalidatePath("/dashboard/trend-grid");
   return { ok: true };
 }
 
@@ -199,14 +236,14 @@ export async function buscarTradesPorPeriodo(
 }
 
 /**
- * Busca o status do modelo de IA Meta-Labeling da Pepperstone.
+ * Busca o status do modelo de IA Meta-Labeling da Pepperstone (scalping).
  */
-export async function buscarStatusIaPepperstone(): Promise<
-  { ok: true; data: ForexArbAiStatus } | { ok: false; erro: string }
-> {
+export async function buscarStatusIaPepperstone(
+  botType: "scalping" = "scalping"
+): Promise<{ ok: true; data: ForexArbAiStatus } | { ok: false; erro: string }> {
   try {
     const res = await kyServer
-      .get(API_ENDPOINTS.forexArb.aiStatus)
+      .get(API_ENDPOINTS.forexArb.aiStatus, { searchParams: { botType } })
       .json<{ ok: boolean; data: ForexArbAiStatus }>();
     return { ok: true, data: res.data };
   } catch (error: unknown) {
@@ -215,18 +252,26 @@ export async function buscarStatusIaPepperstone(): Promise<
 }
 
 /**
- * Treina o cérebro de IA Meta-Labeling da Pepperstone.
+ * Treina o cérebro de IA Meta-Labeling da Pepperstone (scalping).
  */
-export async function treinarIaPepperstone(): Promise<
-  { ok: true; message: string; metadata?: ForexArbAiMetadata } | { ok: false; erro: string }
-> {
+export async function treinarIaPepperstone(
+  botType: "scalping" = "scalping"
+): Promise<{ ok: true; message: string; metadata?: ForexArbAiMetadata } | { ok: false; erro: string }> {
   try {
     const res = await kyServer
-      .post(API_ENDPOINTS.forexArb.aiTrain)
+      .post(API_ENDPOINTS.forexArb.aiTrain, { json: { botType } })
       .json<{ ok: boolean; message: string; metadata?: ForexArbAiMetadata }>();
     revalidatePath("/dashboard/forex-arb");
     return { ok: true, message: res.message, metadata: res.metadata };
   } catch (error: unknown) {
+    if (error && typeof error === "object" && "response" in error) {
+      try {
+        const body = await (error as { response: Response }).response.json();
+        if (body?.error) return { ok: false, erro: body.error };
+      } catch {
+        // fallback
+      }
+    }
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
 }

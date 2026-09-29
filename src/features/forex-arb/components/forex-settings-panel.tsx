@@ -13,20 +13,16 @@ import type {
 
 type ForexSettingsPanelProps = {
   settings: ForexArbSettings | null;
-  /** Corretoras cadastradas (para o rastreamento de oportunidades). */
-  exchangeIds: readonly string[];
 };
 
 /**
- * Configurações da arbitragem Forex: parâmetros editáveis (trade size,
- * retorno mínimo, volume, ciclo, perda diária, slippage, execução automática,
- * tipos de arbitragem, corretoras rastreadas). As credenciais cTrader são
- * cadastradas na tela de Exchange (não duplicadas aqui). Client component com
- * form controlado; mutações via Server Actions + `router.refresh`.
+ * Configurações do Scalping Forex Pepperstone: trade size, perda diária máxima
+ * e execução automática, além dos perfis por par (TP/SL/trailing/spread). As
+ * credenciais cTrader são cadastradas na tela de Exchange (não duplicadas aqui).
+ * Client component com form controlado; mutações via Server Actions + `router.refresh`.
  */
 export function ForexSettingsPanel({
   settings,
-  exchangeIds,
 }: ForexSettingsPanelProps): React.ReactNode {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -37,21 +33,9 @@ export function ForexSettingsPanel({
 
   const atuais: ForexArbSettings = settings ?? {
     isScanningEnabled: false,
-    lastScannedAt: null,
     tradeSize: 100,
-    minProfitPct: 0.05,
-    minVolume24hUSD: 50000,
-    maxStrategiesPerScan: 5,
-    scanIntervalMs: 60000,
     maxDailyLoss: 10,
-    maxSlippagePct: 0.1,
     autoExecute: true,
-    simpleEnabled: true,
-    triangularEnabled: true,
-    allowedExchanges: [],
-    takeProfitPct: 0.1,
-    stopLossPct: 0.1,
-    trailingStopPct: 0.01,
     accountType: "demo",
     accountId: "",
   };
@@ -82,12 +66,6 @@ export function ForexSettingsPanel({
 
   const atualizar = (campo: keyof AtualizarForexSettingsInput, valor: unknown): void => {
     setForm((prev) => ({ ...(prev ?? atuais), [campo]: valor }));
-  };
-
-  const alternarCorretora = (ex: string): void => {
-    const atual = form?.allowedExchanges ?? atuais.allowedExchanges;
-    const proximo = atual.includes(ex) ? atual.filter((a) => a !== ex) : [...atual, ex];
-    atualizar("allowedExchanges", proximo);
   };
 
   const pares = [
@@ -148,8 +126,7 @@ export function ForexSettingsPanel({
                 {(formAtual.accountType ?? "demo").toUpperCase()}
               </b>{" "}
               {formAtual.accountId ? `(#${formAtual.accountId})` : ""} | Trade Size:{" "}
-              <b className="text-white">${formAtual.tradeSize}</b> | Retorno Mín.:{" "}
-              <b className="text-emerald-400">{formAtual.minProfitPct}%</b>
+              <b className="text-white">${formAtual.tradeSize}</b>
             </p>
           </div>
         </div>
@@ -261,47 +238,6 @@ export function ForexSettingsPanel({
               />
             </div>
             <div>
-              <label
-                className="mb-1 block text-xs text-amber-400 font-semibold"
-                htmlFor="fx-min-profit"
-              >
-                Retorno Mínimo (%) - Filtro Scanner
-              </label>
-              <input
-                id="fx-min-profit"
-                type="number"
-                step="0.01"
-                value={formAtual.minProfitPct}
-                onChange={(e) => atualizar("minProfitPct", Number(e.target.value))}
-                className="w-full rounded border border-amber-500/30 bg-slate-900 px-2 py-1 text-amber-400 font-bold"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-min-volume">
-                Volume Mínimo 24h (USDT)
-              </label>
-              <input
-                id="fx-min-volume"
-                type="number"
-                value={formAtual.minVolume24hUSD}
-                onChange={(e) => atualizar("minVolume24hUSD", Number(e.target.value))}
-                className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-scan-interval">
-                Ciclo de Scan (min)
-              </label>
-              <input
-                id="fx-scan-interval"
-                type="number"
-                min="1"
-                value={Math.round((formAtual.scanIntervalMs || 60000) / 60000)}
-                onChange={(e) => atualizar("scanIntervalMs", Number(e.target.value) * 60000)}
-                className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
-              />
-            </div>
-            <div>
               <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-max-loss">
                 Max Perda Diária (USDT)
               </label>
@@ -314,117 +250,6 @@ export function ForexSettingsPanel({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-slate-500" htmlFor="fx-slippage">
-                Max Slippage (%)
-              </label>
-              <input
-                id="fx-slippage"
-                type="number"
-                step="0.01"
-                value={formAtual.maxSlippagePct}
-                onChange={(e) => atualizar("maxSlippagePct", Number(e.target.value))}
-                className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-emerald-400 font-semibold" htmlFor="fx-tp">
-                Take Profit (%)
-              </label>
-              <input
-                id="fx-tp"
-                type="number"
-                step="0.01"
-                value={formAtual.takeProfitPct ?? 0.1}
-                onChange={(e) => atualizar("takeProfitPct", Number(e.target.value))}
-                className="w-full rounded border border-emerald-500/30 bg-slate-900 px-2 py-1 text-emerald-400 font-bold"
-              />
-            </div>
-            <div>
-              <label
-                className="mb-1 block text-xs text-cyan-400 font-semibold"
-                htmlFor="fx-trailing"
-              >
-                Trailing Stop Gatilho (%)
-              </label>
-              <input
-                id="fx-trailing"
-                type="number"
-                step="0.005"
-                value={formAtual.trailingStopPct ?? 0.01}
-                onChange={(e) => atualizar("trailingStopPct", Number(e.target.value))}
-                className="w-full rounded border border-cyan-500/30 bg-slate-900 px-2 py-1 text-cyan-400 font-bold"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-rose-400 font-semibold" htmlFor="fx-sl">
-                Stop Loss (%)
-              </label>
-              <input
-                id="fx-sl"
-                type="number"
-                step="0.01"
-                value={formAtual.stopLossPct ?? 0.1}
-                onChange={(e) => atualizar("stopLossPct", Number(e.target.value))}
-                className="w-full rounded border border-rose-500/30 bg-slate-900 px-2 py-1 text-rose-400 font-bold"
-              />
-            </div>
-
-            {/* Configurações do Trend Grid Bot (Pyramiding + Global Trailing Stop) */}
-            <div className="col-span-full mt-2 rounded-lg border border-cyan-500/30 bg-cyan-950/20 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
-                  📊 Trend Grid Bot (Piramidagem + Trailing Stop Global)
-                </span>
-                <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-cyan-300">
-                  <input
-                    type="checkbox"
-                    checked={formAtual.gridEnabled ?? false}
-                    onChange={(e) => atualizar("gridEnabled", e.target.checked)}
-                    className="h-4 w-4 rounded border-white/10 bg-slate-900 text-cyan-500 focus:ring-cyan-500"
-                  />
-                  Ativar Motor Grid
-                </label>
-              </div>
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                <div>
-                  <label className="mb-1 block text-xs text-slate-400" htmlFor="fx-grid-step">
-                    Passo de Expansão (Pips)
-                  </label>
-                  <input
-                    id="fx-grid-step"
-                    type="number"
-                    value={formAtual.stepPips ?? 15}
-                    onChange={(e) => atualizar("stepPips", Number(e.target.value))}
-                    className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs text-slate-400" htmlFor="fx-grid-trailing">
-                    Trailing Stop Global (Pips)
-                  </label>
-                  <input
-                    id="fx-grid-trailing"
-                    type="number"
-                    value={formAtual.trailingPips ?? 10}
-                    onChange={(e) => atualizar("trailingPips", Number(e.target.value))}
-                    className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs text-slate-400" htmlFor="fx-grid-levels">
-                    Níveis Máximos no Grid
-                  </label>
-                  <input
-                    id="fx-grid-levels"
-                    type="number"
-                    value={formAtual.maxGridLevels ?? 5}
-                    onChange={(e) => atualizar("maxGridLevels", Number(e.target.value))}
-                    className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
-                  />
-                </div>
-              </div>
-            </div>
-            <div>
               <span className="mb-1 block text-xs text-slate-500">Execução Automática</span>
               <label className="flex cursor-pointer items-center gap-2 text-slate-200">
                 <input
@@ -435,29 +260,6 @@ export function ForexSettingsPanel({
                 />
                 {formAtual.autoExecute ? "Ativa" : "Desativada"}
               </label>
-            </div>
-            <div>
-              <span className="mb-1 block text-xs text-slate-500">Tipos de Arbitragem</span>
-              <div className="flex gap-4">
-                <label className="flex cursor-pointer items-center gap-2 text-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={formAtual.triangularEnabled}
-                    onChange={(e) => atualizar("triangularEnabled", e.target.checked)}
-                    className="rounded border-slate-600 bg-slate-800"
-                  />
-                  Triangular
-                </label>
-                <label className="flex cursor-pointer items-center gap-2 text-slate-200">
-                  <input
-                    type="checkbox"
-                    checked={formAtual.simpleEnabled}
-                    onChange={(e) => atualizar("simpleEnabled", e.target.checked)}
-                    className="rounded border-slate-600 bg-slate-800"
-                  />
-                  Simples
-                </label>
-              </div>
             </div>
           </div>
 
@@ -612,22 +414,6 @@ export function ForexSettingsPanel({
                             className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
                           />
                         </div>
-                        <div>
-                          <label htmlFor={`exigir-m5-${sym}`} className="mb-1 block text-slate-500">
-                            Exigir M5
-                          </label>
-                          <select
-                            id={`exigir-m5-${sym}`}
-                            value={p.requireM5Trend === false ? "false" : "true"}
-                            onChange={(e) =>
-                              atualizarPar(sym, "requireM5Trend", e.target.value === "true")
-                            }
-                            className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
-                          >
-                            <option value="true">Sim</option>
-                            <option value="false">Não</option>
-                          </select>
-                        </div>
                       </div>
                     ) : (
                       <p className="text-xs italic text-slate-600">
@@ -640,36 +426,6 @@ export function ForexSettingsPanel({
             </div>
           </div>
 
-          <div className="mt-4 border-t border-white/10 pt-4">
-            <span className="mb-2 block text-xs text-slate-500">
-              Corretoras Rastreadas (oportunidades)
-            </span>
-            {exchangeIds.length === 0 ? (
-              <span className="text-xs italic text-slate-600">
-                Nenhuma corretora cadastrada — adicione na tela de Exchange.
-              </span>
-            ) : (
-              <div className="flex flex-wrap gap-4">
-                {exchangeIds.map((ex) => {
-                  const marcado = formAtual.allowedExchanges.includes(ex);
-                  return (
-                    <label
-                      key={ex}
-                      className="flex cursor-pointer items-center gap-2 text-sm text-slate-200 transition-colors hover:text-white"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={marcado}
-                        onChange={() => alternarCorretora(ex)}
-                        className="h-4 w-4 rounded border-white/20 bg-slate-900"
-                      />
-                      {ex.toUpperCase()}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </div>
       ) : null}
     </div>

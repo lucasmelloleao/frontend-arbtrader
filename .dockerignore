@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.agents
+.claude
+.codex
+.commandcode
+.cursor
+.env*.local
+*.log

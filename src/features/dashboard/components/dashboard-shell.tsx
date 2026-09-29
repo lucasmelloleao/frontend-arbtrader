@@ -15,7 +15,6 @@ import {
   Globe,
   HelpCircle,
   History,
-  Layers,
   LayoutDashboard,
   Menu,
   ShieldAlert,
@@ -66,12 +65,6 @@ const LINKS_GERAIS: readonly SidebarLink[] = [
     href: "/dashboard/exchanges",
     label: "Chaves de API (Exchange)",
     icon: Wallet,
-    habilitado: true,
-  },
-  {
-    href: "/dashboard/trend-grid",
-    label: "Trend Grid Bot (cTrader)",
-    icon: Layers,
     habilitado: true,
   },
   {
