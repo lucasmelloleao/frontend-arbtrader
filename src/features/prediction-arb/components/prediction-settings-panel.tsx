@@ -27,8 +27,11 @@ export function PredictionSettingsPanel({
   const [maxOpenPairs, setMaxOpenPairs] = useState(settings?.maxOpenPairs ?? 3);
   const [maxSlippagePct, setMaxSlippagePct] = useState(settings?.maxSlippagePct ?? 0.1);
   const [maxDailyLoss, setMaxDailyLoss] = useState(settings?.maxDailyLoss ?? 10);
-  const [minHighCertaintyProb, setMinHighCertaintyProb] = useState(
-    settings?.minHighCertaintyProb ?? 0.95,
+  const [minHighCertaintyProb5m, setMinHighCertaintyProb5m] = useState(
+    settings?.minHighCertaintyProb5m ?? 0.95,
+  );
+  const [minHighCertaintyProb15m, setMinHighCertaintyProb15m] = useState(
+    settings?.minHighCertaintyProb15m ?? 0.91,
   );
   const [minWatchCertaintyProb, setMinWatchCertaintyProb] = useState(
     settings?.minWatchCertaintyProb ?? 0.9,
@@ -62,7 +65,8 @@ export function PredictionSettingsPanel({
         maxOpenPairs,
         maxSlippagePct,
         maxDailyLoss,
-        minHighCertaintyProb,
+        minHighCertaintyProb5m,
+        minHighCertaintyProb15m,
         minWatchCertaintyProb,
         maxEntrySecondsBeforeExpiry5mAlt,
         maxEntrySecondsBeforeExpiry5mMaj,
@@ -208,26 +212,49 @@ export function PredictionSettingsPanel({
               </p>
             </div>
 
-            {/* Certeza Mínima Direcional (Entrada) */}
+            {/* Certeza Entrada 5m */}
             <div>
               <label
-                htmlFor="min-certainty-input"
+                htmlFor="min-certainty-5m-input"
                 className="block text-xs font-semibold text-slate-300"
               >
-                Certeza Entrada Direcional (ex: 0.95 = 95%)
+                Certeza Entrada 5m (ex: 0.95 = 95%)
               </label>
               <input
-                id="min-certainty-input"
+                id="min-certainty-5m-input"
                 type="number"
                 step="0.01"
                 min="0.50"
                 max="0.99"
-                value={minHighCertaintyProb}
-                onChange={(e) => setMinHighCertaintyProb(Number(e.target.value))}
+                value={minHighCertaintyProb5m}
+                onChange={(e) => setMinHighCertaintyProb5m(Number(e.target.value))}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
               />
               <p className="mt-1 text-[10px] text-slate-500">
-                Gatilho para envio efetivo da ordem na Polymarket.
+                Gatilho para envio de ordem em mercados de 5 minutos.
+              </p>
+            </div>
+
+            {/* Certeza Entrada 15m */}
+            <div>
+              <label
+                htmlFor="min-certainty-15m-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Certeza Entrada 15m (ex: 0.91 = 91%)
+              </label>
+              <input
+                id="min-certainty-15m-input"
+                type="number"
+                step="0.01"
+                min="0.50"
+                max="0.99"
+                value={minHighCertaintyProb15m}
+                onChange={(e) => setMinHighCertaintyProb15m(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Gatilho para envio de ordem em mercados de 15 minutos.
               </p>
             </div>
 
