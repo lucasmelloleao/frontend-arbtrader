@@ -47,6 +47,20 @@ const INTERVALOS_FILTRO = [
   { id: "all", label: "Tudo" },
 ] as const;
 
+/** Mapeia título/slug de um mercado para a moeda de referência (agrupamento). */
+function getCoinDetails(titleOrSlug: string): { coin: string; name: string } {
+  const s = (titleOrSlug || "").toUpperCase();
+  if (s.includes("BITCOIN") || s.includes("BTC")) return { coin: "BTC", name: "Bitcoin" };
+  if (s.includes("ETHEREUM") || s.includes("ETH")) return { coin: "ETH", name: "Ethereum" };
+  if (s.includes("SOLANA") || s.includes("SOL")) return { coin: "SOL", name: "Solana" };
+  if (s.includes("XRP") || s.includes("RIPPLE")) return { coin: "XRP", name: "Ripple (XRP)" };
+  if (s.includes("DOGECOIN") || s.includes("DOGE")) return { coin: "DOGE", name: "Dogecoin" };
+  if (s.includes("CARDANO") || s.includes("ADA")) return { coin: "ADA", name: "Cardano" };
+  if (s.includes("AVALANCHE") || s.includes("AVAX")) return { coin: "AVAX", name: "Avalanche" };
+  if (s.includes("BINANCE") || s.includes("BNB")) return { coin: "BNB", name: "BNB" };
+  return { coin: "OUTROS", name: "Outros Mercados" };
+}
+
 /**
  * Painel principal do Polymarket Arb: abas para Posições Abertas, Estratégias Monitoradas,
  * Histórico de Trades, Lucro/Prejuízo por Ativo e IA Meta-Labeling (Gate 4).
@@ -58,7 +72,9 @@ export function PredictionArbBoard({
 }: PredictionArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [aba, setAba] = useState<"open" | "monitored" | "closed" | "performance" | "aiStrategy">("open");
+  const [aba, setAba] = useState<"open" | "monitored" | "closed" | "performance" | "aiStrategy">(
+    "open",
+  );
   const [criando, setCriando] = useState(false);
   const [periodo, setPeriodo] = useState<PredictionPeriod>("all");
   const [tradesList, setTradesList] = useState<readonly PredictionArbTrade[]>(initialTrades);
@@ -131,7 +147,12 @@ export function PredictionArbBoard({
       t.status === "voided" ||
       t.pnl !== 0 ||
       t.realizedUsd > 0 ||
-      (t.reason && (t.reason.includes("venda-antecipada") || t.reason.includes("redeem-vencimento") || t.reason.includes("vencimento") || t.reason.includes("Manual") || t.reason.includes("fechar"))),
+      (t.reason &&
+        (t.reason.includes("venda-antecipada") ||
+          t.reason.includes("redeem-vencimento") ||
+          t.reason.includes("vencimento") ||
+          t.reason.includes("Manual") ||
+          t.reason.includes("fechar"))),
   );
 
   const executar = (acao: () => Promise<{ ok: boolean }>): void => {
@@ -196,7 +217,12 @@ export function PredictionArbBoard({
           [
             { key: "open", label: "Posições Abertas", count: abertas.length },
             { key: "monitored", label: "Monitorando", count: monitorando.length },
-            { key: "closed", label: "Histórico de Trades", count: encerradas.length, icon: TrendingUp },
+            {
+              key: "closed",
+              label: "Histórico de Trades",
+              count: encerradas.length,
+              icon: TrendingUp,
+            },
             { key: "performance", label: "Lucro/Prejuízo por Ativo", count: null, icon: BarChart3 },
             { key: "aiStrategy", label: "IA Meta-Labeling (Gate 4)", count: null, icon: Brain },
           ] as const
@@ -215,7 +241,7 @@ export function PredictionArbBoard({
             >
               {Icon ? <Icon className="h-3.5 w-3.5 text-cyan-400" /> : null}
               {tab.label}
-              {tab.count !== null && tab.count !== undefined ? (
+              {tab.count !== null ? (
                 <span
                   className={`rounded-full px-1.5 text-[10px] font-bold ${
                     aba === tab.key ? "bg-white/20" : "bg-slate-800"
@@ -444,6 +470,7 @@ export function PredictionArbBoard({
                         onClick={() => confirmarVoid(strat)}
                         className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-white disabled:opacity-50"
                         title="Encerrar pela corretora"
+                        aria-label="Encerrar pela corretora"
                       >
                         <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
@@ -478,6 +505,7 @@ export function PredictionArbBoard({
                     onClick={() => confirmarExcluir(strat)}
                     className="text-slate-500 transition-colors hover:text-rose-400"
                     title="Excluir estratégia"
+                    aria-label="Excluir estratégia"
                   >
                     <X className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -842,19 +870,6 @@ export function PredictionArbBoard({
                 }
               >();
 
-              const getCoinDetails = (titleOrSlug: string): { coin: string; name: string } => {
-                const s = (titleOrSlug || "").toUpperCase();
-                if (s.includes("BITCOIN") || s.includes("BTC")) return { coin: "BTC", name: "Bitcoin" };
-                if (s.includes("ETHEREUM") || s.includes("ETH")) return { coin: "ETH", name: "Ethereum" };
-                if (s.includes("SOLANA") || s.includes("SOL")) return { coin: "SOL", name: "Solana" };
-                if (s.includes("XRP") || s.includes("RIPPLE")) return { coin: "XRP", name: "Ripple (XRP)" };
-                if (s.includes("DOGECOIN") || s.includes("DOGE")) return { coin: "DOGE", name: "Dogecoin" };
-                if (s.includes("CARDANO") || s.includes("ADA")) return { coin: "ADA", name: "Cardano" };
-                if (s.includes("AVALANCHE") || s.includes("AVAX")) return { coin: "AVAX", name: "Avalanche" };
-                if (s.includes("BINANCE") || s.includes("BNB")) return { coin: "BNB", name: "BNB" };
-                return { coin: "OUTROS", name: "Outros Mercados" };
-              };
-
               closedPerfTrades.forEach((t) => {
                 const text = `${t.question || ""} ${t.slug || ""}`;
                 const { coin, name } = getCoinDetails(text);
@@ -958,7 +973,8 @@ export function PredictionArbBoard({
                         Investido / Realizado
                       </span>
                       <div className="mt-1 font-mono text-sm font-bold text-slate-200">
-                        ${totalPeriodInvested.toFixed(2)} / <span className="text-emerald-400">${totalPeriodRealized.toFixed(2)}</span>
+                        ${totalPeriodInvested.toFixed(2)} /{" "}
+                        <span className="text-emerald-400">${totalPeriodRealized.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -994,7 +1010,7 @@ export function PredictionArbBoard({
                                 key={item.coin}
                                 className="transition-colors hover:bg-slate-900/40"
                               >
-                                <td className="px-4 py-3 font-sans">
+                                <td className="px-4 py-3 font-sans" aria-label="Moeda / Ativo">
                                   <div className="flex items-center gap-2">
                                     <span className="rounded-lg bg-cyan-500/20 px-2 py-1 text-xs font-black text-cyan-300 font-mono">
                                       {item.coin}
@@ -1002,7 +1018,9 @@ export function PredictionArbBoard({
                                     <div>
                                       <div className="font-bold text-white">{item.name}</div>
                                       <div className="text-[10px] text-slate-400">
-                                        {item.markets.length} {item.markets.length === 1 ? "mercado" : "mercados"} operados
+                                        {item.markets.length}{" "}
+                                        {item.markets.length === 1 ? "mercado" : "mercados"}{" "}
+                                        operados
                                       </div>
                                     </div>
                                   </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 import type { DerivTrade } from "@/features/deriv/deriv.schema";
 
 type DerivTimelineChartProps = {
@@ -39,37 +39,36 @@ export function DerivTimelineChart({ trades }: DerivTimelineChartProps): React.R
   const [selectedSymbol, setSelectedSymbol] = useState<string>("ALL");
 
   // Ordena trades encerrados do mais antigo ao mais recente
-  const sortedTrades = useMemo(() => {
-    return trades
-      .filter((t) => t.status !== "open" && t.status !== "pending")
-      .map((t) => ({
-        ...t,
-        timestamp: new Date(t.openedAt || t.createdAt || 0).getTime(),
-      }))
-      .filter((t) => !Number.isNaN(t.timestamp) && t.timestamp > 0)
-      .sort((a, b) => a.timestamp - b.timestamp);
-  }, [trades]);
+  const sortedTrades = trades
+    .filter((t) => t.status !== "open" && t.status !== "pending")
+    .map((t) => ({
+      symbol: t.symbol,
+      pnl: t.pnl,
+      timestamp: new Date(t.openedAt || t.createdAt || 0).getTime(),
+    }))
+    .filter((t) => !Number.isNaN(t.timestamp) && t.timestamp > 0)
+    .toSorted((a, b) => a.timestamp - b.timestamp);
 
   // Lista única de ativos
-  const symbols = useMemo(() => {
+  const symbols = (() => {
     const set = new Set<string>();
     sortedTrades.forEach((t) => {
       if (t.symbol) set.add(t.symbol);
     });
-    return Array.from(set).sort();
-  }, [sortedTrades]);
+    return Array.from(set).toSorted();
+  })();
 
   // Paleta de cores por símbolo
-  const symbolColors = useMemo(() => {
+  const symbolColors = (() => {
     const map = new Map<string, string>();
     symbols.forEach((sym, idx) => {
       map.set(sym, CORES_PALETA[idx % CORES_PALETA.length]);
     });
     return map;
-  }, [symbols]);
+  })();
 
   // Calcula trajetórias de lucro acumulado por ativo e global
-  const { series, minPnl, maxPnl, timeStart, timeEnd } = useMemo(() => {
+  const { series, minPnl, maxPnl, timeStart, timeEnd } = (() => {
     if (sortedTrades.length === 0) {
       return { series: [], minPnl: 0, maxPnl: 0, timeStart: 0, timeEnd: 0 };
     }
@@ -92,9 +91,12 @@ export function DerivTimelineChart({ trades }: DerivTimelineChartProps): React.R
     symbols.forEach((sym) => currentAccum.set(sym, 0));
 
     let globalAccum = 0;
-    const globalPoints: Array<{ timestamp: number; pnl: number; accumPnl: number; symbol: string }> = [
-      { timestamp: tStart, pnl: 0, accumPnl: 0, symbol: "GLOBAL" },
-    ];
+    const globalPoints: Array<{
+      timestamp: number;
+      pnl: number;
+      accumPnl: number;
+      symbol: string;
+    }> = [{ timestamp: tStart, pnl: 0, accumPnl: 0, symbol: "GLOBAL" }];
 
     sortedTrades.forEach((t) => {
       const sym = t.symbol || "Outro";
@@ -138,7 +140,7 @@ export function DerivTimelineChart({ trades }: DerivTimelineChartProps): React.R
       timeStart: tStart,
       timeEnd: tEnd === tStart ? tStart + 1 : tEnd,
     };
-  }, [sortedTrades, symbols, symbolColors]);
+  })();
 
   if (sortedTrades.length < 2) {
     return (
@@ -315,7 +317,9 @@ export function DerivTimelineChart({ trades }: DerivTimelineChartProps): React.R
           {/* Renderização das Séries de Linhas */}
           {displayedSeries.map((s) => {
             const isGlobal = s.symbol === "GLOBAL";
-            const pts = s.points.map((p) => `${getX(p.timestamp).toFixed(1)},${getY(p.accumPnl).toFixed(1)}`).join(" ");
+            const pts = s.points
+              .map((p) => `${getX(p.timestamp).toFixed(1)},${getY(p.accumPnl).toFixed(1)}`)
+              .join(" ");
 
             return (
               <g key={s.symbol}>
@@ -330,14 +334,14 @@ export function DerivTimelineChart({ trades }: DerivTimelineChartProps): React.R
 
                 {/* Marcadores dos trades */}
                 {!isGlobal &&
-                  s.points.slice(1).map((p, pIdx) => {
+                  s.points.slice(1).map((p) => {
                     const cx = getX(p.timestamp);
                     const cy = getY(p.accumPnl);
                     const isPositiveTrade = p.pnl >= 0;
 
                     return (
                       <circle
-                        key={pIdx}
+                        key={`${p.symbol}-${p.timestamp}-${p.accumPnl}`}
                         cx={cx}
                         cy={cy}
                         r={3.5}
@@ -349,7 +353,10 @@ export function DerivTimelineChart({ trades }: DerivTimelineChartProps): React.R
                           const date = new Date(p.timestamp);
                           const dateStr = `${String(date.getHours()).padStart(2, "0")}:${String(
                             date.getMinutes(),
-                          ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")} (${String(
+                          ).padStart(
+                            2,
+                            "0",
+                          )}:${String(date.getSeconds()).padStart(2, "0")} (${String(
                             date.getDate(),
                           ).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")})`;
                           setHoveredPoint({

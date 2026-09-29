@@ -37,7 +37,6 @@ export function PepperstoneAiStrategyView(): React.ReactNode {
 
   useEffect(() => {
     let ativo = true;
-    setLoading(true);
     const fetchStatus = async (): Promise<void> => {
       const res = await buscarStatusIaPepperstone("scalping");
       if (ativo) {

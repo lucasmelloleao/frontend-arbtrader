@@ -206,7 +206,10 @@ export function IcMarketsStrategyModal({
             </span>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-300" htmlFor="ic-min-er">
+                <label
+                  className="mb-1 block text-xs font-semibold text-slate-300"
+                  htmlFor="ic-min-er"
+                >
                   Gate 1: Min Efficiency Ratio (ER)
                 </label>
                 <input
@@ -225,7 +228,10 @@ export function IcMarketsStrategyModal({
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-300" htmlFor="ic-min-vr">
+                <label
+                  className="mb-1 block text-xs font-semibold text-slate-300"
+                  htmlFor="ic-min-vr"
+                >
                   Gate 2: Min Variance Ratio (VR)
                 </label>
                 <input

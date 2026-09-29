@@ -34,7 +34,9 @@ async function IcMarketsCarregado(): Promise<React.ReactNode> {
       ? strategiesRes.value.strategies
       : [];
   const openTrades: readonly IcMarketsTrade[] =
-    openTradesRes.status === "fulfilled" && openTradesRes.value.ok ? openTradesRes.value.trades : [];
+    openTradesRes.status === "fulfilled" && openTradesRes.value.ok
+      ? openTradesRes.value.trades
+      : [];
   const closedTrades: readonly IcMarketsTrade[] =
     closedTradesRes.status === "fulfilled" && closedTradesRes.value.ok
       ? closedTradesRes.value.trades

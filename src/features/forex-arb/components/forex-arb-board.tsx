@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
 import {
@@ -108,23 +107,35 @@ export function ForexArbBoard({
   exchangeKeys,
   botType: _botType,
 }: ForexArbBoardProps): React.ReactNode {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
   const [localStrategies, setLocalStrategies] = useState<readonly ForexArbStrategy[]>(strategies);
   const [localTrades, setLocalTrades] = useState<readonly ForexArbTrade[]>(trades);
   const [localBalance, setLocalBalance] = useState<number | null>(null);
 
-  useEffect(() => {
+  // Sincroniza as props (dados do server) com o estado local durante o render,
+  // em vez de num effect (ADR-003: sem cache/staleness; React recomenda ajustar
+  // estado derivado de props no render).
+  const [prevStrategies, setPrevStrategies] = useState<readonly ForexArbStrategy[]>(strategies);
+  if (prevStrategies !== strategies) {
+    setPrevStrategies(strategies);
     setLocalStrategies(strategies);
-  }, [strategies]);
+  }
 
-  useEffect(() => {
+  const [prevTrades, setPrevTrades] = useState<readonly ForexArbTrade[]>(trades);
+  if (prevTrades !== trades) {
+    setPrevTrades(trades);
     setLocalTrades(trades);
-  }, [trades]);
+  }
 
   const [aba, setAba] = useState<
     "opportunities" | "open" | "closed" | "performance" | "aiStrategy"
-  >(strategies.some((s) => s.positionOpen) ? "open" : opportunities.length > 0 ? "opportunities" : "open");
+  >(
+    strategies.some((s) => s.positionOpen)
+      ? "open"
+      : opportunities.length > 0
+        ? "opportunities"
+        : "open",
+  );
   const [criando, setCriando] = useState(false);
   const [livePrices, setLivePrices] = useState<ForexArbLivePrices>({});
 
@@ -158,11 +169,12 @@ export function ForexArbBoard({
         buscarSaldoForex(),
         buscarCotacoesAoVivo(),
       ]);
-      if (novasStrats && novasStrats.length >= 0) setLocalStrategies(novasStrats);
-      if (novosTrades && novosTrades.length >= 0) setLocalTrades(novosTrades);
+      setLocalStrategies(novasStrats);
+      setLocalTrades(novosTrades);
       if (novoSaldo !== null && !isNaN(novoSaldo)) setLocalBalance(novoSaldo);
       if (novasCotacoes !== null) setLivePrices(novasCotacoes);
-    } catch {} finally {
+    } catch {
+    } finally {
       setIsRefreshing(false);
     }
   };
@@ -209,21 +221,21 @@ export function ForexArbBoard({
     ) {
       return;
     }
-    executar(() => fecharPosicao(strat.id));
+    void executar(() => fecharPosicao(strat.id));
   };
 
   const confirmarExcluir = (strat: ForexArbStrategy): void => {
     if (!confirm(`Excluir a estratégia ${strat.name}? (sem posição aberta)`)) {
       return;
     }
-    executar(() => deletarStrategy(strat.id));
+    void executar(() => deletarStrategy(strat.id));
   };
 
   const confirmarFecharTodas = (): void => {
     if (!confirm(`Deseja realmente ZERAR TODAS as ${abertas.length} posições abertas agora?`)) {
       return;
     }
-    executar(() => fecharTodasPosicoes());
+    void executar(() => fecharTodasPosicoes());
   };
 
   const confirmarDeletarTodas = (): void => {
@@ -234,7 +246,7 @@ export function ForexArbBoard({
     ) {
       return;
     }
-    executar(() => deletarTodasOperacoes());
+    void executar(() => deletarTodasOperacoes());
   };
 
   const confirmarVoidClose = (strat: ForexArbStrategy): void => {
@@ -245,7 +257,7 @@ export function ForexArbBoard({
     ) {
       return;
     }
-    executar(() => voidClosePosicao(strat.id));
+    void executar(() => voidClosePosicao(strat.id));
   };
 
   return (
@@ -267,7 +279,9 @@ export function ForexArbBoard({
             className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700 disabled:opacity-50"
             title="Atualizar cotações e posições agora"
           >
-            <Activity className={`h-3.5 w-3.5 text-indigo-400 ${isRefreshing ? "animate-spin" : ""}`} />
+            <Activity
+              className={`h-3.5 w-3.5 text-indigo-400 ${isRefreshing ? "animate-spin" : ""}`}
+            />
             {isRefreshing ? "Atualizando..." : "Atualizar Dados"}
           </button>
           <button
@@ -404,8 +418,14 @@ export function ForexArbBoard({
                 const sym = primaryLeg.symbol || "—";
                 const slashSym = sym.includes("/") ? sym : `${sym.slice(0, 3)}/${sym.slice(3)}`;
                 const unslashSym = sym.replace("/", "");
-                const liveMid = livePrices[sym]?.mid || livePrices[slashSym]?.mid || livePrices[unslashSym]?.mid;
-                let currentPrice = liveMid || (primaryLeg.currentPrice && primaryLeg.currentPrice > 0 ? primaryLeg.currentPrice : null) || (strat.currentPrice && strat.currentPrice > 0 ? strat.currentPrice : null);
+                const liveMid =
+                  livePrices[sym]?.mid || livePrices[slashSym]?.mid || livePrices[unslashSym]?.mid;
+                let currentPrice =
+                  liveMid ||
+                  (primaryLeg.currentPrice && primaryLeg.currentPrice > 0
+                    ? primaryLeg.currentPrice
+                    : null) ||
+                  (strat.currentPrice && strat.currentPrice > 0 ? strat.currentPrice : null);
 
                 let livePnl = strat.pnl || 0;
                 let livePct = strat.pnlPct || 0;
@@ -434,7 +454,7 @@ export function ForexArbBoard({
                     const delta = livePnl / rawUnits;
                     currentPrice = sideUpper === "BUY" ? refPrice + delta : refPrice - delta;
                   }
-                  livePct = ((Math.abs(currentPrice - refPrice)) / refPrice) * 100;
+                  livePct = (Math.abs(currentPrice - refPrice) / refPrice) * 100;
                 }
 
                 const lotesReais = isGoldPair
@@ -451,9 +471,7 @@ export function ForexArbBoard({
                 if (currentPrice && refPrice > 0) {
                   const sideUpper = (primaryLeg.side || "BUY").toUpperCase();
                   const diff =
-                    sideUpper === "BUY"
-                      ? currentPrice - refPrice
-                      : refPrice - currentPrice;
+                    sideUpper === "BUY" ? currentPrice - refPrice : refPrice - currentPrice;
                   const calculatedPct = (diff / refPrice) * 100;
 
                   let grossPnl: number | null = null;
@@ -525,14 +543,20 @@ export function ForexArbBoard({
                               </span>
                               {(() => {
                                 const symKey = leg.symbol || "";
-                                const slashSym = symKey.includes("/") ? symKey : `${symKey.slice(0, 3)}/${symKey.slice(3)}`;
-                                const unslashSym = symKey.replace("/", "");
+                                const legSlashSym = symKey.includes("/")
+                                  ? symKey
+                                  : `${symKey.slice(0, 3)}/${symKey.slice(3)}`;
+                                const legUnslashSym = symKey.replace("/", "");
                                 let current =
                                   livePrices[symKey]?.mid ||
-                                  livePrices[slashSym]?.mid ||
-                                  livePrices[unslashSym]?.mid ||
-                                  (leg.currentPrice && leg.currentPrice > 0 ? leg.currentPrice : null) ||
-                                  (strat.currentPrice && strat.currentPrice > 0 ? strat.currentPrice : null);
+                                  livePrices[legSlashSym]?.mid ||
+                                  livePrices[legUnslashSym]?.mid ||
+                                  (leg.currentPrice && leg.currentPrice > 0
+                                    ? leg.currentPrice
+                                    : null) ||
+                                  (strat.currentPrice && strat.currentPrice > 0
+                                    ? strat.currentPrice
+                                    : null);
 
                                 // Fallback matemático: se ainda não carregou o spot, deriva da entrada e do PnL real da cTrader
                                 if (!current && leg.price && leg.price > 0 && strat.pnl !== 0) {
@@ -542,15 +566,19 @@ export function ForexArbBoard({
                                     // PnL_USD = (diff * units) / price => price = entry / (1 - (pnl * entry / units)) para SELL
                                     const pnlJPY = strat.pnl * leg.price;
                                     const delta = pnlJPY / units;
-                                    current = sideUpper === "BUY" ? leg.price + delta : leg.price - delta;
+                                    current =
+                                      sideUpper === "BUY" ? leg.price + delta : leg.price - delta;
                                   } else {
                                     const delta = strat.pnl / units;
-                                    current = sideUpper === "BUY" ? leg.price + delta : leg.price - delta;
+                                    current =
+                                      sideUpper === "BUY" ? leg.price + delta : leg.price - delta;
                                   }
                                 }
 
                                 const currentFormatted =
-                                  typeof current === "number" && !isNaN(current) ? current.toFixed(3) : "—";
+                                  typeof current === "number" && !isNaN(current)
+                                    ? current.toFixed(3)
+                                    : "—";
                                 return (
                                   <span className="text-amber-300 font-extrabold bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
                                     Preço Atual: {currentFormatted}
@@ -609,7 +637,9 @@ export function ForexArbBoard({
                               <Activity className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
                             )}
                             <span className="font-mono uppercase tracking-wider text-[11px]">
-                              {strat.trailingActive ? "Trailing Stop Ativado" : "Trailing Stop Monitorando"}
+                              {strat.trailingActive
+                                ? "Trailing Stop Ativado"
+                                : "Trailing Stop Monitorando"}
                             </span>
                           </div>
                           {strat.trailingActive && strat.trailingFloorUsd > 0 ? (
@@ -636,9 +666,7 @@ export function ForexArbBoard({
                           <span className="block text-[9px] text-slate-500">Pico Máximo</span>
                           <span className="font-bold text-emerald-400">
                             +$
-                            {Math.max(strat.peakProfitUsd, livePnl > 0 ? livePnl : 0).toFixed(
-                              2,
-                            )}
+                            {Math.max(strat.peakProfitUsd, livePnl > 0 ? livePnl : 0).toFixed(2)}
                           </span>
                         </div>
                         <div>
@@ -760,7 +788,9 @@ export function ForexArbBoard({
                           isLucro ? "text-emerald-400" : "text-rose-400"
                         }`}
                       >
-                        {trade.realizedPnl >= 0 ? `+$${trade.realizedPnl.toFixed(2)} USD` : `-$${Math.abs(trade.realizedPnl).toFixed(2)} USD`}
+                        {trade.realizedPnl >= 0
+                          ? `+$${trade.realizedPnl.toFixed(2)} USD`
+                          : `-$${Math.abs(trade.realizedPnl).toFixed(2)} USD`}
                       </div>
                       <div className="font-mono text-[10px] font-bold text-slate-400">
                         P&L Líquido Real

@@ -21,9 +21,7 @@ type ForexSettingsPanelProps = {
  * credenciais cTrader são cadastradas na tela de Exchange (não duplicadas aqui).
  * Client component com form controlado; mutações via Server Actions + `router.refresh`.
  */
-export function ForexSettingsPanel({
-  settings,
-}: ForexSettingsPanelProps): React.ReactNode {
+export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React.ReactNode {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [editando, setEditando] = useState(false);
@@ -425,7 +423,6 @@ export function ForexSettingsPanel({
               })}
             </div>
           </div>
-
         </div>
       ) : null}
     </div>

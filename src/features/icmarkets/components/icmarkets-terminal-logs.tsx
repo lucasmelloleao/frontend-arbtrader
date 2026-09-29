@@ -6,18 +6,22 @@ import { buscarLogsIcMarkets } from "@/features/icmarkets/icmarkets.actions";
 
 export function IcMarketsTerminalLogs(): React.ReactNode {
   const [showLogs, setShowLogs] = useState(true);
-  const [logs, setLogs] = useState<readonly string[]>([]);
+  const [logs, setLogs] = useState<readonly { id: number; texto: string }[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [linhasLimite, setLinhasLimite] = useState(150);
   const [ultimoUpdate, setUltimoUpdate] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const nextLogId = useRef(0);
+
+  const normalizar = (linhas: readonly string[]): { id: number; texto: string }[] =>
+    linhas.map((linha) => ({ id: nextLogId.current++, texto: linha }));
 
   const carregarLogs = async (): Promise<void> => {
     setCarregando(true);
     const res = await buscarLogsIcMarkets();
     if (res.ok) {
-      setLogs(res.logs.slice(-linhasLimite));
+      setLogs(normalizar(res.logs.slice(-linhasLimite)));
       setUltimoUpdate(new Date().toLocaleTimeString("pt-BR"));
     }
     setCarregando(false);
@@ -38,7 +42,7 @@ export function IcMarketsTerminalLogs(): React.ReactNode {
     const atualizar = async (): Promise<void> => {
       const res = await buscarLogsIcMarkets();
       if (ativo && res.ok) {
-        setLogs(res.logs.slice(-linhasLimite));
+        setLogs(normalizar(res.logs.slice(-linhasLimite)));
         setUltimoUpdate(new Date().toLocaleTimeString("pt-BR"));
       }
     };
@@ -63,7 +67,9 @@ export function IcMarketsTerminalLogs(): React.ReactNode {
 
   const baixarLogs = (): void => {
     if (logs.length === 0) return;
-    const blob = new Blob([logs.join("\n")], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([logs.map((l) => l.texto).join("\n")], {
+      type: "text/plain;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -206,7 +212,8 @@ export function IcMarketsTerminalLogs(): React.ReactNode {
           </div>
         ) : (
           <div className="space-y-1">
-            {logs.map((linha, index) => {
+            {logs.map((log) => {
+              const linha = log.texto;
               const isError =
                 linha.includes("❌") || linha.includes("Erro") || linha.includes("Falha");
               const isWarn =
@@ -228,7 +235,7 @@ export function IcMarketsTerminalLogs(): React.ReactNode {
               else if (isScan) cor = "text-cyan-300";
 
               return (
-                <div key={`${linha}-${index}`} className={`${cor} whitespace-pre-wrap font-mono`}>
+                <div key={log.id} className={`${cor} whitespace-pre-wrap font-mono`}>
                   {linha}
                 </div>
               );

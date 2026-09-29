@@ -135,9 +135,17 @@ export function FxProStrategyForm({
                 className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
               >
                 {FXPRO_SUPPORTED_MARKETS.map((cat) => (
-                  <optgroup key={cat.category} label={cat.category} className="bg-slate-950 font-bold text-indigo-300">
+                  <optgroup
+                    key={cat.category}
+                    label={cat.category}
+                    className="bg-slate-950 font-bold text-indigo-300"
+                  >
                     {cat.symbols.map((item) => (
-                      <option key={item.symbol} value={item.symbol} className="bg-slate-900 text-white">
+                      <option
+                        key={item.symbol}
+                        value={item.symbol}
+                        className="bg-slate-900 text-white"
+                      >
                         {item.label}
                       </option>
                     ))}

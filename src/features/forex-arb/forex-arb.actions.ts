@@ -70,7 +70,11 @@ export async function buscarCotacoesAoVivo(): Promise<Record<
 export async function buscarEstrategiasForex(): Promise<readonly ForexArbStrategy[]> {
   try {
     const { forexArbStrategyListSchema } = await import("@/features/forex-arb/forex-arb.schema");
-    return await apiClient(kyServer, API_ENDPOINTS.forexArb.listarStrategies, forexArbStrategyListSchema);
+    return await apiClient(
+      kyServer,
+      API_ENDPOINTS.forexArb.listarStrategies,
+      forexArbStrategyListSchema,
+    );
   } catch {
     return [];
   }
@@ -95,7 +99,7 @@ export async function buscarSaldoForex(): Promise<number | null> {
   try {
     const { forexBalanceSchema } = await import("@/features/forex-arb/forex-arb.schema");
     const data = await apiClient(kyServer, API_ENDPOINTS.forexArb.balance, forexBalanceSchema);
-    return data?.balance ?? null;
+    return data.balance;
   } catch {
     return null;
   }
@@ -239,7 +243,7 @@ export async function buscarTradesPorPeriodo(
  * Busca o status do modelo de IA Meta-Labeling da Pepperstone (scalping).
  */
 export async function buscarStatusIaPepperstone(
-  botType: "scalping" = "scalping"
+  botType: "scalping" = "scalping",
 ): Promise<{ ok: true; data: ForexArbAiStatus } | { ok: false; erro: string }> {
   try {
     const res = await kyServer
@@ -255,8 +259,10 @@ export async function buscarStatusIaPepperstone(
  * Treina o cérebro de IA Meta-Labeling da Pepperstone (scalping).
  */
 export async function treinarIaPepperstone(
-  botType: "scalping" = "scalping"
-): Promise<{ ok: true; message: string; metadata?: ForexArbAiMetadata } | { ok: false; erro: string }> {
+  botType: "scalping" = "scalping",
+): Promise<
+  { ok: true; message: string; metadata?: ForexArbAiMetadata } | { ok: false; erro: string }
+> {
   try {
     const res = await kyServer
       .post(API_ENDPOINTS.forexArb.aiTrain, { json: { botType } })
@@ -265,11 +271,14 @@ export async function treinarIaPepperstone(
     return { ok: true, message: res.message, metadata: res.metadata };
   } catch (error: unknown) {
     if (error && typeof error === "object" && "response" in error) {
-      try {
-        const body = await (error as { response: Response }).response.json();
-        if (body?.error) return { ok: false, erro: body.error };
-      } catch {
-        // fallback
+      const response = Reflect.get(error, "response");
+      if (response instanceof Response) {
+        try {
+          const body = await response.json();
+          if (body?.error) return { ok: false, erro: body.error };
+        } catch {
+          // fallback
+        }
       }
     }
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };

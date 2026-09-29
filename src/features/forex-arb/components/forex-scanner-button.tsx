@@ -15,9 +15,7 @@ type ForexScannerButtonProps = {
 /**
  * Botão Iniciar/Parar Scanner do robô de Scalping Forex, exibido no topo da página.
  */
-export function ForexScannerButton({
-  settings,
-}: ForexScannerButtonProps): React.ReactNode {
+export function ForexScannerButton({ settings }: ForexScannerButtonProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [erro, setErro] = useState<string | null>(null);

@@ -36,12 +36,9 @@ async function PolymarketArbCarregado(): Promise<React.ReactNode> {
       API_ENDPOINTS.predictionArb.listarStrategies,
       predictionArbStrategyListSchema,
     ),
-    apiClient(
-      kyServer,
-      API_ENDPOINTS.predictionArb.listarTrades,
-      predictionArbTradeListSchema,
-      { searchParams: { all: "true" } },
-    ),
+    apiClient(kyServer, API_ENDPOINTS.predictionArb.listarTrades, predictionArbTradeListSchema, {
+      searchParams: { all: "true" },
+    }),
     apiClient(kyServer, API_ENDPOINTS.predictionArb.tradesResumo, predictionArbTradesSummarySchema),
     apiClient(kyServer, API_ENDPOINTS.predictionArb.settings, predictionArbSettingsSchema),
     apiClient(kyServer, API_ENDPOINTS.predictionArb.botStatus, predictionArbBotStatusSchema),

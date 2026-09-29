@@ -1,7 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Play, Pause, Trash2, XCircle, Brain, Pencil, BarChart3, Clock, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Plus,
+  Play,
+  Pause,
+  Trash2,
+  XCircle,
+  Brain,
+  Pencil,
+  BarChart3,
+  Clock,
+  Search,
+} from "lucide-react";
 import {
   alternarEstrategiaIcMarkets,
   deletarEstrategiaIcMarkets,
@@ -32,10 +43,12 @@ type IcMarketsBoardProps = {
   initialSettings?: IcMarketsSettings | null;
 };
 
+const EMPTY_TRADES: readonly IcMarketsTrade[] = [];
+
 export function IcMarketsBoard({
   strategies,
   trades: initialTrades,
-  initialOpenTrades = [],
+  initialOpenTrades = EMPTY_TRADES,
   aiMetadata,
   initialBalance = null,
   initialSettings = null,
@@ -50,7 +63,9 @@ export function IcMarketsBoard({
   const [tradesList, setTradesList] = useState<readonly IcMarketsTrade[]>(initialTrades);
   const [strategyList, setStrategyList] = useState<readonly IcMarketsStrategy[]>(strategies);
   const [openTradesList, setOpenTradesList] = useState<readonly IcMarketsTrade[]>(
-    initialOpenTrades.length > 0 ? initialOpenTrades : initialTrades.filter((t) => t.status === "open")
+    initialOpenTrades.length > 0
+      ? initialOpenTrades
+      : initialTrades.filter((t) => t.status === "open"),
   );
   const [balance, setBalance] = useState<IcMarketsBalance | null>(initialBalance);
 
@@ -80,16 +95,16 @@ export function IcMarketsBoard({
   }
 
   // Estado da aba Lucro/Prejuízo por Ativo
-  const [perfPeriod, setPerfPeriod] = useState<string>("today");
+  const [perfPeriod, setPerfPeriod] = useState<IcMarketsPeriod | "all">("today");
   const [perfTrades, setPerfTrades] = useState<readonly IcMarketsTrade[]>([]);
   const [loadingPerf, setLoadingPerf] = useState<boolean>(false);
   const [perfConsulted, setPerfConsulted] = useState<boolean>(false);
 
-  const consultarPerformance = async (p: string): Promise<void> => {
+  const consultarPerformance = async (p: IcMarketsPeriod | "all"): Promise<void> => {
     setLoadingPerf(true);
     setPerfConsulted(true);
     const res = await buscarTradesIcMarkets({
-      periodo: p === "all" ? undefined : (p as IcMarketsPeriod),
+      periodo: p === "all" ? undefined : p,
       status: "closed",
     });
     if (res.ok) {
@@ -98,31 +113,27 @@ export function IcMarketsBoard({
     setLoadingPerf(false);
   };
 
-  const recarregarDados = async (): Promise<void> => {
-    const [stratRes, openRes, closedRes, balRes] = await Promise.all([
-      buscarEstrategiasIcMarkets(),
-      buscarTradesIcMarkets({ status: "open" }),
-      buscarTradesIcMarkets({ periodo, status: "closed" }),
-      buscarSaldoIcMarkets(),
-    ]);
-    if (stratRes.ok) {
-      setStrategyList(stratRes.strategies);
-    }
-    if (openRes.ok) {
-      setOpenTradesList(openRes.trades);
-    }
-    if (closedRes.ok) {
-      setTradesList(closedRes.trades);
-    }
-    if (balRes.ok) {
-      setBalance(balRes.balance);
-    }
-  };
+  // Dispara o refetch manual (após fechar posição) e o polling contínuo.
+  const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(recarregarDados, 5000);
+    const atualizar = async (): Promise<void> => {
+      const [stratRes, openRes, closedRes, balRes] = await Promise.all([
+        buscarEstrategiasIcMarkets(),
+        buscarTradesIcMarkets({ status: "open" }),
+        buscarTradesIcMarkets({ periodo, status: "closed" }),
+        buscarSaldoIcMarkets(),
+      ]);
+      if (stratRes.ok) setStrategyList(stratRes.strategies);
+      if (openRes.ok) setOpenTradesList(openRes.trades);
+      if (closedRes.ok) setTradesList(closedRes.trades);
+      if (balRes.ok) setBalance(balRes.balance);
+    };
+
+    void atualizar();
+    const timer = setInterval(() => void atualizar(), 5000);
     return () => clearInterval(timer);
-  }, [periodo]);
+  }, [periodo, refreshTick]);
 
   const carregarTrades = async (p: IcMarketsPeriod): Promise<void> => {
     setPeriodo(p);
@@ -139,9 +150,9 @@ export function IcMarketsBoard({
   };
 
   const openPositions = openTradesList.filter((t) => t.status === "open");
-  const openPosIdSet = new Set(openPositions.map((p) => String(p.positionId || p.id)));
+  const openPosIdSet = new Set(openPositions.map((p) => p.positionId || p.id));
   const closedTrades = tradesList.filter(
-    (t) => t.status === "closed" && !openPosIdSet.has(String(t.positionId || t.id))
+    (t) => t.status === "closed" && !openPosIdSet.has(t.positionId || t.id),
   );
   const monitoredStrategies = strategyList;
 
@@ -271,9 +282,7 @@ export function IcMarketsBoard({
                         <td className="py-2.5 px-3 font-mono font-bold text-white">{pos.symbol}</td>
                         <td className="py-2.5 px-3 font-bold">
                           <span
-                            className={
-                              pos.side === "BUY" ? "text-emerald-400" : "text-rose-400"
-                            }
+                            className={pos.side === "BUY" ? "text-emerald-400" : "text-rose-400"}
                           >
                             {pos.side}
                           </span>
@@ -288,7 +297,7 @@ export function IcMarketsBoard({
                             type="button"
                             onClick={async () => {
                               await fecharPosicaoIcMarkets(pos.strategyId || "", pos.positionId);
-                              recarregarDados();
+                              setRefreshTick((t) => t + 1);
                             }}
                             className="inline-flex items-center gap-1 rounded bg-rose-600/20 px-2 py-1 text-xs font-semibold text-rose-400 hover:bg-rose-600 hover:text-white"
                           >
@@ -347,10 +356,14 @@ export function IcMarketsBoard({
                       Spread Máx: <b className="text-white">{strat.maxSpreadPips} pips</b>
                     </div>
                     <div>
-                      TP / SL: <b className="text-emerald-400">+{strat.takeProfitPips}</b> / <b className="text-rose-400">-{strat.stopLossPips}</b>
+                      TP / SL: <b className="text-emerald-400">+{strat.takeProfitPips}</b> /{" "}
+                      <b className="text-rose-400">-{strat.stopLossPips}</b>
                     </div>
                     <div>
-                      Gates: <b className="text-purple-400">ER≥{strat.minEfficiencyRatio} VR≥{strat.minVarianceRatio}</b>
+                      Gates:{" "}
+                      <b className="text-purple-400">
+                        ER≥{strat.minEfficiencyRatio} VR≥{strat.minVarianceRatio}
+                      </b>
                     </div>
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-slate-800/80 pt-2">
@@ -533,14 +546,13 @@ export function IcMarketsBoard({
               <BarChart3 className="mx-auto h-8 w-8 text-cyan-400 opacity-60" />
               <h3 className="mt-3 text-base font-bold text-white">Consulta sob Demanda</h3>
               <p className="mt-1 text-xs text-slate-400">
-                Selecione o intervalo de tempo acima e clique em Consultar para analisar os lucros e prejuízos por ativo.
+                Selecione o intervalo de tempo acima e clique em Consultar para analisar os lucros e
+                prejuízos por ativo.
               </p>
             </div>
           ) : (
             (() => {
-              const closedPerfTrades = perfTrades.filter(
-                (t) => t.status !== "open"
-              );
+              const closedPerfTrades = perfTrades.filter((t) => t.status !== "open");
 
               if (closedPerfTrades.length === 0) {
                 return (
@@ -587,7 +599,7 @@ export function IcMarketsBoard({
                 }
               });
 
-              const groupedList = Array.from(symbolMap.values()).sort((a, b) => b.pnl - a.pnl);
+              const groupedList = Array.from(symbolMap.values()).toSorted((a, b) => b.pnl - a.pnl);
               const totalPeriodPnl = groupedList.reduce((acc, i) => acc + i.pnl, 0);
               const totalPeriodTrades = groupedList.reduce((acc, i) => acc + i.totalTrades, 0);
               const totalPeriodWins = groupedList.reduce((acc, i) => acc + i.wins, 0);
