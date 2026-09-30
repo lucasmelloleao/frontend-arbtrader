@@ -45,7 +45,6 @@ type SidebarLink = {
 const ESTRATEGIAS_LINKS: readonly SidebarLink[] = [
   { href: "/dashboard/forex-arb", label: "Peperstone Forex", icon: Globe, habilitado: true },
   { href: "/dashboard/icmarkets", label: "IC Markets cTrader", icon: Activity, habilitado: true },
-  { href: "/dashboard/polymarket-arb", label: "Polymarket Arb", icon: Activity, habilitado: true },
   { href: "/dashboard/deriv", label: "Deriv Bot", icon: Activity, habilitado: true },
   { href: "/dashboard/fxpro", label: "FxPro cTrader", icon: Activity, habilitado: true },
 ];

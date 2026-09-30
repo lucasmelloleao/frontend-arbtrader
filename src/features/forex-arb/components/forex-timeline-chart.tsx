@@ -43,12 +43,12 @@ export function ForexTimelineChart({ trades }: ForexTimelineChartProps): React.R
     .filter((t) => t.status !== "detected" && t.status !== "pending")
     .map((t) => {
       const sym =
-        t.legs?.at(0)?.symbol ||
-        t.strategyName?.replace("Scalping ", "").replace(/ \(.*\)/, "") ||
+        t.legs.at(0)?.symbol ||
+        t.strategyName.replace("Scalping ", "").replace(/ \(.*\)/, "") ||
         "OUTROS";
       return {
         symbol: sym,
-        pnl: t.realizedPnl ?? 0,
+        pnl: t.realizedPnl,
         timestamp: new Date(t.createdAt || 0).getTime(),
       };
     })
@@ -188,7 +188,8 @@ export function ForexTimelineChart({ trades }: ForexTimelineChartProps): React.R
             Curva de Ganho e Perda na Linha do Tempo (P/L Acumulado por Ativo)
           </h4>
           <p className="text-xs text-slate-400">
-            Acompanhe o desempenho temporal individual de cada par de moedas operado pela Pepperstone.
+            Acompanhe o desempenho temporal individual de cada par de moedas operado pela
+            Pepperstone.
           </p>
         </div>
 

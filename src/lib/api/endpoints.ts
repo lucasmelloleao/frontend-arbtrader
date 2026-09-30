@@ -96,26 +96,6 @@ export const API_ENDPOINTS = {
     logs: "api/v1/latency-arb/logs",
   },
 
-  /** Arbitragem em prediction markets (Polymarket). */
-  predictionArb: {
-    listarStrategies: "api/v1/prediction-arb/strategies",
-    criarStrategy: "api/v1/prediction-arb/strategies",
-    atualizarStrategy: "api/v1/prediction-arb/strategies",
-    deletarStrategy: "api/v1/prediction-arb/strategies",
-    listarTrades: "api/v1/prediction-arb/trades",
-    tradesResumo: "api/v1/prediction-arb/trades/resumo",
-    settings: "api/v1/prediction-arb/settings",
-    botStatus: "api/v1/prediction-arb/bot-status",
-    fechar: "api/v1/prediction-arb/close",
-    aumentar: "api/v1/prediction-arb/increase",
-    voidClose: "api/v1/prediction-arb/void-close",
-    manualScan: "api/v1/prediction-arb/manual-scan",
-    logs: "api/v1/prediction-arb/logs",
-    limparTrades: "api/v1/prediction-arb/trades",
-    metaModelTrain: "api/v1/prediction-arb/meta-model/train",
-    metaModelStatus: "api/v1/prediction-arb/meta-model/status",
-  },
-
   /** Consulta Processual TJPR / Datajud */
   processoTJPR: "api/v1/processo-tjpr",
 
