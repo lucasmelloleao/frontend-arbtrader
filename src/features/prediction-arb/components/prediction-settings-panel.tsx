@@ -51,6 +51,7 @@ export function PredictionSettingsPanel({
   const [emergencyStopThreshold, setEmergencyStopThreshold] = useState(
     settings?.emergencyStopThreshold ?? 0.82,
   );
+  const [stopLossPct, setStopLossPct] = useState(settings?.stopLossPct ?? 25.0);
   const [minTakeProfitPct, setMinTakeProfitPct] = useState(settings?.minTakeProfitPct ?? 2.0);
 
   const handleSubmit = (e: React.FormEvent): void => {
@@ -73,6 +74,7 @@ export function PredictionSettingsPanel({
         maxEntrySecondsBeforeExpiry15mAlt,
         maxEntrySecondsBeforeExpiry15mMaj,
         emergencyStopThreshold,
+        stopLossPct,
         minTakeProfitPct,
       });
 
@@ -366,23 +368,23 @@ export function PredictionSettingsPanel({
             {/* Emergency Stop Loss */}
             <div>
               <label
-                htmlFor="emergency-stop-input"
+                htmlFor="stop-loss-pct-input"
                 className="block text-xs font-semibold text-slate-300"
               >
-                Stop Loss Emergência (Cotação Ex: 0.82)
+                Stop Loss Emergência Máximo (%)
               </label>
               <input
-                id="emergency-stop-input"
+                id="stop-loss-pct-input"
                 type="number"
-                step="0.01"
-                min="0.50"
-                max="0.95"
-                value={emergencyStopThreshold}
-                onChange={(e) => setEmergencyStopThreshold(Number(e.target.value))}
+                step="1"
+                min="5"
+                max="50"
+                value={stopLossPct}
+                onChange={(e) => setStopLossPct(Number(e.target.value))}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
               />
               <p className="mt-1 text-[10px] text-slate-500">
-                Encerra imediatamente a posição se o livro despencar abaixo desta cotação.
+                Encerra imediatamente se a cotação sofrer perda percentual acima deste limite em relação ao preço pago.
               </p>
             </div>
 
