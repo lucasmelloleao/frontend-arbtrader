@@ -248,6 +248,9 @@ export const forexArbSettingsSchema = object({
   autoExecute: boolean(),
   accountType: optional(string()),
   accountId: optional(string()),
+  onlyLondonNySession: optional(boolean()),
+  sessionStartHourBrt: optional(number()),
+  sessionEndHourBrt: optional(number()),
   symbolProfiles: optional(record(string(), forexSymbolProfileSchema)),
   // Perfis efetivos por par (defaults do código + override do banco), usados pela
   // UI para exibir os valores reais que o robô utiliza (em vez de "padrão").
@@ -267,6 +270,9 @@ const atualizarForexSettingsSchema = object({
   autoExecute: boolean(),
   accountType: optional(string()),
   accountId: optional(string()),
+  onlyLondonNySession: optional(boolean()),
+  sessionStartHourBrt: optional(number()),
+  sessionEndHourBrt: optional(number()),
   symbolProfiles: optional(record(string(), forexSymbolProfileSchema)),
   // Perfis efetivos por par (defaults do código + override do banco), usados pela
   // UI para exibir os valores reais que o robô utiliza (em vez de "padrão").

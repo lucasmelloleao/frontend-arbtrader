@@ -36,6 +36,9 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
     autoExecute: true,
     accountType: "demo",
     accountId: "",
+    onlyLondonNySession: true,
+    sessionStartHourBrt: 4,
+    sessionEndHourBrt: 17,
   };
 
   const executar = (acao: () => Promise<MutacaoResult>, mensagemSucesso: string): void => {
@@ -124,7 +127,16 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                 {(formAtual.accountType ?? "demo").toUpperCase()}
               </b>{" "}
               {formAtual.accountId ? `(#${formAtual.accountId})` : ""} | Trade Size:{" "}
-              <b className="text-white">${formAtual.tradeSize}</b>
+              <b className="text-white">${formAtual.tradeSize}</b> | Horário:{" "}
+              <b
+                className={
+                  (formAtual.onlyLondonNySession ?? true) ? "text-indigo-400" : "text-amber-400"
+                }
+              >
+                {(formAtual.onlyLondonNySession ?? true)
+                  ? `04:00 às 17:00 BRT (Londres/NY)`
+                  : "24 horas"}
+              </b>
             </p>
           </div>
         </div>
@@ -220,6 +232,73 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                 />
               </div>
             </div>
+          </div>
+
+          {/* Horário de Operação / Janela Prioritária */}
+          <div className="mb-4 rounded-lg border border-cyan-500/30 bg-cyan-950/20 p-3">
+            <span className="mb-2 block text-xs font-bold uppercase tracking-wider text-cyan-400">
+              🕒 Horário de Operação (Janela de Liquidez)
+            </span>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-slate-300">
+                  Modo de Operação
+                </span>
+                <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-200 mt-2">
+                  <input
+                    type="checkbox"
+                    checked={formAtual.onlyLondonNySession ?? true}
+                    onChange={(e) => atualizar("onlyLondonNySession", e.target.checked)}
+                    className="rounded border-slate-600 bg-slate-800"
+                  />
+                  <span>
+                    {(formAtual.onlyLondonNySession ?? true)
+                      ? "Prioritário: 04:00 às 17:00 BRT"
+                      : "24 horas por dia"}
+                  </span>
+                </label>
+              </div>
+              <div>
+                <label
+                  className="mb-1 block text-xs font-semibold text-slate-300"
+                  htmlFor="fx-session-start"
+                >
+                  Início (Horário de Brasília)
+                </label>
+                <input
+                  id="fx-session-start"
+                  type="number"
+                  min="0"
+                  max="23"
+                  value={formAtual.sessionStartHourBrt ?? 4}
+                  disabled={!(formAtual.onlyLondonNySession ?? true)}
+                  onChange={(e) => atualizar("sessionStartHourBrt", Number(e.target.value))}
+                  className="w-full rounded border border-cyan-500/30 bg-slate-900 px-2 py-1.5 text-xs text-white disabled:opacity-50"
+                />
+              </div>
+              <div>
+                <label
+                  className="mb-1 block text-xs font-semibold text-slate-300"
+                  htmlFor="fx-session-end"
+                >
+                  Término (Horário de Brasília)
+                </label>
+                <input
+                  id="fx-session-end"
+                  type="number"
+                  min="0"
+                  max="23"
+                  value={formAtual.sessionEndHourBrt ?? 17}
+                  disabled={!(formAtual.onlyLondonNySession ?? true)}
+                  onChange={(e) => atualizar("sessionEndHourBrt", Number(e.target.value))}
+                  className="w-full rounded border border-cyan-500/30 bg-slate-900 px-2 py-1.5 text-xs text-white disabled:opacity-50"
+                />
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] text-slate-400">
+              Recomendação: operar prioritariamente entre 04:00 e 17:00 BRT (sessões de Londres e
+              Nova York) para spreads menores e maior liquidez.
+            </p>
           </div>
 
           <div className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
