@@ -31,7 +31,7 @@ import {
   voidClosePosicao,
   type MutacaoResult,
 } from "@/features/forex-arb/forex-arb.actions";
-import { UniversalTimelineChart } from "@/components/charts/universal-timeline-chart";
+import { ForexTimelineChart } from "@/features/forex-arb/components/forex-timeline-chart";
 import type {
   ForexArbLeg,
   ForexArbLivePrices,
@@ -1073,24 +1073,7 @@ export function ForexArbBoard({
                   </div>
 
                   {/* Gráfico de Linha do Tempo de P/L por Ativo */}
-                  <UniversalTimelineChart
-                    title="Curva de Ganho e Perda na Linha do Tempo Pepperstone (P/L Acumulado por Par)"
-                    subtitle="Evolução cumulativa de resultados por par Forex operado no período selecionado."
-                    badgeColor="bg-emerald-400"
-                    trades={closedPerfTrades.map((t) => {
-                      const sym =
-                        t.legs.at(0)?.symbol ||
-                        t.strategyName.replace("Scalping ", "").replace(/ \(.*\)/, "") ||
-                        "OUTROS";
-                      return {
-                        id: t.id,
-                        symbol: sym,
-                        pnl: t.realizedPnl || 0,
-                        status: t.status,
-                        timestamp: new Date(t.createdAt || 0).getTime(),
-                      };
-                    })}
-                  />
+                  <ForexTimelineChart trades={closedPerfTrades} />
 
                   {/* Tabela por Ativo */}
                   <div className="overflow-hidden rounded-xl border border-white/10 bg-slate-950/70">
