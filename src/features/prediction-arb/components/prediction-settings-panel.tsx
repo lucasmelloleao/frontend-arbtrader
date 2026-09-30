@@ -48,9 +48,6 @@ export function PredictionSettingsPanel({
   const [maxEntrySecondsBeforeExpiry15mMaj, setMaxEntrySecondsBeforeExpiry15mMaj] = useState(
     settings?.maxEntrySecondsBeforeExpiry15mMaj ?? 300,
   );
-  const [emergencyStopThreshold, setEmergencyStopThreshold] = useState(
-    settings?.emergencyStopThreshold ?? 0.82,
-  );
   const [stopLossPct, setStopLossPct] = useState(settings?.stopLossPct ?? 25.0);
   const [minTakeProfitPct, setMinTakeProfitPct] = useState(settings?.minTakeProfitPct ?? 2.0);
 
@@ -73,7 +70,6 @@ export function PredictionSettingsPanel({
         maxEntrySecondsBeforeExpiry5mMaj,
         maxEntrySecondsBeforeExpiry15mAlt,
         maxEntrySecondsBeforeExpiry15mMaj,
-        emergencyStopThreshold,
         stopLossPct,
         minTakeProfitPct,
       });
@@ -384,7 +380,8 @@ export function PredictionSettingsPanel({
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
               />
               <p className="mt-1 text-[10px] text-slate-500">
-                Encerra imediatamente se a cotação sofrer perda percentual acima deste limite em relação ao preço pago.
+                Encerra imediatamente se a cotação sofrer perda percentual acima deste limite em
+                relação ao preço pago.
               </p>
             </div>
 
