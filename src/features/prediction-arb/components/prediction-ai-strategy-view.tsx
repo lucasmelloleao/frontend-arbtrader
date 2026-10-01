@@ -340,7 +340,9 @@ export function PredictionAiStrategyView(): React.ReactNode {
                       ${row.expectedValue.toFixed(2)}
                     </td>
                     <td className="p-3 font-mono text-cyan-300">
-                      {(row.probVelocity30s ?? 0) > 0 ? `+${((row.probVelocity30s ?? 0) * 100).toFixed(1)}%` : `${((row.probVelocity30s ?? 0) * 100).toFixed(1)}%`}
+                      {(row.probVelocity30s ?? 0) > 0
+                        ? `+${((row.probVelocity30s ?? 0) * 100).toFixed(1)}%`
+                        : `${((row.probVelocity30s ?? 0) * 100).toFixed(1)}%`}
                     </td>
                     <td className="p-3 font-mono text-cyan-300">
                       {((row.probVolatility60s ?? 0) * 100).toFixed(1)}%

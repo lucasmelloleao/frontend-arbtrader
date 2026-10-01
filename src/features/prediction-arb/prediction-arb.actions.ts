@@ -156,7 +156,7 @@ export async function buscarLogsPrediction(
         searchParams: { process: processName, lines },
       },
     );
-    return { ok: true, logs: data?.logs || [] };
+    return { ok: true, logs: data.logs };
   } catch (error: unknown) {
     return {
       ok: false,
@@ -206,7 +206,7 @@ export async function buscarTradesPrediction(filtro?: {
         searchParams,
       },
     );
-    return { ok: true, trades: trades || [] };
+    return { ok: true, trades };
   } catch (error: unknown) {
     return {
       ok: false,

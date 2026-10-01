@@ -26,24 +26,30 @@ import { kyServer } from "@/lib/api/ky.server";
 async function PolymarketArbContent(): Promise<React.ReactNode> {
   const [strategiesRes, tradesRes, settingsRes, tradesResumoRes, botStatusRes, exchangesRes] =
     await Promise.allSettled([
-      apiClient(kyServer, API_ENDPOINTS.predictionArb.listarStrategies, predictionArbStrategyListSchema),
+      apiClient(
+        kyServer,
+        API_ENDPOINTS.predictionArb.listarStrategies,
+        predictionArbStrategyListSchema,
+      ),
       apiClient(kyServer, API_ENDPOINTS.predictionArb.listarTrades, predictionArbTradeListSchema),
       apiClient(kyServer, API_ENDPOINTS.predictionArb.settings, predictionArbSettingsSchema),
-      apiClient(kyServer, API_ENDPOINTS.predictionArb.tradesResumo, predictionArbTradesSummarySchema),
+      apiClient(
+        kyServer,
+        API_ENDPOINTS.predictionArb.tradesResumo,
+        predictionArbTradesSummarySchema,
+      ),
       apiClient(kyServer, API_ENDPOINTS.predictionArb.botStatus, predictionArbBotStatusSchema),
       apiClient(kyServer, API_ENDPOINTS.exchanges.listar, exchangeListSchema),
     ]);
 
   const strategies: PredictionArbStrategy[] =
     strategiesRes.status === "fulfilled" ? strategiesRes.value : [];
-  const trades: PredictionArbTrade[] =
-    tradesRes.status === "fulfilled" ? tradesRes.value : [];
+  const trades: PredictionArbTrade[] = tradesRes.status === "fulfilled" ? tradesRes.value : [];
   const settings: PredictionArbSettings | null =
     settingsRes.status === "fulfilled" ? settingsRes.value : null;
   const botStatus: PredictionArbBotStatus | null =
     botStatusRes.status === "fulfilled" ? botStatusRes.value : null;
-  const exchanges: Exchange[] =
-    exchangesRes.status === "fulfilled" ? exchangesRes.value : [];
+  const exchanges: Exchange[] = exchangesRes.status === "fulfilled" ? exchangesRes.value : [];
 
   const polyKey = exchanges.find((k) => k.exchangeId === "polymarket");
 
@@ -56,18 +62,6 @@ async function PolymarketArbContent(): Promise<React.ReactNode> {
         },
       ]
     : [];
-
-  const initialKeyData = polyKey
-    ? {
-        eoa: polyKey.apiKey || "",
-        apiKey: polyKey.apiKey || "",
-        relayerApiKey: polyKey.relayerApiKey || "",
-        depositWallet: polyKey.depositWallet || "",
-        clobApiKey: polyKey.clobApiKey || "",
-        pusdBalance: Number(polyKey.pusdBalance || 0),
-        connected: Boolean(polyKey.ativa),
-      }
-    : undefined;
 
   const summaryData: PredictionArbTradesSummary =
     tradesResumoRes.status === "fulfilled"
@@ -90,7 +84,7 @@ async function PolymarketArbContent(): Promise<React.ReactNode> {
   const abertas = strategies.filter((s) => s.positionOpen);
   const isOnline = Boolean(settings?.isScanningEnabled ?? botStatus?.isScanningEnabled);
   const allowLiveTrading = Boolean(settings?.allowLiveTrading ?? botStatus?.allowLiveTrading);
-  const saldoDisponivel = Number(polyKey?.pusdBalance || botStatus?.saldoDisponivel || 0);
+  const saldoDisponivel = polyKey?.pusdBalance ?? botStatus?.saldoDisponivel ?? 0;
 
   return (
     <div className="space-y-6">
@@ -109,10 +103,7 @@ async function PolymarketArbContent(): Promise<React.ReactNode> {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <PredictionHarvestButton
-            allowLiveTrading={allowLiveTrading}
-            isOnline={isOnline}
-          />
+          <PredictionHarvestButton allowLiveTrading={allowLiveTrading} isOnline={isOnline} />
           <span
             className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-bold ${
               isOnline
@@ -139,12 +130,7 @@ async function PolymarketArbContent(): Promise<React.ReactNode> {
       />
 
       {/* Board Principal: Mercados, Posições Abertas, Histórico, Performance, IA e Carteira */}
-      <PredictionArbBoard
-        strategies={strategies}
-        trades={trades}
-        exchangeKeys={exchangesData}
-        initialKeyData={initialKeyData}
-      />
+      <PredictionArbBoard strategies={strategies} trades={trades} exchangeKeys={exchangesData} />
 
       {/* Logs do Terminal em Tempo Real */}
       <PredictionTerminalLogs />

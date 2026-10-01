@@ -3,11 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { BarChart3, Brain, Clock, Key, Plus, Power, Search, TrendingUp, Wallet, X, XCircle } from "lucide-react";
+import { BarChart3, Brain, Clock, Plus, Power, Search, TrendingUp, X, XCircle } from "lucide-react";
 
 import { PredictionAiStrategyView } from "@/features/prediction-arb/components/prediction-ai-strategy-view";
+import { PredictionClearHistoryButton } from "@/features/prediction-arb/components/prediction-clear-history-button";
 import { PredictionStrategyForm } from "@/features/prediction-arb/components/prediction-strategy-form";
-import { PolymarketCredentialsPanel } from "@/features/polymarket/components/polymarket-credentials-panel";
 import {
   aumentarAporte,
   deletarStrategy,
@@ -17,6 +17,7 @@ import {
   type PredictionPeriod,
 } from "@/features/prediction-arb/prediction-arb.actions";
 import { UniversalTimelineChart } from "@/components/charts/universal-timeline-chart";
+import { getEndMs } from "@/features/prediction-arb/prediction-arb.utils";
 import type {
   PredictionArbStrategy,
   PredictionArbTrade,
@@ -26,15 +27,6 @@ type PredictionArbBoardProps = {
   strategies: readonly PredictionArbStrategy[];
   trades: readonly PredictionArbTrade[];
   exchangeKeys?: readonly { id: string; exchangeId: string; nome: string }[];
-  initialKeyData?: {
-    eoa?: string;
-    apiKey?: string;
-    relayerApiKey?: string;
-    depositWallet?: string;
-    clobApiKey?: string;
-    pusdBalance?: number;
-    connected?: boolean;
-  };
 };
 
 const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
@@ -73,20 +65,9 @@ function getCoinDetails(titleOrSlug: string): { coin: string; name: string } {
 }
 
 function getRemainingSeconds(strat: PredictionArbStrategy, nowMs: number): number {
-  if (strat.endDate) {
-    const end = new Date(strat.endDate).getTime();
-    if (!isNaN(end) && end > 0) {
-      return end > nowMs ? Math.floor((end - nowMs) / 1000) : 0;
-    }
-  }
-  if (strat.slug) {
-    const m = String(strat.slug).match(/-(\d{10})$/);
-    if (m) {
-      const slot = Number(m[1]);
-      const dur = strat.slug.includes("-5m-") ? 300 : strat.slug.includes("-15m-") ? 900 : 3600;
-      const end = (slot + dur) * 1000;
-      return end > nowMs ? Math.floor((end - nowMs) / 1000) : 0;
-    }
+  const endMs = getEndMs(strat);
+  if (endMs > 0) {
+    return endMs > nowMs ? Math.floor((endMs - nowMs) / 1000) : 0;
   }
   return strat.segundosParaVencer || 0;
 }
@@ -99,12 +80,11 @@ export function PredictionArbBoard({
   strategies,
   trades: initialTrades,
   exchangeKeys = EMPTY_EXCHANGE_KEYS,
-  initialKeyData,
 }: PredictionArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
-  const [aba, setAba] = useState<"open" | "monitored" | "closed" | "performance" | "aiStrategy" | "credentials">(
+  const [aba, setAba] = useState<"open" | "monitored" | "closed" | "performance" | "aiStrategy">(
     "open",
   );
   const [criando, setCriando] = useState(false);
@@ -177,7 +157,11 @@ export function PredictionArbBoard({
   const encerradas = tradesList.filter(
     (t) =>
       // Exige investimento ou montante real para não exibir registros fantasmas/vazios de $0.00
-      ((t.investedUsd > 0 || (t.amount > 0 && ((t.yesShares || 0) > 0 || (t.noShares || 0) > 0))) || (t.yesShares || 0) > 0 || (t.noShares || 0) > 0 || t.pnl !== 0) &&
+      (t.investedUsd > 0 ||
+        (t.amount > 0 && ((t.yesShares || 0) > 0 || (t.noShares || 0) > 0)) ||
+        (t.yesShares || 0) > 0 ||
+        (t.noShares || 0) > 0 ||
+        t.pnl !== 0) &&
       (t.type === "close_pair" ||
         t.type === "close" ||
         t.type === "settlement" ||
@@ -241,7 +225,8 @@ export function PredictionArbBoard({
       {criando ? (
         <PredictionStrategyForm exchangeKeys={exchangeKeys} onFechar={() => setCriando(false)} />
       ) : (
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-2">
+          <PredictionClearHistoryButton />
           <button
             type="button"
             onClick={() => setCriando(true)}
@@ -266,7 +251,6 @@ export function PredictionArbBoard({
             },
             { key: "performance", label: "Lucro/Prejuízo por Ativo", count: null, icon: BarChart3 },
             { key: "aiStrategy", label: "IA Meta-Labeling (Gate 4)", count: null, icon: Brain },
-            { key: "credentials", label: "Depósito & Credenciais", count: null, icon: Wallet },
           ] as const
         ).map((tab) => {
           const Icon = "icon" in tab ? tab.icon : null;
@@ -471,7 +455,8 @@ export function PredictionArbBoard({
                       <div className="font-mono font-bold text-white">
                         {(() => {
                           const sec = getRemainingSeconds(strat, nowMs);
-                          if (sec <= 0) return <span className="text-rose-400 font-bold">Vencido</span>;
+                          if (sec <= 0)
+                            return <span className="text-rose-400 font-bold">Vencido</span>;
                           if (sec <= 180) {
                             return (
                               <span className="text-amber-400 font-black">
@@ -595,7 +580,8 @@ export function PredictionArbBoard({
                     <b className="text-white">
                       {(() => {
                         const sec = getRemainingSeconds(strat, nowMs);
-                        if (sec <= 0) return <span className="text-rose-400 font-bold">Vencido</span>;
+                        if (sec <= 0)
+                          return <span className="text-rose-400 font-bold">Vencido</span>;
                         if (sec <= 180) {
                           return (
                             <span className="text-amber-400 font-bold">
@@ -611,8 +597,18 @@ export function PredictionArbBoard({
                 <div className="mt-2.5 grid grid-cols-3 gap-1 rounded bg-slate-900/60 p-1.5 text-center font-mono text-[10px] border border-white/5">
                   <div title="Variação de probabilidade nos últimos 30 segundos">
                     <span className="text-slate-400 block text-[9px] uppercase">Vel. 30s</span>
-                    <b className={strat.probVelocity30s > 0 ? "text-emerald-400 font-bold" : strat.probVelocity30s < 0 ? "text-rose-400 font-bold" : "text-slate-300"}>
-                      {strat.probVelocity30s > 0 ? `+${(strat.probVelocity30s * 100).toFixed(1)}%` : `${(strat.probVelocity30s * 100).toFixed(1)}%`}
+                    <b
+                      className={
+                        strat.probVelocity30s > 0
+                          ? "text-emerald-400 font-bold"
+                          : strat.probVelocity30s < 0
+                            ? "text-rose-400 font-bold"
+                            : "text-slate-300"
+                      }
+                    >
+                      {strat.probVelocity30s > 0
+                        ? `+${(strat.probVelocity30s * 100).toFixed(1)}%`
+                        : `${(strat.probVelocity30s * 100).toFixed(1)}%`}
                     </b>
                   </div>
                   <div title="Volatilidade da cotação nos últimos 60 segundos">
@@ -1153,9 +1149,6 @@ export function PredictionArbBoard({
 
       {/* Aba: IA Meta-Labeling (Gate 4) */}
       {aba === "aiStrategy" ? <PredictionAiStrategyView /> : null}
-
-      {/* Aba: Depósito & Credenciais */}
-      {aba === "credentials" ? <PolymarketCredentialsPanel initialData={initialKeyData} /> : null}
     </div>
   );
 }

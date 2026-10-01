@@ -28,7 +28,7 @@ export function getEndMs(item: HasExpiry): number {
     if (!isNaN(t) && t > 0) return t;
   }
   if (item.slug) {
-    const m = String(item.slug).match(/-(\d{10})$/);
+    const m = item.slug.match(/-(\d{10})$/);
     if (m) {
       const slot = Number(m[1]);
       const dur = item.slug.includes("-5m-") ? 300 : item.slug.includes("-15m-") ? 900 : 3600;
