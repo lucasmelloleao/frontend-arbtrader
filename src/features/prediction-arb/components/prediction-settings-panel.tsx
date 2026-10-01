@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 
-import { Brain, ChevronDown, Save, Settings, Sparkles } from "lucide-react";
+import { Brain, ChevronDown, Save, Settings } from "lucide-react";
 
 import {
   buscarStatusMetaLabelingPolymarket,
@@ -63,21 +63,21 @@ export function PredictionSettingsPanel({
   const [minSpotDistancePctMaj, setMinSpotDistancePctMaj] = useState(
     settings?.minSpotDistancePctMaj ?? 0.04,
   );
-  const [atrMultiplier5m, setAtrMultiplier5m] = useState(
-    settings?.atrMultiplier5m ?? 0.25,
-  );
-  const [atrMultiplier15m, setAtrMultiplier15m] = useState(
-    settings?.atrMultiplier15m ?? 0.8,
-  );
+  const [atrMultiplier5m, setAtrMultiplier5m] = useState(settings?.atrMultiplier5m ?? 0.25);
+  const [atrMultiplier15m, setAtrMultiplier15m] = useState(settings?.atrMultiplier15m ?? 0.8);
   const [aiStatus, setAiStatus] = useState<PredictionMetaModelStatus | null>(null);
 
   useEffect(() => {
     if (aberto) {
-      buscarStatusMetaLabelingPolymarket().then((res) => {
-        if (res.ok && res.data) {
-          setAiStatus(res.data);
-        }
-      });
+      const carregarStatus = async (): Promise<void> => {
+        try {
+          const res = await buscarStatusMetaLabelingPolymarket();
+          if (res.ok) {
+            setAiStatus(res.data);
+          }
+        } catch {}
+      };
+      void carregarStatus();
     }
   }, [aberto]);
 
@@ -164,7 +164,9 @@ export function PredictionSettingsPanel({
                   >
                     Auto-Scanner Ativo
                   </label>
-                  <p className="text-[10px] text-slate-400">Monitorar Gamma API por oportunidades</p>
+                  <p className="text-[10px] text-slate-400">
+                    Monitorar Gamma API por oportunidades
+                  </p>
                 </div>
                 <input
                   id="scan-enabled"
@@ -195,7 +197,10 @@ export function PredictionSettingsPanel({
 
               {/* Volume Mínimo 24h */}
               <div>
-                <label htmlFor="min-vol-input" className="block text-xs font-semibold text-slate-300">
+                <label
+                  htmlFor="min-vol-input"
+                  className="block text-xs font-semibold text-slate-300"
+                >
                   Volume Mínimo 24h (USD)
                 </label>
                 <input
@@ -279,8 +284,8 @@ export function PredictionSettingsPanel({
           {/* Seção 2: Controles Específicos para 5 Minutos (5m) */}
           <div className="rounded-lg border border-cyan-500/30 bg-cyan-950/20 p-4">
             <h4 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-300">
-              <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-              ⚡ Mercados de 5 Minutos (5m)
+              <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />⚡ Mercados de
+              5 Minutos (5m)
             </h4>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {/* Certeza Entrada 5m */}
@@ -308,7 +313,10 @@ export function PredictionSettingsPanel({
 
               {/* Janela Entrada Altcoins 5m */}
               <div>
-                <label htmlFor="t5m-alt-input" className="block text-xs font-semibold text-cyan-100">
+                <label
+                  htmlFor="t5m-alt-input"
+                  className="block text-xs font-semibold text-cyan-100"
+                >
                   Janela Final Altcoins (segundos)
                 </label>
                 <input
@@ -327,7 +335,10 @@ export function PredictionSettingsPanel({
 
               {/* Janela Entrada Majors 5m */}
               <div>
-                <label htmlFor="t5m-maj-input" className="block text-xs font-semibold text-cyan-100">
+                <label
+                  htmlFor="t5m-maj-input"
+                  className="block text-xs font-semibold text-cyan-100"
+                >
                   Janela Final BTC/ETH (segundos)
                 </label>
                 <input
@@ -346,7 +357,10 @@ export function PredictionSettingsPanel({
 
               {/* Multiplicador ATR 5m */}
               <div>
-                <label htmlFor="atr-mult-5m-input" className="block text-xs font-semibold text-cyan-100">
+                <label
+                  htmlFor="atr-mult-5m-input"
+                  className="block text-xs font-semibold text-cyan-100"
+                >
                   Sensibilidade ATR 5m (Multiplicador)
                 </label>
                 <input
@@ -442,7 +456,10 @@ export function PredictionSettingsPanel({
 
               {/* Multiplicador ATR 15m */}
               <div>
-                <label htmlFor="atr-mult-15m-input" className="block text-xs font-semibold text-indigo-100">
+                <label
+                  htmlFor="atr-mult-15m-input"
+                  className="block text-xs font-semibold text-indigo-100"
+                >
                   Sensibilidade ATR 15m (Multiplicador)
                 </label>
                 <input

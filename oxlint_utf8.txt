@@ -1,0 +1,343 @@
+﻿bun : $ bun build tooling/oxlint-rules/index.ts --outfile tooling/oxlint-rules/index.js --target=node && oxlint 
+--disable-nested-config --type-aware
+No linha:1 caractere:1
++ bun run lint > oxlint_all.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ($ bun build too...ig --type-aware:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Bundled 20 modules in 6ms
+
+  index.js  36.1 KB  (entry point)
+
+
+  x react-hooks(exhaustive-deps): React Hook useEffect has a missing dependency: 'defaultCryptoPares'
+     ,-[src/features/forex-arb/components/forex-settings-panel.tsx:106:6]
+ 102 |       if (res?.crypto && res.crypto.length > 0) {
+ 103 |         setAvailableCrypto(Array.from(new Set([...defaultCryptoPares, ...res.crypto])));
+     :                                                   ^^^^^^^^^|^^^^^^^^
+     :                                                            `-- useEffect uses `defaultCryptoPares` here
+ 104 |       }
+ 105 |     }).catch(() => {});
+ 106 |   }, []);
+     :      ^^
+ 107 | 
+     `----
+  help: Either include it or remove the dependency array.
+
+  x promise(prefer-await-to-then): Prefer await to then()/catch()/finally()
+     ,-[src/features/forex-arb/components/forex-settings-panel.tsx:105:8]
+ 104 |       }
+ 105 |     }).catch(() => {});
+     :        ^^^^^
+ 106 |   }, []);
+     `----
+  help: Use `await` with `try`/`catch` instead of promise chaining for more readable and maintainable async code.
+
+  x promise(prefer-await-to-then): Prefer await to then()/catch()/finally()
+     ,-[src/features/forex-arb/components/forex-settings-panel.tsx:101:33]
+ 100 |   useEffect(() => {
+ 101 |     buscarSimbolosDisponiveis().then((res) => {
+     :                                 ^^^^
+ 102 |       if (res?.crypto && res.crypto.length > 0) {
+     `----
+  help: Use `await` with `try`/`catch` instead of promise chaining for more readable and maintainable async code.
+
+  x promise(always-return): Each then() should return a value or throw
+     ,-[src/features/forex-arb/components/forex-settings-panel.tsx:101:38]
+ 100 |       useEffect(() => {
+ 101 | ,->     buscarSimbolosDisponiveis().then((res) => {
+ 102 | |         if (res?.crypto && res.crypto.length > 0) {
+ 103 | |           setAvailableCrypto(Array.from(new Set([...defaultCryptoPares, ...res.crypto])));
+ 104 | |         }
+ 105 | `->     }).catch(() => {});
+ 106 |       }, []);
+     `----
+
+  x unicorn(consistent-function-scoping): Function `isCryptoPair` does not capture any variables from its parent scope
+    ,-[src/features/forex-arb/components/forex-settings-panel.tsx:28:17]
+ 27 |  */
+ 28 | export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React.ReactNode {
+    :                 ^^^^^^^^^|^^^^^^^^
+    :                          `-- Outer scope where this function is defined
+ 29 |   const router = useRouter();
+    `----
+     ,-[src/features/forex-arb/components/forex-settings-panel.tsx:108:9]
+ 107 | 
+ 108 |   const isCryptoPair = (sym: string): boolean => {
+     :         ^^^^^^|^^^^^
+     :               `-- This function does not use any variables from the parent function
+ 109 |     const s = sym.toUpperCase().replace('/', '');
+     `----
+  help: Move `isCryptoPair` to the outer scope to avoid recreating it on every call.
+
+  x typescript(explicit-function-return-type): Missing return type on function.
+     ,-[src/features/forex-arb/components/forex-settings-panel.tsx:155:44]
+ 154 | 
+ 155 |   const adicionarParCrypto = (sym: string) => {
+     :                                            ^^
+ 156 |     const clean = sym.trim().toUpperCase();
+     `----
+  help: Require explicit return types on functions and class methods.
+
+  x eslint(no-unused-vars): Parameter 'exchangeKeys' is declared but never used. Unused parameters should start with a '_'.
+    ,-[src/features/prediction-arb/components/prediction-arb-board.tsx:80:3]
+ 79 |   trades: initialTrades,
+ 80 |   exchangeKeys = EMPTY_EXCHANGE_KEYS,
+    :   ^^^^^^|^^^^^
+    :         `-- 'exchangeKeys' is declared here
+ 81 | }: PredictionArbBoardProps): React.ReactNode {
+    `----
+  help: Consider removing this parameter.
+
+  x eslint(no-unused-vars): Identifier 'buscarTradesForex' is imported but never used.
+    ,-[src/features/forex-arb/components/forex-arb-board.tsx:23:3]
+ 22 |   buscarSaldoForex,
+ 23 |   buscarTradesForex,
+    :   ^^^^^^^^|^^^^^^^^
+    :           `-- 'buscarTradesForex' is imported here
+ 24 |   buscarTradesPorPeriodo,
+    `----
+  help: Consider removing this import.
+
+  x eslint(no-unused-vars): Parameter 'exchangeIds' is declared but never used. Unused parameters should start with a '_'.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:104:3]
+ 103 |   opportunities,
+ 104 |   exchangeIds,
+     :   ^^^^^|^^^^^
+     :        `-- 'exchangeIds' is declared here
+ 105 |   exchangeKeys,
+     `----
+  help: Consider removing this parameter.
+
+  x eslint(no-unused-vars): Parameter 'exchangeKeys' is declared but never used. Unused parameters should start with a '_'.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:105:3]
+ 104 |   exchangeIds,
+ 105 |   exchangeKeys,
+     :   ^^^^^^|^^^^^
+     :         `-- 'exchangeKeys' is declared here
+ 106 |   botType: _botType,
+     `----
+  help: Consider removing this parameter.
+
+  x react(react-compiler): EffectSetState: Calling setState synchronously within an effect can trigger cascading renders
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:219:10]
+ 218 |     void buscar();
+ 219 |     void carregarEncerradas("1h", "ALL");
+     :          ^^^^^^^^^|^^^^^^^^
+     :                   `-- Avoid calling setState() directly within an effect
+ 220 |     return () => {
+     `----
+  help: Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+        * Update external systems with the latest state from React.
+        * Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+        
+        Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect)
+
+  x promise(prefer-await-to-then): Prefer await to then()/catch()/finally()
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:198:12]
+ 197 |           })
+ 198 |           .catch(() => {});
+     :            ^^^^^
+ 199 |       }
+     `----
+  help: Use `await` with `try`/`catch` instead of promise chaining for more readable and maintainable async code.
+
+  x promise(prefer-await-to-then): Prefer await to then()/catch()/finally()
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:195:12]
+ 194 |         buscarTradesPorPeriodo(closedPeriod, closedSymbol !== "ALL" ? closedSymbol : undefined)
+ 195 |           .then((res) => {
+     :            ^^^^
+ 196 |             if (res.ok) setLocalTrades(res.data);
+     `----
+  help: Use `await` with `try`/`catch` instead of promise chaining for more readable and maintainable async code.
+
+  x promise(always-return): Each then() should return a value or throw
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:195:17]
+ 194 |             buscarTradesPorPeriodo(closedPeriod, closedSymbol !== "ALL" ? closedSymbol : undefined)
+ 195 | ,->           .then((res) => {
+ 196 | |               if (res.ok) setLocalTrades(res.data);
+ 197 | `->           })
+ 198 |               .catch(() => {});
+     `----
+
+  x unicorn(no-array-sort): Use `Array#toSorted()` instead of `Array#sort()`.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:255:57]
+ 254 | 
+ 255 |     return [...tradesClose, ...stratsFechadasComoTrade].sort((a, b) => {
+     :                                                         ^^^^
+ 256 |       const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+     `----
+  help: `Array#sort()` mutates the original array. Use `Array#toSorted()` to return a new sorted array without modifying the original.
+
+  x eslint(no-useless-escape): Unnecessary escape character '/'
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:932:89]
+ 931 |                     if (!legsToRender || legsToRender.length === 0) {
+ 932 |                       const symMatch = trade.strategyName?.match(/Scalping\s+([A-Za-z0-9\/]+)/i);
+     :                                                                                         ^^
+ 933 |                       const sym = symMatch ? symMatch[1] : "BTC/USD";
+     `----
+  help: Replace `\/` with `/`.
+
+  x eslint(no-unused-vars): Identifier 'forexArbTradeListSchema' is imported but never used.
+    ,-[src/app/dashboard/forex-arb/page.tsx:14:3]
+ 13 |   forexArbStrategyListSchema,
+ 14 |   forexArbTradeListSchema,
+    :   ^^^^^^^^^^^|^^^^^^^^^^^
+    :              `-- 'forexArbTradeListSchema' is imported here
+ 15 |   forexBalanceSchema,
+    `----
+  help: Consider removing this import.
+
+  x typescript(no-unnecessary-condition): Unnecessary conditional, value is always truthy.
+     ,-[src/features/forex-arb/components/forex-settings-panel.tsx:102:11]
+ 101 |     buscarSimbolosDisponiveis().then((res) => {
+ 102 |       if (res?.crypto && res.crypto.length > 0) {
+     :           ^^^^^|^^^^^^
+     :                `-- Type: string[]
+ 103 |         setAvailableCrypto(Array.from(new Set([...defaultCryptoPares, ...res.crypto])));
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary optional chain on a non-nullish value.
+     ,-[src/features/forex-arb/components/forex-settings-panel.tsx:102:14]
+ 101 |     buscarSimbolosDisponiveis().then((res) => {
+ 102 |       if (res?.crypto && res.crypto.length > 0) {
+     :           ^|^^^
+     :            `-- Type: { forex: string[]; crypto: string[]; }
+ 103 |         setAvailableCrypto(Array.from(new Set([...defaultCryptoPares, ...res.crypto])));
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary conditional, value is always truthy.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:239:15]
+ 238 |         type: "close",
+ 239 |         legs: s.legs || [],
+     :               ^^^|^^^
+     :                  `-- Type: { symbol?: string | null | undefined; side?: string | null | undefined; price?: number | null | undefined; entryPrice...
+ 240 |         amount: s.tradeSize || s.positionSize || 0,
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary optional chain on a non-nullish value.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:872:57]
+ 871 |                       const strat = localStrategies.find((s) => s.id === trade.strategyId);
+ 872 |                       const stratLegWithId = strat?.legs?.find((l) => l.orderId);
+     :                                              ^^^^^|^^^^^^^
+     :                                                   `-- Type: { symbol?: string | null | undefined; side?: string | null | undefined; price?: number | null | undefined; entryPrice...
+ 873 |                       const rawId = firstLegWithId?.orderId || stratLegWithId?.orderId || null;
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary optional chain on a non-nullish value.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:927:49]
+ 926 |                     const strat = localStrategies.find((s) => s.id === trade.strategyId);
+ 927 |                     const stratLeg = strat?.legs?.[0];
+     :                                      ^^^^^|^^^^^^^
+     :                                           `-- Type: { symbol?: string | null | undefined; side?: string | null | undefined; price?: number | null | undefined; entryPrice...
+ 928 |                     let legsToRender = trade.legs && trade.legs.length > 0 ? trade.legs : (strat?.legs && strat.legs.length > 0 ? strat.legs : []);
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary conditional, value is always truthy.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:928:40]
+ 927 |                     const stratLeg = strat?.legs?.[0];
+ 928 |                     let legsToRender = trade.legs && trade.legs.length > 0 ? trade.legs : (strat?.legs && strat.legs.length > 0 ? strat.legs : []);
+     :                                        ^^^^^|^^^^^
+     :                                             `-- Type: { symbol?: string | null | undefined; side?: string | null | undefined; price?: number | null | undefined; entryPrice...
+ 929 | 
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary conditional, value is always falsy.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:931:25]
+ 930 |                     // Se não tiver pernas, cria perna única baseada no trade
+ 931 |                     if (!legsToRender || legsToRender.length === 0) {
+     :                         ^^^^^^^^^^^^^|
+     :                               |      `-- Type: { symbol?: string | null | undefined; side?: string | null | undefined; price?: number | null | undefined; entryPrice...
+ 932 |                       const symMatch = trade.strategyName?.match(/Scalping\s+([A-Za-z0-9\/]+)/i);
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary optional chain on a non-nullish value.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:932:58]
+ 931 |                     if (!legsToRender || legsToRender.length === 0) {
+ 932 |                       const symMatch = trade.strategyName?.match(/Scalping\s+([A-Za-z0-9\/]+)/i);
+     :                                        ^^^^^^^^^|^^^^^^^^^^
+     :                                                 `-- Type: string
+ 933 |                       const sym = symMatch ? symMatch[1] : "BTC/USD";
+     `----
+
+  x typescript(no-unnecessary-condition): This condition will always return the same value since the types have no overlap.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:957:58]
+ 956 |                           // Se o banco legado não gravou o closePrice, deduz com precisão matemática a partir do PnL Realizado
+ 957 |                           if ((closeP === null || closeP === undefined) && entryP && entryP > 0 && vol > 0 && trade.realizedPnl !== undefined) {
+     :                                                  ^^^|^^^ ^^^^^^^^|^^^^
+     :                                                     |     |      `-- Type: undefined
+     :                                                     `-- Type: number
+ 958 |                             const side = (leg.side || "buy").toLowerCase();
+     `----
+
+  x typescript(no-unnecessary-condition): This condition will always return the same value since the types have no overlap.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:957:129]
+ 956 |                           // Se o banco legado não gravou o closePrice, deduz com precisão matemática a partir do PnL Realizado
+ 957 |                           if ((closeP === null || closeP === undefined) && entryP && entryP > 0 && vol > 0 && trade.realizedPnl !== undefined) {
+     :                                                                                                              ^^^^^^^^^|^^^^^^^^ ^^^^^^^^|^^^^
+     :                                                                                                                       |          |      `-- Type: undefined
+     :                                                                                                                       `-- Type: number
+ 958 |                             const side = (leg.side || "buy").toLowerCase();
+     `----
+
+  x typescript(no-unnecessary-condition): This condition will always return the same value since the types have no overlap.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:974:66]
+ 973 |                                     <strong className="text-white font-bold">
+ 974 |                                       {entryP !== null && entryP !== undefined ? entryP : "—"}
+     :                                                          ^^^|^^^ ^^^^^^^^|^^^^
+     :                                                             |     |      `-- Type: undefined
+     :                                                             `-- Type: number
+ 975 |                                     </strong>
+     `----
+
+  x typescript(no-unnecessary-condition): This condition will always return the same value since the types have no overlap.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:979:82]
+ 978 |                                     Saída:{" "}
+ 979 |                                     <strong className={closeP !== null && closeP !== undefined ? (isLucro ? "text-emerald-400 font-bold" : "text-rose-400 font-bold") : "text-slate-400"}>
+     :                                                                          ^^^|^^^ ^^^^^^^^|^^^^
+     :                                                                             |     |      `-- Type: undefined
+     :                                                                             `-- Type: number
+ 980 |                                       {closeP !== null && closeP !== undefined ? closeP : "—"}
+     `----
+
+  x typescript(no-unnecessary-condition): This condition will always return the same value since the types have no overlap.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:980:66]
+ 979 |                                     <strong className={closeP !== null && closeP !== undefined ? (isLucro ? "text-emerald-400 font-bold" : "text-rose-400 font-bold") : "text-slate-400"}>
+ 980 |                                       {closeP !== null && closeP !== undefined ? closeP : "—"}
+     :                                                          ^^^|^^^ ^^^^^^^^|^^^^
+     :                                                             |     |      `-- Type: undefined
+     :                                                             `-- Type: number
+ 981 |                                     </strong>
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary optional chain on a non-nullish value.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:991:48]
+ 990 |                               <div className="flex justify-between font-mono text-[10px] text-slate-400">
+ 991 |                                 <span>Volume: {leg.volume ?? leg.amount ?? trade.volume ?? trade.amount ?? 0}</span>
+     :                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^|^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     :                                                                            `-- Type: number
+ 992 |                                 <span>Valor: ${(leg.amountUsd ?? trade.amountUsd ?? 0).toFixed(2)} USD</span>
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary optional chain on a non-nullish value.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:991:48]
+ 990 |                               <div className="flex justify-between font-mono text-[10px] text-slate-400">
+ 991 |                                 <span>Volume: {leg.volume ?? leg.amount ?? trade.volume ?? trade.amount ?? 0}</span>
+     :                                                ^^^^^^^^^^^^^^^^^^^^|^^^^^^^^^^^^^^^^^^^^
+     :                                                                    `-- Type: number
+ 992 |                                 <span>Valor: ${(leg.amountUsd ?? trade.amountUsd ?? 0).toFixed(2)} USD</span>
+     `----
+
+  x typescript(no-unnecessary-condition): Unnecessary optional chain on a non-nullish value.
+     ,-[src/features/forex-arb/components/forex-arb-board.tsx:992:49]
+ 991 |                                 <span>Volume: {leg.volume ?? leg.amount ?? trade.volume ?? trade.amount ?? 0}</span>
+ 992 |                                 <span>Valor: ${(leg.amountUsd ?? trade.amountUsd ?? 0).toFixed(2)} USD</span>
+     :                                                 ^^^^^^^^^^^^^^^^|^^^^^^^^^^^^^^^^
+     :                                                                 `-- Type: number
+ 993 |                               </div>
+     `----
+
+Found 0 warnings and 33 errors.
+Finished in 1.7s on 183 files with 306 rules using 12 threads.
+error: script "lint" exited with code 1

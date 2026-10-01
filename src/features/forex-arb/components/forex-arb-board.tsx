@@ -20,7 +20,6 @@ import {
   buscarCotacoesAoVivo,
   buscarEstrategiasForex,
   buscarSaldoForex,
-  buscarTradesForex,
   buscarTradesPorPeriodo,
   deletarStrategy,
   fecharPosicao,
@@ -101,8 +100,8 @@ export function ForexArbBoard({
   strategies,
   trades,
   opportunities,
-  exchangeIds,
-  exchangeKeys,
+  exchangeIds: _exchangeIds,
+  exchangeKeys: _exchangeKeys,
   botType: _botType,
 }: ForexArbBoardProps): React.ReactNode {
   const [isPending] = useTransition();
@@ -191,11 +190,15 @@ export function ForexArbBoard({
       ]);
       setLocalStrategies(novasStrats);
       if (closedLoaded) {
-        buscarTradesPorPeriodo(closedPeriod, closedSymbol !== "ALL" ? closedSymbol : undefined)
-          .then((res) => {
-            if (res.ok) setLocalTrades(res.data);
-          })
-          .catch(() => {});
+        try {
+          const res = await buscarTradesPorPeriodo(
+            closedPeriod,
+            closedSymbol !== "ALL" ? closedSymbol : undefined,
+          );
+          if (res.ok) setLocalTrades(res.data);
+        } catch {
+          // Ignora falha silenciosa
+        }
       }
       if (novoSaldo !== null && !isNaN(novoSaldo)) setLocalBalance(novoSaldo);
       if (novasCotacoes !== null) setLivePrices(novasCotacoes);
@@ -207,16 +210,24 @@ export function ForexArbBoard({
 
   useEffect(() => {
     let ativo = true;
-    const buscar = async (): Promise<void> => {
+    const inicializar = async (): Promise<void> => {
       try {
-        const data = await buscarCotacoesAoVivo();
-        if (ativo && data !== null) setLivePrices(data);
+        const [cotacoes, resTrades] = await Promise.all([
+          buscarCotacoesAoVivo(),
+          buscarTradesPorPeriodo("1h", undefined),
+        ]);
+        if (ativo) {
+          if (cotacoes !== null) setLivePrices(cotacoes);
+          if (resTrades.ok) {
+            setLocalTrades(resTrades.data);
+            setClosedLoaded(true);
+          }
+        }
       } catch (_e) {
         // Ignora falha silenciosamente durante troca de rotas ou queda de rede
       }
     };
-    void buscar();
-    void carregarEncerradas("1h", "ALL");
+    void inicializar();
     return () => {
       ativo = false;
     };
@@ -226,7 +237,7 @@ export function ForexArbBoard({
   const encerradas = (() => {
     const tradesClose = localTrades.filter((t) => t.type === "close");
     const strategyIdsInTrades = new Set(tradesClose.map((t) => t.strategyId).filter(Boolean));
-    
+
     // Adiciona estratégias fechadas que porventura não geraram trade separado (ex: fechamento via broker)
     const stratsFechadasComoTrade: ForexArbTrade[] = localStrategies
       .filter((s) => !s.positionOpen && s.status === "closed" && !strategyIdsInTrades.has(s.id))
@@ -236,7 +247,7 @@ export function ForexArbBoard({
         strategyName: s.name,
         exchangeId: s.exchangeId || "ctrader",
         type: "close",
-        legs: s.legs || [],
+        legs: s.legs,
         amount: s.tradeSize || s.positionSize || 0,
         volume: s.positionVolume || s.positionSize || s.tradeSize || 0,
         amountUsd: s.positionAmountUsd || 0,
@@ -252,7 +263,7 @@ export function ForexArbBoard({
         createdAt: s.closedAt || s.updatedAt || s.createdAt || "",
       }));
 
-    return [...tradesClose, ...stratsFechadasComoTrade].sort((a, b) => {
+    return [...tradesClose, ...stratsFechadasComoTrade].toSorted((a, b) => {
       const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return tB - tA;
@@ -849,173 +860,205 @@ export function ForexArbBoard({
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-3">
-          {encerradas.length === 0 ? (
-            <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
-              Nenhuma operação encerrada ainda.
-            </div>
-          ) : (
-            encerradas.map((trade) => {
-              const isLucro = trade.realizedPnl >= 0;
-              return (
-                <div
-                  key={trade.id}
-                  className={`rounded-xl border p-5 ${
-                    isLucro
-                      ? "border-emerald-500/30 bg-emerald-950/10"
-                      : "border-rose-500/30 bg-rose-950/10"
-                  }`}
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    {(() => {
-                      const firstLegWithId = trade.legs.find((l) => l.orderId);
-                      const strat = localStrategies.find((s) => s.id === trade.strategyId);
-                      const stratLegWithId = strat?.legs?.find((l) => l.orderId);
-                      const rawId = firstLegWithId?.orderId || stratLegWithId?.orderId || null;
-                      const displayId = rawId ? rawId.replace(/^(#|Order\s*|Pos\s*#?)/i, "").trim() : null;
-                      return (
-                        <div>
-                          <h3 className="text-sm font-extrabold text-white">
-                            {trade.strategyName || "Scalping Forex"}
-                          </h3>
-                          <div className="mt-1 flex flex-wrap items-center gap-2">
-                            <span
-                              className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
-                                isLucro
-                                  ? "bg-emerald-500/20 text-emerald-300"
-                                  : "bg-rose-500/20 text-rose-300"
-                              }`}
-                            >
-                              {isLucro ? "🟢 LUCRO" : "🔴 PREJUÍZO"}
-                            </span>
-                            <span className="text-xs text-slate-400">{trade.exchangeId}</span>
-                            {displayId ? (
-                              <span className="rounded border border-amber-500/30 bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-amber-300">
-                                cTrader ID: #{displayId}
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                    <div className="text-right">
-                      <div
-                        className={`font-mono text-base font-black ${
-                          isLucro ? "text-emerald-400" : "text-rose-400"
-                        }`}
-                      >
-                        {trade.realizedPnl >= 0
-                          ? `+$${trade.realizedPnl.toFixed(2)} USD`
-                          : `-$${Math.abs(trade.realizedPnl).toFixed(2)} USD`}
-                      </div>
-                      <div className="font-mono text-[10px] font-bold text-slate-400">
-                        P&L Líquido Real
-                      </div>
-                      {trade.commission && Math.abs(trade.commission) > 0 ? (
-                        <div className="font-mono text-[10px] font-semibold text-rose-300/90 mt-0.5">
-                          Comissões: -${Math.abs(trade.commission).toFixed(2)} USD
-                        </div>
-                      ) : (
-                        <div className="font-mono text-[10px] text-slate-500 mt-0.5">
-                          Taxa/Comissão: $0.00 (Zero Fee)
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {(() => {
-                    const strat = localStrategies.find((s) => s.id === trade.strategyId);
-                    const stratLeg = strat?.legs?.[0];
-                    let legsToRender = trade.legs && trade.legs.length > 0 ? trade.legs : (strat?.legs && strat.legs.length > 0 ? strat.legs : []);
-
-                    // Se não tiver pernas, cria perna única baseada no trade
-                    if (!legsToRender || legsToRender.length === 0) {
-                      const symMatch = trade.strategyName?.match(/Scalping\s+([A-Za-z0-9\/]+)/i);
-                      const sym = symMatch ? symMatch[1] : "BTC/USD";
-                      legsToRender = [
-                        {
-                          symbol: sym,
-                          side: "buy",
-                          price: stratLeg?.price ?? null,
-                          entryPrice: stratLeg?.price ?? null,
-                          closePrice: null,
-                          amount: trade.amount || trade.volume || 0,
-                          volume: trade.volume || trade.amount || 0,
-                          amountUsd: trade.amountUsd || 0,
-                          orderId: stratLeg?.orderId ?? null,
-                        },
-                      ];
-                    }
-
-                    return (
-                      <div className="mb-3 space-y-1.5">
-                        {legsToRender.map((leg, legIdx) => {
-                          const entryP = leg.entryPrice ?? leg.price ?? stratLeg?.price ?? null;
-                          const vol = leg.volume || leg.amount || trade.volume || trade.amount || 0;
-                          let closeP = leg.closePrice ?? (legIdx > 0 ? leg.price : null) ?? (strat?.currentPrice ?? null);
-                          
-                          // Se o banco legado não gravou o closePrice, deduz com precisão matemática a partir do PnL Realizado
-                          if ((closeP === null || closeP === undefined) && entryP && entryP > 0 && vol > 0 && trade.realizedPnl !== undefined) {
-                            const side = (leg.side || "buy").toLowerCase();
-                            const pnlDiff = trade.realizedPnl / vol;
-                            const calculatedClose = side === "buy" ? entryP + pnlDiff : entryP - pnlDiff;
-                            closeP = Number(calculatedClose.toFixed(2));
-                          }
+              {encerradas.length === 0 ? (
+                <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
+                  Nenhuma operação encerrada ainda.
+                </div>
+              ) : (
+                encerradas.map((trade) => {
+                  const isLucro = trade.realizedPnl >= 0;
+                  return (
+                    <div
+                      key={trade.id}
+                      className={`rounded-xl border p-5 ${
+                        isLucro
+                          ? "border-emerald-500/30 bg-emerald-950/10"
+                          : "border-rose-500/30 bg-rose-950/10"
+                      }`}
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        {(() => {
+                          const firstLegWithId = trade.legs.find((l) => l.orderId);
+                          const strat = localStrategies.find((s) => s.id === trade.strategyId);
+                          const stratLegWithId = strat?.legs.find((l) => l.orderId);
+                          const rawId = firstLegWithId?.orderId || stratLegWithId?.orderId || null;
+                          const displayId = rawId
+                            ? rawId.replace(/^(#|Order\s*|Pos\s*#?)/i, "").trim()
+                            : null;
                           return (
-                            <div
-                              key={`${leg.side}-${leg.symbol}-${entryP ?? legIdx}`}
-                              className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
-                            >
-                              <div className="flex flex-wrap items-center justify-between gap-1">
-                                <LegBadge leg={leg} showPrice={false} />
-                                <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
-                                  <span className="text-slate-300">
-                                    Entrada:{" "}
-                                    <strong className="text-white font-bold">
-                                      {entryP !== null && entryP !== undefined ? entryP : "—"}
-                                    </strong>
+                            <div>
+                              <h3 className="text-sm font-extrabold text-white">
+                                {trade.strategyName || "Scalping Forex"}
+                              </h3>
+                              <div className="mt-1 flex flex-wrap items-center gap-2">
+                                <span
+                                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                                    isLucro
+                                      ? "bg-emerald-500/20 text-emerald-300"
+                                      : "bg-rose-500/20 text-rose-300"
+                                  }`}
+                                >
+                                  {isLucro ? "🟢 LUCRO" : "🔴 PREJUÍZO"}
+                                </span>
+                                <span className="text-xs text-slate-400">{trade.exchangeId}</span>
+                                {displayId ? (
+                                  <span className="rounded border border-amber-500/30 bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-amber-300">
+                                    cTrader ID: #{displayId}
                                   </span>
-                                  <span className="text-slate-300">
-                                    Saída:{" "}
-                                    <strong className={closeP !== null && closeP !== undefined ? (isLucro ? "text-emerald-400 font-bold" : "text-rose-400 font-bold") : "text-slate-400"}>
-                                      {closeP !== null && closeP !== undefined ? closeP : "—"}
-                                    </strong>
-                                  </span>
-                                </div>
-                              </div>
-                              {leg.orderId ? (
-                                <div className="font-mono text-[10px] text-slate-400">
-                                  cTrader ID: #{leg.orderId.replace(/^(#|Order\s*|Pos\s*#?)/i, "").trim()}
-                                </div>
-                              ) : null}
-                              <div className="flex justify-between font-mono text-[10px] text-slate-400">
-                                <span>Volume: {leg.volume ?? leg.amount ?? trade.volume ?? trade.amount ?? 0}</span>
-                                <span>Valor: ${(leg.amountUsd ?? trade.amountUsd ?? 0).toFixed(2)} USD</span>
+                                ) : null}
                               </div>
                             </div>
                           );
-                        })}
+                        })()}
+                        <div className="text-right">
+                          <div
+                            className={`font-mono text-base font-black ${
+                              isLucro ? "text-emerald-400" : "text-rose-400"
+                            }`}
+                          >
+                            {trade.realizedPnl >= 0
+                              ? `+$${trade.realizedPnl.toFixed(2)} USD`
+                              : `-$${Math.abs(trade.realizedPnl).toFixed(2)} USD`}
+                          </div>
+                          <div className="font-mono text-[10px] font-bold text-slate-400">
+                            P&L Líquido Real
+                          </div>
+                          {trade.commission && Math.abs(trade.commission) > 0 ? (
+                            <div className="font-mono text-[10px] font-semibold text-rose-300/90 mt-0.5">
+                              Comissões: -${Math.abs(trade.commission).toFixed(2)} USD
+                            </div>
+                          ) : (
+                            <div className="font-mono text-[10px] text-slate-500 mt-0.5">
+                              Taxa/Comissão: $0.00 (Zero Fee)
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    );
-                  })()}
 
-                  {trade.reason ? (
-                    <div className="mb-3 rounded bg-slate-900/40 p-2 text-center text-[11px] font-mono text-slate-300 border border-white/5">
-                      <span className="block text-[10px] text-slate-500 font-sans">
-                        Motivo do Fechamento
-                      </span>
-                      {trade.reason}
+                      {(() => {
+                        const strat = localStrategies.find((s) => s.id === trade.strategyId);
+                        const stratLeg = strat?.legs[0];
+                        let legsToRender =
+                          trade.legs.length > 0
+                            ? trade.legs
+                            : strat && strat.legs.length > 0
+                              ? strat.legs
+                              : [];
+
+                        // Se não tiver pernas, cria perna única baseada no trade
+                        if (legsToRender.length === 0) {
+                          const symMatch = trade.strategyName.match(/Scalping\s+([A-Za-z0-9/]+)/i);
+                          const sym = symMatch ? symMatch[1] : "BTC/USD";
+                          legsToRender = [
+                            {
+                              symbol: sym,
+                              side: "buy",
+                              price: stratLeg?.price ?? null,
+                              entryPrice: stratLeg?.price ?? null,
+                              closePrice: null,
+                              amount: trade.amount || trade.volume || 0,
+                              volume: trade.volume || trade.amount || 0,
+                              amountUsd: trade.amountUsd || 0,
+                              orderId: stratLeg?.orderId ?? null,
+                            },
+                          ];
+                        }
+
+                        return (
+                          <div className="mb-3 space-y-1.5">
+                            {legsToRender.map((leg, legIdx) => {
+                              const entryP = leg.entryPrice ?? leg.price ?? stratLeg?.price ?? null;
+                              const vol =
+                                leg.volume || leg.amount || trade.volume || trade.amount || 0;
+                              let closeP =
+                                leg.closePrice ??
+                                (legIdx > 0 ? leg.price : null) ??
+                                strat?.currentPrice ??
+                                null;
+
+                              // Se o banco legado não gravou o closePrice, deduz com precisão matemática a partir do PnL Realizado
+                              if (closeP === null && entryP && entryP > 0 && vol > 0) {
+                                const side = (leg.side || "buy").toLowerCase();
+                                const pnlDiff = trade.realizedPnl / vol;
+                                const calculatedClose =
+                                  side === "buy" ? entryP + pnlDiff : entryP - pnlDiff;
+                                closeP = Number(calculatedClose.toFixed(2));
+                              }
+                              return (
+                                <div
+                                  key={`${leg.side}-${leg.symbol}-${entryP ?? legIdx}`}
+                                  className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-1">
+                                    <LegBadge leg={leg} showPrice={false} />
+                                    <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
+                                      <span className="text-slate-300">
+                                        Entrada:{" "}
+                                        <strong className="text-white font-bold">
+                                          {entryP !== null ? entryP : "—"}
+                                        </strong>
+                                      </span>
+                                      <span className="text-slate-300">
+                                        Saída:{" "}
+                                        <strong
+                                          className={
+                                            closeP !== null
+                                              ? isLucro
+                                                ? "text-emerald-400 font-bold"
+                                                : "text-rose-400 font-bold"
+                                              : "text-slate-400"
+                                          }
+                                        >
+                                          {closeP !== null ? closeP : "—"}
+                                        </strong>
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {leg.orderId ? (
+                                    <div className="font-mono text-[10px] text-slate-400">
+                                      cTrader ID: #
+                                      {leg.orderId.replace(/^(#|Order\s*|Pos\s*#?)/i, "").trim()}
+                                    </div>
+                                  ) : null}
+                                  <div className="flex justify-between font-mono text-[10px] text-slate-400">
+                                    <span>
+                                      Volume:{" "}
+                                      {leg.volume ||
+                                        leg.amount ||
+                                        trade.volume ||
+                                        trade.amount ||
+                                        0}
+                                    </span>
+                                    <span>
+                                      Valor: ${(leg.amountUsd || trade.amountUsd || 0).toFixed(2)}{" "}
+                                      USD
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+
+                      {trade.reason ? (
+                        <div className="mb-3 rounded bg-slate-900/40 p-2 text-center text-[11px] font-mono text-slate-300 border border-white/5">
+                          <span className="block text-[10px] text-slate-500 font-sans">
+                            Motivo do Fechamento
+                          </span>
+                          {trade.reason}
+                        </div>
+                      ) : null}
+
+                      <div className="flex items-center justify-between border-t border-white/5 pt-2 text-[11px] text-slate-500 font-mono">
+                        <span>Fechada em {new Date(trade.createdAt).toLocaleString()}</span>
+                      </div>
                     </div>
-                  ) : null}
-
-                  <div className="flex items-center justify-between border-t border-white/5 pt-2 text-[11px] text-slate-500 font-mono">
-                    <span>Fechada em {new Date(trade.createdAt).toLocaleString()}</span>
-                  </div>
-                </div>
-              );
-            })
+                  );
+                })
+              )}
+            </div>
           )}
-        </div>
-        )}
         </div>
       ) : null}
 

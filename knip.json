@@ -2,6 +2,7 @@
   "$schema": "./node_modules/knip/schema.json",
   "entry": [
     "src/app/**/*.{ts,tsx}",
+    "src/features/**/*.actions.ts",
     "tooling/agent-hooks/*.ts",
     "tooling/*.ts",
     "tooling/oxlint-rules/index.ts",

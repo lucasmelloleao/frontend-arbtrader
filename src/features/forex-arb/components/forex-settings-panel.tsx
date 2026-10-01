@@ -15,6 +15,43 @@ import type {
   ForexArbSettings,
 } from "@/features/forex-arb/forex-arb.schema";
 
+const DEFAULT_FOREX_PARES = [
+  "EUR/USD",
+  "GBP/USD",
+  "USD/JPY",
+  "AUD/USD",
+  "USD/CAD",
+  "XAU/USD",
+  "NAS100",
+  "US30",
+  "GER40",
+];
+
+const DEFAULT_CRYPTO_PARES = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "LTC/USD", "DOGE/USD"];
+
+function isCryptoPair(sym: string): boolean {
+  const s = sym.toUpperCase().replace("/", "");
+  return (
+    s.startsWith("BTC") ||
+    s.startsWith("ETH") ||
+    s.startsWith("SOL") ||
+    s.startsWith("XRP") ||
+    s.startsWith("LTC") ||
+    s.startsWith("DOGE") ||
+    s.startsWith("ADA") ||
+    s.startsWith("AVAX") ||
+    s.startsWith("DOT") ||
+    s.startsWith("LINK") ||
+    s.startsWith("BNB") ||
+    s.startsWith("SHIB") ||
+    s.startsWith("NEAR") ||
+    s.startsWith("MATIC") ||
+    s.startsWith("UNI") ||
+    s.startsWith("BCH") ||
+    s.endsWith("USDT")
+  );
+}
+
 type ForexSettingsPanelProps = {
   settings: ForexArbSettings | null;
 };
@@ -73,60 +110,22 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
     setForm((prev) => ({ ...(prev ?? atuais), [campo]: valor }));
   };
 
-  const defaultForexPares = [
-    "EUR/USD",
-    "GBP/USD",
-    "USD/JPY",
-    "AUD/USD",
-    "USD/CAD",
-    "XAU/USD",
-    "NAS100",
-    "US30",
-    "GER40",
-  ];
-
-  const defaultCryptoPares = [
-    "BTC/USD",
-    "ETH/USD",
-    "SOL/USD",
-    "XRP/USD",
-    "LTC/USD",
-    "DOGE/USD",
-  ];
-
-  const [availableCrypto, setAvailableCrypto] = useState<string[]>(defaultCryptoPares);
+  const [availableCrypto, setAvailableCrypto] = useState<string[]>(DEFAULT_CRYPTO_PARES);
   const [cryptoSearch, setCryptoSearch] = useState("");
 
   useEffect(() => {
-    buscarSimbolosDisponiveis().then((res) => {
-      if (res?.crypto && res.crypto.length > 0) {
-        setAvailableCrypto(Array.from(new Set([...defaultCryptoPares, ...res.crypto])));
+    async function carregarSimbolos(): Promise<void> {
+      try {
+        const res = await buscarSimbolosDisponiveis();
+        if (res.crypto.length > 0) {
+          setAvailableCrypto(Array.from(new Set([...DEFAULT_CRYPTO_PARES, ...res.crypto])));
+        }
+      } catch {
+        // Ignora erro silencioso no carregamento
       }
-    }).catch(() => {});
+    }
+    void carregarSimbolos();
   }, []);
-
-  const isCryptoPair = (sym: string): boolean => {
-    const s = sym.toUpperCase().replace('/', '');
-    return (
-      s.startsWith('BTC') ||
-      s.startsWith('ETH') ||
-      s.startsWith('SOL') ||
-      s.startsWith('XRP') ||
-      s.startsWith('LTC') ||
-      s.startsWith('DOGE') ||
-      s.startsWith('ADA') ||
-      s.startsWith('AVAX') ||
-      s.startsWith('DOT') ||
-      s.startsWith('LINK') ||
-      s.startsWith('BNB') ||
-      s.startsWith('SHIB') ||
-      s.startsWith('NEAR') ||
-      s.startsWith('MATIC') ||
-      s.startsWith('UNI') ||
-      s.startsWith('BCH') ||
-      s.endsWith('USDT')
-    );
-  };
 
   // Exibe o perfil por par. Segue esta prioridade:
   // 1) Em edição: valor local do form (reflete o que o usuário está editando agora).
@@ -152,7 +151,7 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
     atualizar("symbolProfiles", { ...atual, [sym]: perfil });
   };
 
-  const adicionarParCrypto = (sym: string) => {
+  const adicionarParCrypto = (sym: string): void => {
     const clean = sym.trim().toUpperCase();
     if (!clean) return;
     atualizarPar(clean, "enabled", true);
@@ -170,7 +169,14 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
   // Coleta todos os pares de cada categoria presentes nas configs atuais ou defaults
   const activeProfilesKeys = Object.keys(formAtual.symbolProfiles || {});
   const resolvedProfilesKeys = Object.keys(atuais.resolvedSymbolProfiles || {});
-  const allKnownKeys = Array.from(new Set([...defaultForexPares, ...defaultCryptoPares, ...activeProfilesKeys, ...resolvedProfilesKeys]));
+  const allKnownKeys = Array.from(
+    new Set([
+      ...DEFAULT_FOREX_PARES,
+      ...DEFAULT_CRYPTO_PARES,
+      ...activeProfilesKeys,
+      ...resolvedProfilesKeys,
+    ]),
+  );
 
   const paresForex = allKnownKeys.filter((s) => !isCryptoPair(s));
   const paresCrypto = allKnownKeys.filter((s) => isCryptoPair(s));
@@ -468,7 +474,10 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                 const p = perfilPar(sym);
                 const ativo = p.enabled !== false;
                 return (
-                  <div key={sym} className="rounded-lg border border-amber-500/20 bg-amber-950/10 p-3">
+                  <div
+                    key={sym}
+                    className="rounded-lg border border-amber-500/20 bg-amber-950/10 p-3"
+                  >
                     <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-amber-300">{sym}</span>
@@ -577,7 +586,10 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                           />
                         </div>
                         <div>
-                          <label htmlFor={`lote-${sym}`} className="mb-1 block text-amber-300 font-semibold">
+                          <label
+                            htmlFor={`lote-${sym}`}
+                            className="mb-1 block text-amber-300 font-semibold"
+                          >
                             Valor Usd ($)
                           </label>
                           <input
@@ -585,7 +597,9 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                             type="number"
                             step="10"
                             min="1"
-                            value={typeof p.defaultTradeSize === "number" ? p.defaultTradeSize : 100}
+                            value={
+                              typeof p.defaultTradeSize === "number" ? p.defaultTradeSize : 100
+                            }
                             placeholder="100"
                             onChange={(e) =>
                               atualizarPar(

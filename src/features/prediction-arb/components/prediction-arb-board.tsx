@@ -77,7 +77,7 @@ function getRemainingSeconds(strat: PredictionArbStrategy, nowMs: number): numbe
 export function PredictionArbBoard({
   strategies,
   trades: initialTrades,
-  exchangeKeys = EMPTY_EXCHANGE_KEYS,
+  exchangeKeys: _exchangeKeys = EMPTY_EXCHANGE_KEYS,
 }: PredictionArbBoardProps): React.ReactNode {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -218,8 +218,6 @@ export function PredictionArbBoard({
 
   return (
     <div className="space-y-4">
-
-
       {/* Abas */}
       <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">
         {(

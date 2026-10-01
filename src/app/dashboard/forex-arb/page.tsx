@@ -11,7 +11,6 @@ import {
   forexArbOpportunityListSchema,
   forexArbSettingsSchema,
   forexArbStrategyListSchema,
-  forexArbTradeListSchema,
   forexBalanceSchema,
   type ForexArbSettings,
   type ForexArbStrategy,

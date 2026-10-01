@@ -293,11 +293,14 @@ export async function buscarSimbolosDisponiveis(): Promise<{
   crypto: string[];
 }> {
   try {
-    const res = await kyServer
-      .get(API_ENDPOINTS.forexArb.availableSymbols)
-      .json<{ success?: boolean; data?: { forex: string[]; crypto: string[] }; forex?: string[]; crypto?: string[] }>();
-    if (res?.data) return res.data;
-    if (res?.forex && res?.crypto) return { forex: res.forex, crypto: res.crypto };
+    const res = await kyServer.get(API_ENDPOINTS.forexArb.availableSymbols).json<{
+      success?: boolean;
+      data?: { forex: string[]; crypto: string[] };
+      forex?: string[];
+      crypto?: string[];
+    }>();
+    if (res.data) return res.data;
+    if (res.forex && res.crypto) return { forex: res.forex, crypto: res.crypto };
     return { forex: [], crypto: [] };
   } catch {
     return { forex: [], crypto: [] };
