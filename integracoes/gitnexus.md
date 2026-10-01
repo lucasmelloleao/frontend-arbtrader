@@ -4,7 +4,7 @@
 execução) e expõe ferramentas via MCP para entender código, avaliar impacto e navegar com segurança.
 É de terceiros: instale pela fonte oficial. Aqui está como o método o usa.
 
-## Por que entra no método
+## Por que entra no método 
 
 O maior risco ao editar com IA é o **blast radius invisível**: mudar um símbolo e quebrar callers
 que ninguém mapeou. O GitNexus dá a disciplina de **impact analysis antes de editar** e
