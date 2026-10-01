@@ -143,6 +143,10 @@ export const predictionArbSettingsSchema = object({
   stopLossPct: fallback(number(), 25.0),
   minTakeProfitPct: fallback(number(), 2.0),
   minAiConfidence: fallback(number(), 0.5),
+  minSpotDistancePctAlt: fallback(number(), 0.05),
+  minSpotDistancePctMaj: fallback(number(), 0.04),
+  atrMultiplier5m: fallback(number(), 0.25),
+  atrMultiplier15m: fallback(number(), 0.8),
   allowedMarkets: fallback(array(string()), []),
   scanIntervalMs: fallback(number(), 60000),
 });
@@ -209,6 +213,10 @@ const atualizarPredictionSettingsInputSchema = object({
   stopLossPct: optional(number()),
   minTakeProfitPct: optional(number()),
   minAiConfidence: optional(number()),
+  minSpotDistancePctAlt: optional(number()),
+  minSpotDistancePctMaj: optional(number()),
+  atrMultiplier5m: optional(number()),
+  atrMultiplier15m: optional(number()),
   allowedMarkets: optional(array(string())),
   scanIntervalMs: optional(number()),
 });

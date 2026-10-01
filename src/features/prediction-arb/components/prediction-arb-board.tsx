@@ -3,11 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
-import { BarChart3, Brain, Clock, Plus, Power, Search, TrendingUp, X, XCircle } from "lucide-react";
+import { BarChart3, Brain, Clock, Power, Search, TrendingUp, X, XCircle } from "lucide-react";
 
 import { PredictionAiStrategyView } from "@/features/prediction-arb/components/prediction-ai-strategy-view";
-import { PredictionClearHistoryButton } from "@/features/prediction-arb/components/prediction-clear-history-button";
-import { PredictionStrategyForm } from "@/features/prediction-arb/components/prediction-strategy-form";
 import {
   aumentarAporte,
   deletarStrategy,
@@ -87,7 +85,6 @@ export function PredictionArbBoard({
   const [aba, setAba] = useState<"open" | "monitored" | "closed" | "performance" | "aiStrategy">(
     "open",
   );
-  const [criando, setCriando] = useState(false);
   const [periodo, setPeriodo] = useState<PredictionPeriod>("all");
   const [tradesList, setTradesList] = useState<readonly PredictionArbTrade[]>(initialTrades);
   const [carregandoTrades, setCarregandoTrades] = useState(false);
@@ -221,21 +218,7 @@ export function PredictionArbBoard({
 
   return (
     <div className="space-y-4">
-      {/* Botão de Criação */}
-      {criando ? (
-        <PredictionStrategyForm exchangeKeys={exchangeKeys} onFechar={() => setCriando(false)} />
-      ) : (
-        <div className="flex items-center justify-end gap-2">
-          <PredictionClearHistoryButton />
-          <button
-            type="button"
-            onClick={() => setCriando(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-indigo-500"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" /> Criar Estratégia Polymarket
-          </button>
-        </div>
-      )}
+
 
       {/* Abas */}
       <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">

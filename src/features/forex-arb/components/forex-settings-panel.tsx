@@ -1,11 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
-import { Save, Wallet } from "lucide-react";
+import { Coins, Globe, Plus, Save, Search, Wallet } from "lucide-react";
 
-import { salvarSettings, type MutacaoResult } from "@/features/forex-arb/forex-arb.actions";
+import {
+  buscarSimbolosDisponiveis,
+  salvarSettings,
+  type MutacaoResult,
+} from "@/features/forex-arb/forex-arb.actions";
 import type {
   AtualizarForexSettingsInput,
   ForexArbSettings,
@@ -69,18 +73,60 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
     setForm((prev) => ({ ...(prev ?? atuais), [campo]: valor }));
   };
 
-  const pares = [
+  const defaultForexPares = [
     "EUR/USD",
     "GBP/USD",
     "USD/JPY",
     "AUD/USD",
     "USD/CAD",
-    "BTC/USD",
     "XAU/USD",
     "NAS100",
     "US30",
     "GER40",
-  ] as const;
+  ];
+
+  const defaultCryptoPares = [
+    "BTC/USD",
+    "ETH/USD",
+    "SOL/USD",
+    "XRP/USD",
+    "LTC/USD",
+    "DOGE/USD",
+  ];
+
+  const [availableCrypto, setAvailableCrypto] = useState<string[]>(defaultCryptoPares);
+  const [cryptoSearch, setCryptoSearch] = useState("");
+
+  useEffect(() => {
+    buscarSimbolosDisponiveis().then((res) => {
+      if (res?.crypto && res.crypto.length > 0) {
+        setAvailableCrypto(Array.from(new Set([...defaultCryptoPares, ...res.crypto])));
+      }
+    }).catch(() => {});
+  }, []);
+
+  const isCryptoPair = (sym: string): boolean => {
+    const s = sym.toUpperCase().replace('/', '');
+    return (
+      s.startsWith('BTC') ||
+      s.startsWith('ETH') ||
+      s.startsWith('SOL') ||
+      s.startsWith('XRP') ||
+      s.startsWith('LTC') ||
+      s.startsWith('DOGE') ||
+      s.startsWith('ADA') ||
+      s.startsWith('AVAX') ||
+      s.startsWith('DOT') ||
+      s.startsWith('LINK') ||
+      s.startsWith('BNB') ||
+      s.startsWith('SHIB') ||
+      s.startsWith('NEAR') ||
+      s.startsWith('MATIC') ||
+      s.startsWith('UNI') ||
+      s.startsWith('BCH') ||
+      s.endsWith('USDT')
+    );
+  };
 
   // Exibe o perfil por par. Segue esta prioridade:
   // 1) Em edição: valor local do form (reflete o que o usuário está editando agora).
@@ -106,7 +152,28 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
     atualizar("symbolProfiles", { ...atual, [sym]: perfil });
   };
 
+  const adicionarParCrypto = (sym: string) => {
+    const clean = sym.trim().toUpperCase();
+    if (!clean) return;
+    atualizarPar(clean, "enabled", true);
+    atualizarPar(clean, "takeProfitPct", 0.35);
+    atualizarPar(clean, "stopLossPct", 0.15);
+    atualizarPar(clean, "trailingActivationUsd", 2.0);
+    atualizarPar(clean, "trailingDistanceUsd", 0.8);
+    atualizarPar(clean, "defaultTradeSize", 100);
+    atualizarPar(clean, "maxSpreadPct", 0.05);
+    setCryptoSearch("");
+  };
+
   const formAtual = form ?? atuais;
+
+  // Coleta todos os pares de cada categoria presentes nas configs atuais ou defaults
+  const activeProfilesKeys = Object.keys(formAtual.symbolProfiles || {});
+  const resolvedProfilesKeys = Object.keys(atuais.resolvedSymbolProfiles || {});
+  const allKnownKeys = Array.from(new Set([...defaultForexPares, ...defaultCryptoPares, ...activeProfilesKeys, ...resolvedProfilesKeys]));
+
+  const paresForex = allKnownKeys.filter((s) => !isCryptoPair(s));
+  const paresCrypto = allKnownKeys.filter((s) => isCryptoPair(s));
 
   return (
     <div className="rounded-xl border border-indigo-500/20 bg-slate-950/70 p-5">
@@ -340,12 +407,238 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
             </div>
           </div>
 
-          <div className="mt-4 border-t border-white/10 pt-4">
-            <span className="mb-3 block text-xs text-slate-400">
-              Configurações por Par (scalping)
-            </span>
+          {/* Grupo 1: Moedas Cripto (Spot) */}
+          <div className="mt-4 border-t border-amber-500/20 pt-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Coins className="h-4 w-4 text-amber-400" />
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                  Grupo Crypto Currency (Spot)
+                </span>
+                <span className="rounded bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                  Operações 24/7 · Lote em Valor USD
+                </span>
+              </div>
+
+              {/* Busca / Adição de novos pares Cripto */}
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Buscar par cripto (ex: SOL/USD)..."
+                    value={cryptoSearch}
+                    onChange={(e) => setCryptoSearch(e.target.value.toUpperCase())}
+                    className="w-48 rounded-lg border border-amber-500/30 bg-slate-900 py-1 pl-7 pr-2 text-xs text-white placeholder:text-slate-500 focus:border-amber-400 focus:outline-none"
+                  />
+                </div>
+                {cryptoSearch && !paresCrypto.includes(cryptoSearch) && (
+                  <button
+                    type="button"
+                    onClick={() => adicionarParCrypto(cryptoSearch)}
+                    className="inline-flex items-center gap-1 rounded bg-amber-500 px-2.5 py-1 text-xs font-bold text-slate-950 transition hover:bg-amber-400"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Adicionar
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Sugestões de pares cTrader encontrados */}
+            {cryptoSearch && (
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {availableCrypto
+                  .filter((s) => s.includes(cryptoSearch) && !paresCrypto.includes(s))
+                  .slice(0, 8)
+                  .map((sym) => (
+                    <button
+                      key={sym}
+                      type="button"
+                      onClick={() => adicionarParCrypto(sym)}
+                      className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-300 transition hover:bg-amber-500 hover:text-slate-950"
+                    >
+                      <Plus className="h-3 w-3" /> {sym}
+                    </button>
+                  ))}
+              </div>
+            )}
+
             <div className="space-y-3">
-              {pares.map((sym) => {
+              {paresCrypto.map((sym) => {
+                const p = perfilPar(sym);
+                const ativo = p.enabled !== false;
+                return (
+                  <div key={sym} className="rounded-lg border border-amber-500/20 bg-amber-950/10 p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-amber-300">{sym}</span>
+                        <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-400/80">
+                          Crypto Spot
+                        </span>
+                      </div>
+                      <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={ativo}
+                          onChange={(e) => atualizarPar(sym, "enabled", e.target.checked)}
+                          className="rounded border-amber-500/50 bg-slate-800"
+                        />
+                        Ativo
+                      </label>
+                    </div>
+                    {ativo ? (
+                      <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
+                        <div>
+                          <label htmlFor={`tp-${sym}`} className="mb-1 block text-slate-500">
+                            TP (%)
+                          </label>
+                          <input
+                            id={`tp-${sym}`}
+                            type="number"
+                            step="0.01"
+                            value={typeof p.takeProfitPct === "number" ? p.takeProfitPct : 0.35}
+                            placeholder="0.35"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "takeProfitPct",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-emerald-500/30 bg-slate-900 px-2 py-1 text-emerald-400"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`sl-${sym}`} className="mb-1 block text-slate-500">
+                            SL (%)
+                          </label>
+                          <input
+                            id={`sl-${sym}`}
+                            type="number"
+                            step="0.01"
+                            value={typeof p.stopLossPct === "number" ? p.stopLossPct : 0.15}
+                            placeholder="0.15"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "stopLossPct",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-rose-500/30 bg-slate-900 px-2 py-1 text-rose-400"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`tact-${sym}`} className="mb-1 block text-slate-500">
+                            Trailing Ativa (US$)
+                          </label>
+                          <input
+                            id={`tact-${sym}`}
+                            type="number"
+                            step="0.01"
+                            value={
+                              typeof p.trailingActivationUsd === "number"
+                                ? p.trailingActivationUsd
+                                : 2.0
+                            }
+                            placeholder="2.00"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "trailingActivationUsd",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-cyan-500/30 bg-slate-900 px-2 py-1 text-cyan-400"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`tdist-${sym}`} className="mb-1 block text-slate-500">
+                            Trailing Dist. (US$)
+                          </label>
+                          <input
+                            id={`tdist-${sym}`}
+                            type="number"
+                            step="0.01"
+                            value={
+                              typeof p.trailingDistanceUsd === "number"
+                                ? p.trailingDistanceUsd
+                                : 0.8
+                            }
+                            placeholder="0.80"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "trailingDistanceUsd",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`lote-${sym}`} className="mb-1 block text-amber-300 font-semibold">
+                            Valor Usd ($)
+                          </label>
+                          <input
+                            id={`lote-${sym}`}
+                            type="number"
+                            step="10"
+                            min="1"
+                            value={typeof p.defaultTradeSize === "number" ? p.defaultTradeSize : 100}
+                            placeholder="100"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "defaultTradeSize",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-amber-500/40 bg-slate-900 px-2 py-1 text-amber-300 font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`spread-${sym}`} className="mb-1 block text-slate-500">
+                            Spread Máx (%)
+                          </label>
+                          <input
+                            id={`spread-${sym}`}
+                            type="number"
+                            step="0.001"
+                            value={typeof p.maxSpreadPct === "number" ? p.maxSpreadPct : 0.05}
+                            placeholder="0.050"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "maxSpreadPct",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs italic text-slate-600">
+                        Par desativado — não abrirá novas posições.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Grupo 2: Forex, Metais & Índices */}
+          <div className="mt-6 border-t border-white/10 pt-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Globe className="h-4 w-4 text-indigo-400" />
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                Pares Forex Tradicionais, Metais & Índices
+              </span>
+            </div>
+            <div className="space-y-3">
+              {paresForex.map((sym) => {
                 const p = perfilPar(sym);
                 const ativo = p.enabled !== false;
                 return (

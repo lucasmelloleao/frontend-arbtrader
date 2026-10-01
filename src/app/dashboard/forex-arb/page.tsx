@@ -35,10 +35,9 @@ import { kyServer } from "@/lib/api/ky.server";
  * a página inteira.
  */
 async function ForexArbCarregado(): Promise<React.ReactNode> {
-  const [strategies, trades, opportunities, settings, botStatus, exchanges, balance] =
+  const [strategies, opportunities, settings, botStatus, exchanges, balance] =
     await Promise.allSettled([
       apiClient(kyServer, API_ENDPOINTS.forexArb.listarStrategies, forexArbStrategyListSchema),
-      apiClient(kyServer, API_ENDPOINTS.forexArb.listarTrades, forexArbTradeListSchema),
       apiClient(kyServer, API_ENDPOINTS.forexArb.oportunidades, forexArbOpportunityListSchema),
       apiClient(kyServer, API_ENDPOINTS.forexArb.settings, forexArbSettingsSchema),
       apiClient(kyServer, API_ENDPOINTS.perpArb.botStatus, botStatusSchema, {
@@ -51,7 +50,7 @@ async function ForexArbCarregado(): Promise<React.ReactNode> {
 
   const strategiesData: ForexArbStrategy[] =
     strategies.status === "fulfilled" ? strategies.value : [];
-  const tradesData: ForexArbTrade[] = trades.status === "fulfilled" ? trades.value : [];
+  const tradesData: ForexArbTrade[] = [];
   const opportunitiesData: ForexArbTrade[] =
     opportunities.status === "fulfilled" ? opportunities.value : [];
   const settingsData: ForexArbSettings | null =

@@ -8,15 +8,13 @@ import {
   Brain,
   Clock,
   Lock,
-  Plus,
   Power,
+  RefreshCw,
   Search,
-  Trash2,
   X,
   XCircle,
 } from "lucide-react";
 
-import { ForexStrategyForm } from "@/features/forex-arb/components/forex-strategy-form";
 import { PepperstoneAiStrategyView } from "@/features/forex-arb/components/pepperstone-ai-strategy-view";
 import {
   buscarCotacoesAoVivo,
@@ -25,7 +23,6 @@ import {
   buscarTradesForex,
   buscarTradesPorPeriodo,
   deletarStrategy,
-  deletarTodasOperacoes,
   fecharPosicao,
   fecharTodasPosicoes,
   voidClosePosicao,
@@ -137,7 +134,6 @@ export function ForexArbBoard({
         ? "opportunities"
         : "open",
   );
-  const [criando, setCriando] = useState(false);
   const [livePrices, setLivePrices] = useState<ForexArbLivePrices>({});
 
   // Performance por Ativo (Consulta sob demanda)
@@ -145,6 +141,30 @@ export function ForexArbBoard({
   const [perfTrades, setPerfTrades] = useState<readonly ForexArbTrade[]>([]);
   const [loadingPerf, setLoadingPerf] = useState(false);
   const [perfConsulted, setPerfConsulted] = useState(false);
+
+  // Encerradas (Consulta por Período e Par)
+  const [closedPeriod, setClosedPeriod] = useState<string>("1h");
+  const [closedSymbol, setClosedSymbol] = useState<string>("ALL");
+  const [loadingClosed, setLoadingClosed] = useState(false);
+  const [closedLoaded, setClosedLoaded] = useState(false);
+
+  const carregarEncerradas = async (
+    p: string = closedPeriod,
+    s: string = closedSymbol,
+  ): Promise<void> => {
+    setLoadingClosed(true);
+    setClosedPeriod(p);
+    setClosedSymbol(s);
+    try {
+      const res = await buscarTradesPorPeriodo(p, s !== "ALL" ? s : undefined);
+      if (res.ok) {
+        setLocalTrades(res.data);
+      }
+      setClosedLoaded(true);
+    } finally {
+      setLoadingClosed(false);
+    }
+  };
 
   const consultarPerformance = async (p: string = perfPeriod): Promise<void> => {
     setPerfPeriod(p);
@@ -164,14 +184,19 @@ export function ForexArbBoard({
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      const [novasStrats, novosTrades, novoSaldo, novasCotacoes] = await Promise.all([
+      const [novasStrats, novoSaldo, novasCotacoes] = await Promise.all([
         buscarEstrategiasForex(),
-        buscarTradesForex(),
         buscarSaldoForex(),
         buscarCotacoesAoVivo(),
       ]);
       setLocalStrategies(novasStrats);
-      setLocalTrades(novosTrades);
+      if (closedLoaded) {
+        buscarTradesPorPeriodo(closedPeriod, closedSymbol !== "ALL" ? closedSymbol : undefined)
+          .then((res) => {
+            if (res.ok) setLocalTrades(res.data);
+          })
+          .catch(() => {});
+      }
       if (novoSaldo !== null && !isNaN(novoSaldo)) setLocalBalance(novoSaldo);
       if (novasCotacoes !== null) setLivePrices(novasCotacoes);
     } catch {
@@ -191,13 +216,48 @@ export function ForexArbBoard({
       }
     };
     void buscar();
+    void carregarEncerradas("1h", "ALL");
     return () => {
       ativo = false;
     };
   }, []);
 
   const abertas = localStrategies.filter((s) => s.positionOpen);
-  const encerradas = localTrades.filter((t) => t.type === "close");
+  const encerradas = (() => {
+    const tradesClose = localTrades.filter((t) => t.type === "close");
+    const strategyIdsInTrades = new Set(tradesClose.map((t) => t.strategyId).filter(Boolean));
+    
+    // Adiciona estratégias fechadas que porventura não geraram trade separado (ex: fechamento via broker)
+    const stratsFechadasComoTrade: ForexArbTrade[] = localStrategies
+      .filter((s) => !s.positionOpen && s.status === "closed" && !strategyIdsInTrades.has(s.id))
+      .map((s) => ({
+        id: s.id,
+        strategyId: s.id,
+        strategyName: s.name,
+        exchangeId: s.exchangeId || "ctrader",
+        type: "close",
+        legs: s.legs || [],
+        amount: s.tradeSize || s.positionSize || 0,
+        volume: s.positionVolume || s.positionSize || s.tradeSize || 0,
+        amountUsd: s.positionAmountUsd || 0,
+        expectedProfitPct: s.expectedProfitPct || 0,
+        realizedPnl: s.pnl || 0,
+        commission: s.commission || 0,
+        swap: s.swap || 0,
+        status: "closed",
+        closedReason: s.closedReason || "fechado",
+        trailingStopTriggered: s.trailingStopTriggered || false,
+        reason: s.closedReason || "Encerrada na cTrader",
+        errorMessage: null,
+        createdAt: s.closedAt || s.updatedAt || s.createdAt || "",
+      }));
+
+    return [...tradesClose, ...stratsFechadasComoTrade].sort((a, b) => {
+      const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tB - tA;
+    });
+  })();
 
   const executar = async (acao: () => Promise<MutacaoResult>): Promise<void> => {
     if (isExecuting) return;
@@ -239,17 +299,6 @@ export function ForexArbBoard({
     void executar(() => fecharTodasPosicoes());
   };
 
-  const confirmarDeletarTodas = (): void => {
-    if (
-      !confirm(
-        "Deseja realmente apagar TODAS as estratégias e o histórico de operações do banco de dados para recomeçar?",
-      )
-    ) {
-      return;
-    }
-    void executar(() => deletarTodasOperacoes());
-  };
-
   const confirmarVoidClose = (strat: ForexArbStrategy): void => {
     if (
       !confirm(
@@ -285,31 +334,8 @@ export function ForexArbBoard({
             />
             {isRefreshing ? "Atualizando..." : "Atualizar Dados"}
           </button>
-          <button
-            type="button"
-            onClick={() => setCriando(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-500"
-          >
-            <Plus className="h-3.5 w-3.5" aria-hidden="true" /> Nova Estratégia
-          </button>
-          <button
-            type="button"
-            onClick={confirmarDeletarTodas}
-            disabled={isExecuting}
-            className="inline-flex items-center gap-2 rounded-lg bg-red-950/40 border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition-colors hover:bg-red-900/60 disabled:opacity-50"
-          >
-            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Limpar Banco/Histórico
-          </button>
         </div>
       </div>
-
-      {criando ? (
-        <ForexStrategyForm
-          exchangeIds={exchangeIds}
-          exchangeKeys={exchangeKeys}
-          onFechar={() => setCriando(false)}
-        />
-      ) : null}
 
       {/* Abas */}
       <div className="flex flex-wrap gap-2 border-b border-white/10 pb-3">
@@ -333,6 +359,9 @@ export function ForexArbBoard({
               type="button"
               onClick={() => {
                 setAba(tab.key);
+                if (tab.key === "closed") {
+                  void carregarEncerradas();
+                }
                 if (tab.key === "performance" && !perfConsulted) {
                   void consultarPerformance(perfPeriod);
                 }
@@ -736,7 +765,90 @@ export function ForexArbBoard({
 
       {/* Encerradas */}
       {aba === "closed" ? (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="space-y-4">
+          {/* Filtros de Período e Par de Trade */}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-slate-950/70 p-4 shadow-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+                <Clock className="h-4 w-4 text-indigo-400" />
+                Período:
+              </span>
+              {(
+                [
+                  { id: "5m", label: "5 Min" },
+                  { id: "10m", label: "10 Min" },
+                  { id: "30m", label: "30 Min" },
+                  { id: "1h", label: "1 Hora" },
+                  { id: "2h", label: "2 Horas" },
+                  { id: "3h", label: "3 Horas" },
+                  { id: "5h", label: "5 Horas" },
+                  { id: "12h", label: "12 Horas" },
+                  { id: "24h", label: "24 Horas" },
+                  { id: "today", label: "Hoje" },
+                  { id: "7d", label: "7 Dias" },
+                  { id: "30d", label: "30 Dias" },
+                  { id: "all", label: "Tudo" },
+                ] as const
+              ).map((p) => {
+                const isSelected = closedPeriod === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => void carregarEncerradas(p.id, closedSymbol)}
+                    disabled={loadingClosed}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                      isSelected
+                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                        : "bg-slate-900 text-slate-400 hover:bg-slate-850 hover:text-white"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-300">Par:</span>
+              <select
+                value={closedSymbol}
+                onChange={(e) => void carregarEncerradas(closedPeriod, e.target.value)}
+                disabled={loadingClosed}
+                className="rounded-lg border border-white/10 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 outline-none focus:border-indigo-500 cursor-pointer"
+              >
+                <option value="ALL">Todos os Pares</option>
+                <option value="ETH/USD">ETH/USD</option>
+                <option value="BTC/USD">BTC/USD</option>
+                <option value="EUR/USD">EUR/USD</option>
+                <option value="GBP/USD">GBP/USD</option>
+                <option value="AUD/USD">AUD/USD</option>
+                <option value="USD/CAD">USD/CAD</option>
+                <option value="USD/JPY">USD/JPY</option>
+                <option value="XAU/USD">XAU/USD (Ouro)</option>
+              </select>
+
+              <button
+                type="button"
+                onClick={() => void carregarEncerradas(closedPeriod, closedSymbol)}
+                disabled={loadingClosed}
+                className="flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-indigo-500 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${loadingClosed ? "animate-spin" : ""}`} />
+                Recarregar
+              </button>
+            </div>
+          </div>
+
+          {loadingClosed ? (
+            <div className="flex flex-col items-center justify-center p-12 space-y-3 rounded-xl border border-white/10 bg-slate-900/40">
+              <RefreshCw className="h-6 w-6 animate-spin text-indigo-400" />
+              <span className="text-sm font-semibold text-slate-300">
+                Carregando histórico de operações encerradas ({closedPeriod})...
+              </span>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
           {encerradas.length === 0 ? (
             <div className="col-span-full rounded-xl border border-dashed border-white/10 p-10 text-center text-slate-500">
               Nenhuma operação encerrada ainda.
@@ -756,8 +868,10 @@ export function ForexArbBoard({
                   <div className="mb-3 flex items-center justify-between">
                     {(() => {
                       const firstLegWithId = trade.legs.find((l) => l.orderId);
-                      const rawId = firstLegWithId?.orderId || trade.id;
-                      const displayId = rawId ? rawId.replace(/^(#|Order\s*)/i, "") : null;
+                      const strat = localStrategies.find((s) => s.id === trade.strategyId);
+                      const stratLegWithId = strat?.legs?.find((l) => l.orderId);
+                      const rawId = firstLegWithId?.orderId || stratLegWithId?.orderId || null;
+                      const displayId = rawId ? rawId.replace(/^(#|Order\s*|Pos\s*#?)/i, "").trim() : null;
                       return (
                         <div>
                           <h3 className="text-sm font-extrabold text-white">
@@ -796,73 +910,93 @@ export function ForexArbBoard({
                       <div className="font-mono text-[10px] font-bold text-slate-400">
                         P&L Líquido Real
                       </div>
-                      <div className="font-mono text-[10px] font-semibold text-rose-300/90 mt-0.5">
-                        {(() => {
-                          const primaryLeg = trade.legs[0] || { symbol: "" };
-                          const sym = primaryLeg.symbol || "";
-                          const isGold = sym.includes("XAU");
-                          const vol =
-                            primaryLeg.amount ||
-                            primaryLeg.volume ||
-                            trade.amount ||
-                            trade.volume ||
-                            1000;
-                          const lotesReais = isGold
-                            ? vol >= 100
-                              ? vol / 100
-                              : vol * 0.01
-                            : vol >= 1000
-                              ? vol / 100000
-                              : vol;
-                          const numLotes001 = lotesReais / 0.01;
-                          const commReal =
-                            trade.commission && Math.abs(trade.commission) > 0
-                              ? Math.abs(trade.commission)
-                              : Number(((isGold ? 0.09 : 0.06) * numLotes001).toFixed(2));
-                          return `Comissões (Entrada+Saída): -$${commReal.toFixed(2)} USD`;
-                        })()}
-                      </div>
+                      {trade.commission && Math.abs(trade.commission) > 0 ? (
+                        <div className="font-mono text-[10px] font-semibold text-rose-300/90 mt-0.5">
+                          Comissões: -${Math.abs(trade.commission).toFixed(2)} USD
+                        </div>
+                      ) : (
+                        <div className="font-mono text-[10px] text-slate-500 mt-0.5">
+                          Taxa/Comissão: $0.00 (Zero Fee)
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div className="mb-3 space-y-1.5">
-                    {trade.legs.map((leg, legIdx) => (
-                      <div
-                        key={`${leg.side}-${leg.symbol}-${leg.entryPrice ?? leg.price ?? leg.orderId ?? "leg"}`}
-                        className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-1">
-                          <LegBadge leg={leg} showPrice={false} />
-                          <div className="flex flex-wrap items-center gap-2 font-mono text-slate-300">
-                            {legIdx === 0 ? (
-                              <span>
-                                Entrada:{" "}
-                                <strong className="text-slate-200">
-                                  {leg.entryPrice ?? leg.price ?? "—"}
-                                </strong>
-                              </span>
-                            ) : (
-                              <span className="text-emerald-300 font-extrabold bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                                Fechamento: {leg.closePrice ?? leg.price ?? "—"}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        {leg.orderId ? (
-                          <div className="font-mono text-[10px] text-slate-500">
-                            Order ID cTrader:{" "}
-                            {leg.orderId.startsWith("#") || leg.orderId.startsWith("Order")
-                              ? leg.orderId
-                              : `#${leg.orderId}`}
-                          </div>
-                        ) : null}
-                        <div className="flex justify-between font-mono text-[10px] text-slate-400">
-                          <span>Volume: {leg.volume ?? leg.amount ?? 0}</span>
-                          <span>Valor: ${(leg.amountUsd ?? 0).toFixed(2)} USD</span>
-                        </div>
+                  {(() => {
+                    const strat = localStrategies.find((s) => s.id === trade.strategyId);
+                    const stratLeg = strat?.legs?.[0];
+                    let legsToRender = trade.legs && trade.legs.length > 0 ? trade.legs : (strat?.legs && strat.legs.length > 0 ? strat.legs : []);
+
+                    // Se não tiver pernas, cria perna única baseada no trade
+                    if (!legsToRender || legsToRender.length === 0) {
+                      const symMatch = trade.strategyName?.match(/Scalping\s+([A-Za-z0-9\/]+)/i);
+                      const sym = symMatch ? symMatch[1] : "BTC/USD";
+                      legsToRender = [
+                        {
+                          symbol: sym,
+                          side: "buy",
+                          price: stratLeg?.price ?? null,
+                          entryPrice: stratLeg?.price ?? null,
+                          closePrice: null,
+                          amount: trade.amount || trade.volume || 0,
+                          volume: trade.volume || trade.amount || 0,
+                          amountUsd: trade.amountUsd || 0,
+                          orderId: stratLeg?.orderId ?? null,
+                        },
+                      ];
+                    }
+
+                    return (
+                      <div className="mb-3 space-y-1.5">
+                        {legsToRender.map((leg, legIdx) => {
+                          const entryP = leg.entryPrice ?? leg.price ?? stratLeg?.price ?? null;
+                          const vol = leg.volume || leg.amount || trade.volume || trade.amount || 0;
+                          let closeP = leg.closePrice ?? (legIdx > 0 ? leg.price : null) ?? (strat?.currentPrice ?? null);
+                          
+                          // Se o banco legado não gravou o closePrice, deduz com precisão matemática a partir do PnL Realizado
+                          if ((closeP === null || closeP === undefined) && entryP && entryP > 0 && vol > 0 && trade.realizedPnl !== undefined) {
+                            const side = (leg.side || "buy").toLowerCase();
+                            const pnlDiff = trade.realizedPnl / vol;
+                            const calculatedClose = side === "buy" ? entryP + pnlDiff : entryP - pnlDiff;
+                            closeP = Number(calculatedClose.toFixed(2));
+                          }
+                          return (
+                            <div
+                              key={`${leg.side}-${leg.symbol}-${entryP ?? legIdx}`}
+                              className="rounded-lg border border-white/5 bg-slate-900/60 p-2 text-xs space-y-0.5"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-1">
+                                <LegBadge leg={leg} showPrice={false} />
+                                <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
+                                  <span className="text-slate-300">
+                                    Entrada:{" "}
+                                    <strong className="text-white font-bold">
+                                      {entryP !== null && entryP !== undefined ? entryP : "—"}
+                                    </strong>
+                                  </span>
+                                  <span className="text-slate-300">
+                                    Saída:{" "}
+                                    <strong className={closeP !== null && closeP !== undefined ? (isLucro ? "text-emerald-400 font-bold" : "text-rose-400 font-bold") : "text-slate-400"}>
+                                      {closeP !== null && closeP !== undefined ? closeP : "—"}
+                                    </strong>
+                                  </span>
+                                </div>
+                              </div>
+                              {leg.orderId ? (
+                                <div className="font-mono text-[10px] text-slate-400">
+                                  cTrader ID: #{leg.orderId.replace(/^(#|Order\s*|Pos\s*#?)/i, "").trim()}
+                                </div>
+                              ) : null}
+                              <div className="flex justify-between font-mono text-[10px] text-slate-400">
+                                <span>Volume: {leg.volume ?? leg.amount ?? trade.volume ?? trade.amount ?? 0}</span>
+                                <span>Valor: ${(leg.amountUsd ?? trade.amountUsd ?? 0).toFixed(2)} USD</span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()}
 
                   {trade.reason ? (
                     <div className="mb-3 rounded bg-slate-900/40 p-2 text-center text-[11px] font-mono text-slate-300 border border-white/5">
@@ -880,6 +1014,8 @@ export function ForexArbBoard({
               );
             })
           )}
+        </div>
+        )}
         </div>
       ) : null}
 

@@ -106,6 +106,7 @@ export const API_ENDPOINTS = {
     livePrices: "api/v1/forex-arb/live-prices",
     aiStatus: "api/v1/forex-arb/ai/status",
     aiTrain: "api/v1/forex-arb/ai/train",
+    availableSymbols: "api/v1/forex-arb/available-symbols",
   },
 
   /** Arbitragem por Latência (cTrader -> MEXC). */

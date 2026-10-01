@@ -284,3 +284,22 @@ export async function treinarIaPepperstone(
     return { ok: false, erro: error instanceof Error ? error.message : ERRO_INESPERADO };
   }
 }
+
+/**
+ * Busca a lista de pares disponíveis no robô (Forex e Crypto).
+ */
+export async function buscarSimbolosDisponiveis(): Promise<{
+  forex: string[];
+  crypto: string[];
+}> {
+  try {
+    const res = await kyServer
+      .get(API_ENDPOINTS.forexArb.availableSymbols)
+      .json<{ success?: boolean; data?: { forex: string[]; crypto: string[] }; forex?: string[]; crypto?: string[] }>();
+    if (res?.data) return res.data;
+    if (res?.forex && res?.crypto) return { forex: res.forex, crypto: res.crypto };
+    return { forex: [], crypto: [] };
+  } catch {
+    return { forex: [], crypto: [] };
+  }
+}
