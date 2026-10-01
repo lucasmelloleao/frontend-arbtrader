@@ -50,6 +50,7 @@ export function PredictionSettingsPanel({
   );
   const [stopLossPct, setStopLossPct] = useState(settings?.stopLossPct ?? 25.0);
   const [minTakeProfitPct, setMinTakeProfitPct] = useState(settings?.minTakeProfitPct ?? 2.0);
+  const [minAiConfidence, setMinAiConfidence] = useState(settings?.minAiConfidence ?? 0.5);
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -72,6 +73,7 @@ export function PredictionSettingsPanel({
         maxEntrySecondsBeforeExpiry15mMaj,
         stopLossPct,
         minTakeProfitPct,
+        minAiConfidence,
       });
 
       if (res.ok) {
@@ -406,6 +408,30 @@ export function PredictionSettingsPanel({
               <p className="mt-1 text-[10px] text-slate-500">
                 Lucro líquido mínimo exigido sobre o preço de entrada para autorizar a saída
                 antecipada.
+              </p>
+            </div>
+
+            {/* Confiança Mínima IA (Gate 4) */}
+            <div>
+              <label
+                htmlFor="min-ai-confidence-input"
+                className="block text-xs font-semibold text-slate-300"
+              >
+                Confiança Mínima IA Gate 4 (ex: 0.50 = 50%)
+              </label>
+              <input
+                id="min-ai-confidence-input"
+                type="number"
+                step="0.01"
+                min="0.40"
+                max="0.95"
+                value={minAiConfidence}
+                onChange={(e) => setMinAiConfidence(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">
+                Probabilidade mínima que o modelo Random Forest calibrado deve prever para aprovar a
+                entrada.
               </p>
             </div>
 
