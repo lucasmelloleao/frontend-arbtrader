@@ -34,6 +34,26 @@ export const API_ENDPOINTS = {
     deletar: "api/v1/exchanges",
   },
 
+  /** Polymarket Prediction Arbitrage (Mercados de Predição). */
+  predictionArb: {
+    listarStrategies: "api/v1/prediction-arb/strategies",
+    criarStrategy: "api/v1/prediction-arb/strategies",
+    atualizarStrategy: "api/v1/prediction-arb/strategies",
+    deletarStrategy: "api/v1/prediction-arb/strategies",
+    listarTrades: "api/v1/prediction-arb/trades",
+    tradesResumo: "api/v1/prediction-arb/trades/resumo",
+    settings: "api/v1/prediction-arb/settings",
+    botStatus: "api/v1/prediction-arb/bot-status",
+    fechar: "api/v1/prediction-arb/close",
+    aumentar: "api/v1/prediction-arb/increase",
+    voidClose: "api/v1/prediction-arb/void-close",
+    limparTrades: "api/v1/prediction-arb/trades",
+    syncHistory: "api/v1/polymarket/sync-history",
+    logs: "api/v1/prediction-arb/logs",
+    metaModelTrain: "api/v1/prediction-arb/meta-model/train",
+    metaModelStatus: "api/v1/prediction-arb/meta-model/status",
+  },
+
   /** Polymarket: credenciais, saldo e transferência de pUSD. */
   polymarket: {
     credentials: "api/v1/polymarket/credentials",

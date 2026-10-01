@@ -43,6 +43,7 @@ type SidebarLink = {
  * Estratégias / Robôs agrupados no submenu "Estratégias".
  */
 const ESTRATEGIAS_LINKS: readonly SidebarLink[] = [
+  { href: "/dashboard/polymarket-arb", label: "Polymarket Arb", icon: TrendingUp, habilitado: true },
   { href: "/dashboard/forex-arb", label: "Peperstone Forex", icon: Globe, habilitado: true },
   { href: "/dashboard/icmarkets", label: "IC Markets cTrader", icon: Activity, habilitado: true },
   { href: "/dashboard/deriv", label: "Deriv Bot", icon: Activity, habilitado: true },
