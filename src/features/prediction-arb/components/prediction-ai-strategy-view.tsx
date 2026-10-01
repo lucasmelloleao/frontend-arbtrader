@@ -69,7 +69,7 @@ export function PredictionAiStrategyView(): React.ReactNode {
   };
 
   const hasEnoughData = (status?.totalExecutedTrades || 0) >= (status?.minTradesRequired || 10);
-  const featureList = status?.metadata?.featureImportance || [
+  const defaultFeatureList = [
     { feature: "Kaufman ER", importance: 20, description: "Eficiência de Tendência Spot" },
     { feature: "Lo-MacKinlay VR", importance: 18, description: "Persistência de Preço" },
     { feature: "ATR 1m (%)", importance: 14, description: "Volatilidade do Ativo" },
@@ -82,6 +82,9 @@ export function PredictionAiStrategyView(): React.ReactNode {
     { feature: "Volatilidade Prob 60s", importance: 2, description: "Estabilidade da Opção" },
     { feature: "Drenagem Ask Livro", importance: 2, description: "Pressão Compradora CLOB" },
   ];
+  const rawList = status?.metadata?.featureImportance || [];
+  const hasNonZero = rawList.some((f) => (f.importance || 0) > 0);
+  const featureList = hasNonZero ? rawList : defaultFeatureList;
   const datasetSamples = status?.metadata?.recentDatasetSamples || [];
 
   return (
