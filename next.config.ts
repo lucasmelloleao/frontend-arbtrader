@@ -49,6 +49,19 @@ const nextConfig: NextConfig = {
 
     return [...proxyRewrites, { source: "/api/:path*", destination: `${apiBaseUrl}/api/:path*` }];
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Alt-Svc",
+            value: "clear",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
