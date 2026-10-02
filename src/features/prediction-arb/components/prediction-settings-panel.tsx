@@ -65,11 +65,13 @@ export function PredictionSettingsPanel({
   );
   const [atrMultiplier5m, setAtrMultiplier5m] = useState(settings?.atrMultiplier5m ?? 0.25);
   const [atrMultiplier15m, setAtrMultiplier15m] = useState(settings?.atrMultiplier15m ?? 0.8);
-  const [maxSideSpreadUsd, setMaxSideSpreadUsd] = useState(settings?.maxSideSpreadUsd ?? 0.10);
-  const [minKaufmanEr, setMinKaufmanEr] = useState(settings?.minKaufmanEr ?? 0.20);
+  const [maxSideSpreadUsd, setMaxSideSpreadUsd] = useState(settings?.maxSideSpreadUsd ?? 0.1);
+  const [minKaufmanEr, setMinKaufmanEr] = useState(settings?.minKaufmanEr ?? 0.2);
   const [minEdgePct, setMinEdgePct] = useState(settings?.minEdgePct ?? 1.0);
   const [mertonWeight, setMertonWeight] = useState(settings?.mertonWeight ?? 0.35);
-  const [earlyConvictionMinProbPct, setEarlyConvictionMinProbPct] = useState(settings?.earlyConvictionMinProbPct ?? 80);
+  const [earlyConvictionMinProbPct, setEarlyConvictionMinProbPct] = useState(
+    settings?.earlyConvictionMinProbPct ?? 80,
+  );
   const [aiStatus, setAiStatus] = useState<PredictionMetaModelStatus | null>(null);
 
   useEffect(() => {
@@ -702,7 +704,8 @@ export function PredictionSettingsPanel({
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
                 />
                 <p className="mt-1 text-[10px] text-slate-500">
-                  Tolerância de spread interno no book antes de descartar como book fino (Padrão: $0.10).
+                  Tolerância de spread interno no book antes de descartar como book fino (Padrão:
+                  $0.10).
                 </p>
               </div>
 
@@ -748,7 +751,8 @@ export function PredictionSettingsPanel({
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
                 />
                 <p className="mt-1 text-[10px] text-slate-500">
-                  Vantagem percentual mínima exigida líquida de taxas (Padrão: 1.0% | Permite negativo para tokens altos).
+                  Vantagem percentual mínima exigida líquida de taxas (Padrão: 1.0% | Permite
+                  negativo para tokens altos).
                 </p>
               </div>
 
@@ -794,7 +798,8 @@ export function PredictionSettingsPanel({
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
                 />
                 <p className="mt-1 text-[10px] text-slate-500">
-                  Probabilidade mínima para disparar antes da janela final de 180s quando spread ≤ 2% (Padrão: 80%).
+                  Probabilidade mínima para disparar antes da janela final de 180s quando spread ≤
+                  2% (Padrão: 80%).
                 </p>
               </div>
             </div>

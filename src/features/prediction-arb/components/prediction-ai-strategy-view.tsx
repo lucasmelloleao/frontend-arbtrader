@@ -78,7 +78,11 @@ export function PredictionAiStrategyView(): React.ReactNode {
     { feature: "Edge (%)", importance: 8, description: "Vantagem Percentual" },
     { feature: "Preço de Entrada", importance: 6, description: "Cotação da Opção" },
     { feature: "Segundos para Vencimento", importance: 4, description: "Tempo Restante (<= 1h)" },
-    { feature: "Order Book Imbalance (OBI)", importance: 4, description: "Desequilíbrio Spot Global" },
+    {
+      feature: "Order Book Imbalance (OBI)",
+      importance: 4,
+      description: "Desequilíbrio Spot Global",
+    },
     { feature: "Volume Delta 10s (CVD)", importance: 4, description: "Fluxo Agressor Recente" },
     { feature: "Velocidade Prob 30s", importance: 2, description: "Aceleração Direcional" },
     { feature: "Volatilidade Prob 60s", importance: 2, description: "Estabilidade da Opção" },

@@ -872,14 +872,14 @@ export function PredictionArbBoard({
                 (t) =>
                   t.type !== "fee" &&
                   (t.type === "close_pair" ||
-                  t.type === "close" ||
-                  t.type === "settlement" ||
-                  t.type === "voided" ||
-                  t.status === "closed" ||
-                  t.status === "executed" ||
-                  t.status === "simulated" ||
-                  t.pnl !== 0 ||
-                  t.realizedUsd > 0),
+                    t.type === "close" ||
+                    t.type === "settlement" ||
+                    t.type === "voided" ||
+                    t.status === "closed" ||
+                    t.status === "executed" ||
+                    t.status === "simulated" ||
+                    t.pnl !== 0 ||
+                    t.realizedUsd > 0),
               );
 
               if (closedPerfTrades.length === 0) {

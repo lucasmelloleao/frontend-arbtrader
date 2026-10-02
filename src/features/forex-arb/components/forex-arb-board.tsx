@@ -147,10 +147,7 @@ export function ForexArbBoard({
   const [loadingClosed, setLoadingClosed] = useState(false);
   const [closedLoaded, setClosedLoaded] = useState(false);
 
-  const carregarEncerradas = async (
-    p: string = "10m",
-    s: string = closedSymbol,
-  ): Promise<void> => {
+  const carregarEncerradas = async (p: string = "10m", s: string = closedSymbol): Promise<void> => {
     setLoadingClosed(true);
     setClosedPeriod(p);
     setClosedSymbol(s);
@@ -263,23 +260,27 @@ export function ForexArbBoard({
         createdAt: s.closedAt || s.updatedAt || s.createdAt || "",
       }));
 
-    const filteredTradesClose = closedSymbol !== "ALL"
-      ? tradesClose.filter((t) => {
-          const symUpper = closedSymbol.toUpperCase().replace("/", "");
-          const legSym = t.legs?.[0]?.symbol?.toUpperCase().replace("/", "") || "";
-          const stratSym = t.strategyName?.toUpperCase().replace("/", "") || "";
-          return legSym.includes(symUpper) || stratSym.includes(symUpper);
-        })
-      : tradesClose;
+    const filteredTradesClose =
+      closedSymbol !== "ALL"
+        ? tradesClose.filter((t) => {
+            const symUpper = closedSymbol.toUpperCase().replace("/", "");
+            const legSym =
+              t.legs.length > 0 ? (t.legs[0].symbol || "").toUpperCase().replace("/", "") : "";
+            const stratSym = (t.strategyName || "").toUpperCase().replace("/", "") || "";
+            return legSym.includes(symUpper) || stratSym.includes(symUpper);
+          })
+        : tradesClose;
 
-    const filteredStrats = closedSymbol !== "ALL"
-      ? stratsFechadasComoTrade.filter((t) => {
-          const symUpper = closedSymbol.toUpperCase().replace("/", "");
-          const legSym = t.legs?.[0]?.symbol?.toUpperCase().replace("/", "") || "";
-          const stratSym = t.strategyName?.toUpperCase().replace("/", "") || "";
-          return legSym.includes(symUpper) || stratSym.includes(symUpper);
-        })
-      : stratsFechadasComoTrade;
+    const filteredStrats =
+      closedSymbol !== "ALL"
+        ? stratsFechadasComoTrade.filter((t) => {
+            const symUpper = closedSymbol.toUpperCase().replace("/", "");
+            const legSym =
+              t.legs.length > 0 ? (t.legs[0].symbol || "").toUpperCase().replace("/", "") : "";
+            const stratSym = (t.strategyName || "").toUpperCase().replace("/", "") || "";
+            return legSym.includes(symUpper) || stratSym.includes(symUpper);
+          })
+        : stratsFechadasComoTrade;
 
     return [...filteredTradesClose, ...filteredStrats].toSorted((a, b) => {
       const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
