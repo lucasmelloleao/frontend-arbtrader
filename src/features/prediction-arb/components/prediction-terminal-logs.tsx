@@ -82,10 +82,8 @@ export function PredictionTerminalLogs(): React.ReactNode {
       return undefined;
     }
     const buscar = async (): Promise<void> => {
-      setLoading(true);
       try {
         const resultado = await buscarLogsPrediction(logLines, "prediction-arb");
-        setLoading(false);
         if (!resultado.ok) {
           setError(resultado.erro);
           return;
@@ -94,7 +92,6 @@ export function PredictionTerminalLogs(): React.ReactNode {
         setLogs(normalizar(resultado.logs));
         setLastUpdate(new Date().toLocaleTimeString());
       } catch {
-        setLoading(false);
         setError("Reconectando aos logs do backend...");
       }
     };
@@ -255,7 +252,7 @@ export function PredictionTerminalLogs(): React.ReactNode {
             ref={containerRef}
             className="flex-1 space-y-1 overflow-y-auto bg-black/85 p-4 font-mono text-xs text-slate-300"
           >
-            {loading && logsFiltrados.length === 0 ? (
+            {loading && logs.length === 0 ? (
               <div className="flex items-center gap-2 p-4 text-slate-500">
                 <RefreshCw className="h-4 w-4 animate-spin text-indigo-400" aria-hidden="true" />{" "}
                 Buscando logs...

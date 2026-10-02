@@ -236,6 +236,8 @@ const forexSymbolProfileSchema = object({
   defaultTradeSize: optional(number()),
   takeProfitPct: optional(number()),
   stopLossPct: optional(number()),
+  minKaufmanEr: optional(number()),
+  minEmaSeparationPips: optional(number()),
 });
 
 /**

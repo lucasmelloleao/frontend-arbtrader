@@ -496,7 +496,7 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                       </label>
                     </div>
                     {ativo ? (
-                      <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
+                      <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 lg:grid-cols-8">
                         <div>
                           <label htmlFor={`tp-${sym}`} className="mb-1 block text-slate-500">
                             TP (%)
@@ -631,6 +631,49 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                             className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
                           />
                         </div>
+                        <div>
+                          <label htmlFor={`kauf-er-${sym}`} className="mb-1 block text-indigo-400 font-medium">
+                            ER Mínimo
+                          </label>
+                          <input
+                            id={`kauf-er-${sym}`}
+                            type="number"
+                            step="0.05"
+                            min="0.05"
+                            max="0.99"
+                            value={typeof p.minKaufmanEr === "number" ? p.minKaufmanEr : 0.20}
+                            placeholder="0.20"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "minKaufmanEr",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-indigo-500/40 bg-slate-900 px-2 py-1 text-indigo-300 font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`sep-pips-${sym}`} className="mb-1 block text-indigo-400 font-medium">
+                            Sep. Médias (Pips)
+                          </label>
+                          <input
+                            id={`sep-pips-${sym}`}
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            value={typeof p.minEmaSeparationPips === "number" ? p.minEmaSeparationPips : 3.0}
+                            placeholder="3.0"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "minEmaSeparationPips",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-indigo-500/40 bg-slate-900 px-2 py-1 text-indigo-300 font-semibold"
+                          />
+                        </div>
                       </div>
                     ) : (
                       <p className="text-xs italic text-slate-600">
@@ -670,7 +713,7 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                       </label>
                     </div>
                     {ativo ? (
-                      <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
+                      <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 lg:grid-cols-8">
                         <div>
                           <label htmlFor={`tp-${sym}`} className="mb-1 block text-slate-500">
                             TP (%)
@@ -796,6 +839,49 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                               )
                             }
                             className="w-full rounded border border-white/10 bg-slate-900 px-2 py-1 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`kauf-er-${sym}`} className="mb-1 block text-indigo-400 font-medium">
+                            ER Mínimo
+                          </label>
+                          <input
+                            id={`kauf-er-${sym}`}
+                            type="number"
+                            step="0.05"
+                            min="0.05"
+                            max="0.99"
+                            value={typeof p.minKaufmanEr === "number" ? p.minKaufmanEr : ""}
+                            placeholder="0.20"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "minKaufmanEr",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-indigo-500/40 bg-slate-900 px-2 py-1 text-indigo-300 font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor={`sep-pips-${sym}`} className="mb-1 block text-indigo-400 font-medium">
+                            Sep. Médias (Pips)
+                          </label>
+                          <input
+                            id={`sep-pips-${sym}`}
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            value={typeof p.minEmaSeparationPips === "number" ? p.minEmaSeparationPips : ""}
+                            placeholder="3.0"
+                            onChange={(e) =>
+                              atualizarPar(
+                                sym,
+                                "minEmaSeparationPips",
+                                e.target.value === "" ? null : Number(e.target.value),
+                              )
+                            }
+                            className="w-full rounded border border-indigo-500/40 bg-slate-900 px-2 py-1 text-indigo-300 font-semibold"
                           />
                         </div>
                       </div>

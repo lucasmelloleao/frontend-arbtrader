@@ -58,19 +58,16 @@ export function FxProTerminalLogs(): React.ReactNode {
       return undefined;
     }
     const buscar = async (): Promise<void> => {
-      setLoading(true);
-      setError(null);
       try {
         const resultado = await buscarLogsFxPro(logLines);
-        setLoading(false);
         if (!resultado.ok) {
           setError(resultado.erro);
           return;
         }
+        setError(null);
         setLogs(normalizar(resultado.logs));
         setLastUpdate(new Date().toLocaleTimeString());
       } catch {
-        setLoading(false);
         setError("Não foi possível buscar os logs da FxPro. O backend pode estar indisponível.");
       }
     };
