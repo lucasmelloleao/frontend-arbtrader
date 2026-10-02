@@ -70,14 +70,16 @@ export function PredictionAiStrategyView(): React.ReactNode {
 
   const hasEnoughData = (status?.totalExecutedTrades || 0) >= (status?.minTradesRequired || 10);
   const defaultFeatureList = [
-    { feature: "Kaufman ER", importance: 20, description: "Eficiência de Tendência Spot" },
-    { feature: "Lo-MacKinlay VR", importance: 18, description: "Persistência de Preço" },
-    { feature: "ATR 1m (%)", importance: 14, description: "Volatilidade do Ativo" },
-    { feature: "Distância Spot ao Strike", importance: 14, description: "Margem de Segurança" },
+    { feature: "Kaufman ER", importance: 18, description: "Eficiência de Tendência Spot" },
+    { feature: "Lo-MacKinlay VR", importance: 16, description: "Persistência de Preço" },
+    { feature: "ATR 1m / Garman-Klass (%)", importance: 12, description: "Volatilidade do Ativo" },
+    { feature: "Distância Spot ao Strike", importance: 12, description: "Margem de Segurança" },
     { feature: "Expected Value ($EV)", importance: 10, description: "Vantagem Matemática" },
     { feature: "Edge (%)", importance: 8, description: "Vantagem Percentual" },
     { feature: "Preço de Entrada", importance: 6, description: "Cotação da Opção" },
     { feature: "Segundos para Vencimento", importance: 4, description: "Tempo Restante (<= 1h)" },
+    { feature: "Order Book Imbalance (OBI)", importance: 4, description: "Desequilíbrio Spot Global" },
+    { feature: "Volume Delta 10s (CVD)", importance: 4, description: "Fluxo Agressor Recente" },
     { feature: "Velocidade Prob 30s", importance: 2, description: "Aceleração Direcional" },
     { feature: "Volatilidade Prob 60s", importance: 2, description: "Estabilidade da Opção" },
     { feature: "Drenagem Ask Livro", importance: 2, description: "Pressão Compradora CLOB" },
@@ -290,6 +292,8 @@ export function PredictionAiStrategyView(): React.ReactNode {
                   <th className="p-3 font-mono text-cyan-400">Vel. 30s</th>
                   <th className="p-3 font-mono text-cyan-400">Vol. 60s</th>
                   <th className="p-3 font-mono text-cyan-400">Drenagem</th>
+                  <th className="p-3 font-mono text-indigo-400">OBI</th>
+                  <th className="p-3 font-mono text-indigo-400">CVD 10s</th>
                   <th className="p-3 font-mono">P(Win) IA</th>
                 </tr>
               </thead>
@@ -352,6 +356,14 @@ export function PredictionAiStrategyView(): React.ReactNode {
                     </td>
                     <td className="p-3 font-mono text-cyan-300">
                       {(row.askDepletionRate ?? 0).toFixed(1)} sh/s
+                    </td>
+                    <td className="p-3 font-mono text-indigo-300">
+                      {(row.orderImbalance ?? 0).toFixed(2)}
+                    </td>
+                    <td className="p-3 font-mono text-indigo-300">
+                      {(row.cvd10s ?? 0) > 0
+                        ? `+${(row.cvd10s ?? 0).toFixed(1)}`
+                        : (row.cvd10s ?? 0).toFixed(1)}
                     </td>
                     <td className="p-3 font-mono font-bold">
                       <span className={row.probWin >= 55 ? "text-emerald-400" : "text-amber-400"}>

@@ -83,7 +83,6 @@ export function PredictionTerminalLogs(): React.ReactNode {
     }
     const buscar = async (): Promise<void> => {
       setLoading(true);
-      setError(null);
       try {
         const resultado = await buscarLogsPrediction(logLines, "prediction-arb");
         setLoading(false);
@@ -91,14 +90,15 @@ export function PredictionTerminalLogs(): React.ReactNode {
           setError(resultado.erro);
           return;
         }
+        setError(null);
         setLogs(normalizar(resultado.logs));
         setLastUpdate(new Date().toLocaleTimeString());
       } catch {
         setLoading(false);
-        setError("Não foi possível buscar os logs. O backend pode estar indisponível.");
+        setError("Reconectando aos logs do backend...");
       }
     };
-    const interval = setInterval(() => void buscar(), 7000);
+    const interval = setInterval(() => void buscar(), 4000);
     return () => clearInterval(interval);
   }, [autoRefresh, logLines, showLogs]);
 

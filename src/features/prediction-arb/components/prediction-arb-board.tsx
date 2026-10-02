@@ -153,6 +153,9 @@ export function PredictionArbBoard({
   );
   const encerradas = tradesList.filter(
     (t) =>
+      // Exclui trades internos de custo (fee) — são registros de observabilidade,
+      // não operações reais a exibir no histórico
+      t.type !== "fee" &&
       // Exige investimento ou montante real para não exibir registros fantasmas/vazios de $0.00
       (t.investedUsd > 0 ||
         (t.amount > 0 && ((t.yesShares || 0) > 0 || (t.noShares || 0) > 0)) ||
@@ -867,7 +870,8 @@ export function PredictionArbBoard({
             (() => {
               const closedPerfTrades = perfTrades.filter(
                 (t) =>
-                  t.type === "close_pair" ||
+                  t.type !== "fee" &&
+                  (t.type === "close_pair" ||
                   t.type === "close" ||
                   t.type === "settlement" ||
                   t.type === "voided" ||
@@ -875,7 +879,7 @@ export function PredictionArbBoard({
                   t.status === "executed" ||
                   t.status === "simulated" ||
                   t.pnl !== 0 ||
-                  t.realizedUsd > 0,
+                  t.realizedUsd > 0),
               );
 
               if (closedPerfTrades.length === 0) {

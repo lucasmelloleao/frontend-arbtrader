@@ -142,13 +142,13 @@ export function ForexArbBoard({
   const [perfConsulted, setPerfConsulted] = useState(false);
 
   // Encerradas (Consulta por Período e Par)
-  const [closedPeriod, setClosedPeriod] = useState<string>("1h");
+  const [closedPeriod, setClosedPeriod] = useState<string>("10m");
   const [closedSymbol, setClosedSymbol] = useState<string>("ALL");
   const [loadingClosed, setLoadingClosed] = useState(false);
   const [closedLoaded, setClosedLoaded] = useState(false);
 
   const carregarEncerradas = async (
-    p: string = closedPeriod,
+    p: string = "10m",
     s: string = closedSymbol,
   ): Promise<void> => {
     setLoadingClosed(true);
@@ -214,7 +214,7 @@ export function ForexArbBoard({
       try {
         const [cotacoes, resTrades] = await Promise.all([
           buscarCotacoesAoVivo(),
-          buscarTradesPorPeriodo("1h", undefined),
+          buscarTradesPorPeriodo("10m", undefined),
         ]);
         if (ativo) {
           if (cotacoes !== null) setLivePrices(cotacoes);
@@ -263,7 +263,25 @@ export function ForexArbBoard({
         createdAt: s.closedAt || s.updatedAt || s.createdAt || "",
       }));
 
-    return [...tradesClose, ...stratsFechadasComoTrade].toSorted((a, b) => {
+    const filteredTradesClose = closedSymbol !== "ALL"
+      ? tradesClose.filter((t) => {
+          const symUpper = closedSymbol.toUpperCase().replace("/", "");
+          const legSym = t.legs?.[0]?.symbol?.toUpperCase().replace("/", "") || "";
+          const stratSym = t.strategyName?.toUpperCase().replace("/", "") || "";
+          return legSym.includes(symUpper) || stratSym.includes(symUpper);
+        })
+      : tradesClose;
+
+    const filteredStrats = closedSymbol !== "ALL"
+      ? stratsFechadasComoTrade.filter((t) => {
+          const symUpper = closedSymbol.toUpperCase().replace("/", "");
+          const legSym = t.legs?.[0]?.symbol?.toUpperCase().replace("/", "") || "";
+          const stratSym = t.strategyName?.toUpperCase().replace("/", "") || "";
+          return legSym.includes(symUpper) || stratSym.includes(symUpper);
+        })
+      : stratsFechadasComoTrade;
+
+    return [...filteredTradesClose, ...filteredStrats].toSorted((a, b) => {
       const tA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const tB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return tB - tA;
@@ -829,14 +847,31 @@ export function ForexArbBoard({
                 className="rounded-lg border border-white/10 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 outline-none focus:border-indigo-500 cursor-pointer"
               >
                 <option value="ALL">Todos os Pares</option>
-                <option value="ETH/USD">ETH/USD</option>
-                <option value="BTC/USD">BTC/USD</option>
-                <option value="EUR/USD">EUR/USD</option>
-                <option value="GBP/USD">GBP/USD</option>
-                <option value="AUD/USD">AUD/USD</option>
-                <option value="USD/CAD">USD/CAD</option>
-                <option value="USD/JPY">USD/JPY</option>
-                <option value="XAU/USD">XAU/USD (Ouro)</option>
+                <optgroup label="Criptoativos">
+                  <option value="BTC/USD">BTC/USD</option>
+                  <option value="ETH/USD">ETH/USD</option>
+                  <option value="SOL/USD">SOL/USD</option>
+                  <option value="XRP/USD">XRP/USD</option>
+                  <option value="DOGE/USD">DOGE/USD</option>
+                  <option value="LTC/USD">LTC/USD</option>
+                  <option value="ADA/USD">ADA/USD</option>
+                  <option value="AVAX/USD">AVAX/USD</option>
+                  <option value="DOT/USD">DOT/USD</option>
+                  <option value="LINK/USD">LINK/USD</option>
+                </optgroup>
+                <optgroup label="Forex & Metais">
+                  <option value="EUR/USD">EUR/USD</option>
+                  <option value="GBP/USD">GBP/USD</option>
+                  <option value="AUD/USD">AUD/USD</option>
+                  <option value="USD/CAD">USD/CAD</option>
+                  <option value="USD/JPY">USD/JPY</option>
+                  <option value="XAU/USD">XAU/USD (Ouro)</option>
+                </optgroup>
+                <optgroup label="Índices">
+                  <option value="NAS100">NAS100 (Nasdaq)</option>
+                  <option value="US30">US30 (Dow Jones)</option>
+                  <option value="GER40">GER40 (DAX)</option>
+                </optgroup>
               </select>
 
               <button

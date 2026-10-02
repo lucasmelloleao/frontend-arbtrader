@@ -65,6 +65,11 @@ export function PredictionSettingsPanel({
   );
   const [atrMultiplier5m, setAtrMultiplier5m] = useState(settings?.atrMultiplier5m ?? 0.25);
   const [atrMultiplier15m, setAtrMultiplier15m] = useState(settings?.atrMultiplier15m ?? 0.8);
+  const [maxSideSpreadUsd, setMaxSideSpreadUsd] = useState(settings?.maxSideSpreadUsd ?? 0.10);
+  const [minKaufmanEr, setMinKaufmanEr] = useState(settings?.minKaufmanEr ?? 0.20);
+  const [minEdgePct, setMinEdgePct] = useState(settings?.minEdgePct ?? 1.0);
+  const [mertonWeight, setMertonWeight] = useState(settings?.mertonWeight ?? 0.35);
+  const [earlyConvictionMinProbPct, setEarlyConvictionMinProbPct] = useState(settings?.earlyConvictionMinProbPct ?? 80);
   const [aiStatus, setAiStatus] = useState<PredictionMetaModelStatus | null>(null);
 
   useEffect(() => {
@@ -107,6 +112,11 @@ export function PredictionSettingsPanel({
         minSpotDistancePctMaj,
         atrMultiplier5m,
         atrMultiplier15m,
+        maxSideSpreadUsd,
+        minKaufmanEr,
+        minEdgePct,
+        mertonWeight,
+        earlyConvictionMinProbPct,
       });
 
       if (res.ok) {
@@ -670,6 +680,121 @@ export function PredictionSettingsPanel({
                 />
                 <p className="mt-1 text-[10px] text-slate-500">
                   Tolerância máxima de slippage na execução das ordens.
+                </p>
+              </div>
+
+              {/* Spread Bid×Ask Máximo do Lado */}
+              <div>
+                <label
+                  htmlFor="max-side-spread-input"
+                  className="block text-xs font-semibold text-slate-300"
+                >
+                  Spread Máx. Bid×Ask do Lado (USD)
+                </label>
+                <input
+                  id="max-side-spread-input"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max="0.50"
+                  value={maxSideSpreadUsd}
+                  onChange={(e) => setMaxSideSpreadUsd(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Tolerância de spread interno no book antes de descartar como book fino (Padrão: $0.10).
+                </p>
+              </div>
+
+              {/* Piso de Kaufman ER */}
+              <div>
+                <label
+                  htmlFor="min-kaufman-er-input"
+                  className="block text-xs font-semibold text-slate-300"
+                >
+                  Piso Kaufman ER (Gate 2)
+                </label>
+                <input
+                  id="min-kaufman-er-input"
+                  type="number"
+                  step="0.01"
+                  min="0.05"
+                  max="0.80"
+                  value={minKaufmanEr}
+                  onChange={(e) => setMinKaufmanEr(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Eficiência mínima da tendência spot para filtrar Random Walk (Padrão: 0.20).
+                </p>
+              </div>
+
+              {/* Edge Mínimo Real (%) */}
+              <div>
+                <label
+                  htmlFor="min-edge-pct-input"
+                  className="block text-xs font-semibold text-slate-300"
+                >
+                  Edge Mínimo Real Gate 1 (%)
+                </label>
+                <input
+                  id="min-edge-pct-input"
+                  type="number"
+                  step="0.1"
+                  min="-10.0"
+                  max="10.0"
+                  value={minEdgePct}
+                  onChange={(e) => setMinEdgePct(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Vantagem percentual mínima exigida líquida de taxas (Padrão: 1.0% | Permite negativo para tokens altos).
+                </p>
+              </div>
+
+              {/* Peso do Modelo Merton vs Tela */}
+              <div>
+                <label
+                  htmlFor="merton-weight-input"
+                  className="block text-xs font-semibold text-slate-300"
+                >
+                  Peso do Modelo Merton (0.0 a 1.0)
+                </label>
+                <input
+                  id="merton-weight-input"
+                  type="number"
+                  step="0.01"
+                  min="0.0"
+                  max="1.0"
+                  value={mertonWeight}
+                  onChange={(e) => setMertonWeight(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Ponderação da probabilidade teórica de Merton vs preço de tela (0.0 = 100% Tela).
+                </p>
+              </div>
+
+              {/* Gatilho de Disparo Antecipado por Alta Convicção (%) */}
+              <div>
+                <label
+                  htmlFor="early-conviction-prob-input"
+                  className="block text-xs font-semibold text-slate-300"
+                >
+                  Gatilho Convicção Disparo Antecipado (%)
+                </label>
+                <input
+                  id="early-conviction-prob-input"
+                  type="number"
+                  step="1"
+                  min="65"
+                  max="99"
+                  value={earlyConvictionMinProbPct}
+                  onChange={(e) => setEarlyConvictionMinProbPct(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-white outline-none focus:border-indigo-500"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Probabilidade mínima para disparar antes da janela final de 180s quando spread ≤ 2% (Padrão: 80%).
                 </p>
               </div>
             </div>

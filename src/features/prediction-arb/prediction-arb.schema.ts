@@ -59,6 +59,10 @@ const predictionArbStrategySchema = object({
   probVelocity30s: fallback(number(), 0),
   probVolatility60s: fallback(number(), 0),
   askDepletionRate: fallback(number(), 0),
+  oracleSource: optional(string()),
+  resolutionRule: optional(string()),
+  orderImbalance: optional(number()),
+  cvd10s: optional(number()),
 });
 
 export type PredictionArbStrategy = InferOutput<typeof predictionArbStrategySchema>;
@@ -93,6 +97,13 @@ const predictionArbTradeSchema = object({
   orderIds: fallback(array(string()), []),
   openedAt: fallback(string(), ""),
   createdAt: fallback(string(), ""),
+  oracleSource: optional(string()),
+  resolutionRule: optional(string()),
+  cvd10s: optional(number()),
+  orderImbalance: optional(number()),
+  probVelocity30s: optional(number()),
+  probVolatility60s: optional(number()),
+  askDepletionRate: optional(number()),
 });
 
 export type PredictionArbTrade = InferOutput<typeof predictionArbTradeSchema>;
@@ -147,6 +158,11 @@ export const predictionArbSettingsSchema = object({
   minSpotDistancePctMaj: fallback(number(), 0.04),
   atrMultiplier5m: fallback(number(), 0.25),
   atrMultiplier15m: fallback(number(), 0.8),
+  maxSideSpreadUsd: fallback(number(), 0.10),
+  minKaufmanEr: fallback(number(), 0.20),
+  minEdgePct: fallback(number(), 1.0),
+  mertonWeight: fallback(number(), 0.35),
+  earlyConvictionMinProbPct: fallback(number(), 80),
   allowedMarkets: fallback(array(string()), []),
   scanIntervalMs: fallback(number(), 60000),
 });
@@ -217,6 +233,11 @@ const atualizarPredictionSettingsInputSchema = object({
   minSpotDistancePctMaj: optional(number()),
   atrMultiplier5m: optional(number()),
   atrMultiplier15m: optional(number()),
+  maxSideSpreadUsd: optional(number()),
+  minKaufmanEr: optional(number()),
+  minEdgePct: optional(number()),
+  mertonWeight: optional(number()),
+  earlyConvictionMinProbPct: optional(number()),
   allowedMarkets: optional(array(string())),
   scanIntervalMs: optional(number()),
 });
@@ -250,6 +271,8 @@ const predictionMetaDatasetSampleSchema = object({
   probVelocity30s: optional(number()),
   probVolatility60s: optional(number()),
   askDepletionRate: optional(number()),
+  orderImbalance: optional(number()),
+  cvd10s: optional(number()),
   probWin: fallback(number(), 50),
   openedAt: fallback(string(), ""),
 });
