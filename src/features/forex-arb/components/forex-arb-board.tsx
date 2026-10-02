@@ -207,13 +207,20 @@ export function ForexArbBoard({
 
   useEffect(() => {
     let ativo = true;
-    const inicializar = async (): Promise<void> => {
+    const buscarDados = async (): Promise<void> => {
       try {
-        const [cotacoes, resTrades] = await Promise.all([
+        const [novasStrats, novoSaldo, cotacoes, resTrades] = await Promise.all([
+          buscarEstrategiasForex(),
+          buscarSaldoForex(),
           buscarCotacoesAoVivo(),
-          buscarTradesPorPeriodo("10m", undefined),
+          buscarTradesPorPeriodo(
+            closedPeriod,
+            closedSymbol !== "ALL" ? closedSymbol : undefined,
+          ),
         ]);
         if (ativo) {
+          if (novasStrats && Array.isArray(novasStrats)) setLocalStrategies(novasStrats);
+          if (novoSaldo !== null && !isNaN(novoSaldo)) setLocalBalance(novoSaldo);
           if (cotacoes !== null) setLivePrices(cotacoes);
           if (resTrades.ok) {
             setLocalTrades(resTrades.data);
@@ -224,11 +231,17 @@ export function ForexArbBoard({
         // Ignora falha silenciosamente durante troca de rotas ou queda de rede
       }
     };
-    void inicializar();
+
+    void buscarDados();
+    const interval = setInterval(() => {
+      void buscarDados();
+    }, 10000);
+
     return () => {
       ativo = false;
+      clearInterval(interval);
     };
-  }, []);
+  }, [closedPeriod, closedSymbol]);
 
   const abertas = localStrategies.filter((s) => s.positionOpen);
   const encerradas = (() => {
