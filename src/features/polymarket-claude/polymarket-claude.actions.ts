@@ -6,8 +6,6 @@ import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { kyServer } from "@/lib/api/ky.server";
 import {
   polymarketClaudeLogsSchema,
-  polymarketClaudeSettingsSchema,
-  polymarketClaudeStrategySchema,
   polymarketClaudeTradeListSchema,
   type PolymarketClaudeSettings,
   type PolymarketClaudeTrade,
@@ -17,15 +15,10 @@ export async function salvarConfiguracoesClaude(
   dados: Partial<PolymarketClaudeSettings>,
 ): Promise<{ sucesso: boolean; mensagem?: string }> {
   try {
-    await apiClient(
-      kyServer,
-      API_ENDPOINTS.polymarketClaude.settings,
-      polymarketClaudeSettingsSchema,
-      {
-        method: "POST",
-        json: dados,
-      },
-    );
+    await apiClient(kyServer, API_ENDPOINTS.polymarketClaude.settings, undefined, {
+      method: "POST",
+      json: dados,
+    });
     revalidatePath("/dashboard/polymarket-claude");
     return { sucesso: true };
   } catch (erro: unknown) {
@@ -46,15 +39,10 @@ export async function criarStrategyClaude(
   tradeSize = 1.0,
 ): Promise<{ sucesso: boolean; mensagem?: string }> {
   try {
-    await apiClient(
-      kyServer,
-      API_ENDPOINTS.polymarketClaude.criarStrategy,
-      polymarketClaudeStrategySchema,
-      {
-        method: "POST",
-        json: { slug, tradeSize, autoExecute: true, rbiStatus: "INCUBATE" },
-      },
-    );
+    await apiClient(kyServer, API_ENDPOINTS.polymarketClaude.criarStrategy, undefined, {
+      method: "POST",
+      json: { slug, tradeSize, autoExecute: true, rbiStatus: "INCUBATE" },
+    });
     revalidatePath("/dashboard/polymarket-claude");
     return { sucesso: true };
   } catch (erro: unknown) {
@@ -72,7 +60,7 @@ export async function deletarStrategyClaude(
       id
         ? `${API_ENDPOINTS.polymarketClaude.deletarStrategy}/${id}`
         : API_ENDPOINTS.polymarketClaude.deletarStrategy,
-      polymarketClaudeSettingsSchema,
+      undefined,
       { method: "DELETE", json: id ? { id } : {} },
     );
     revalidatePath("/dashboard/polymarket-claude");
