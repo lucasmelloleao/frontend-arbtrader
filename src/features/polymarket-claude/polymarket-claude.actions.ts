@@ -7,6 +7,7 @@ import { kyServer } from "@/lib/api/ky.server";
 import {
   polymarketClaudeLogsSchema,
   polymarketClaudeSettingsSchema,
+  polymarketClaudeStrategySchema,
   polymarketClaudeTradeListSchema,
   type PolymarketClaudeSettings,
   type PolymarketClaudeTrade,
@@ -48,7 +49,7 @@ export async function criarStrategyClaude(
     await apiClient(
       kyServer,
       API_ENDPOINTS.polymarketClaude.criarStrategy,
-      polymarketClaudeSettingsSchema,
+      polymarketClaudeStrategySchema,
       {
         method: "POST",
         json: { slug, tradeSize, autoExecute: true, rbiStatus: "INCUBATE" },

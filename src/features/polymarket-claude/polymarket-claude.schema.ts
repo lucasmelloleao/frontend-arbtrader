@@ -9,7 +9,7 @@ import {
   type InferOutput,
 } from "valibot";
 
-const polymarketClaudeStrategySchema = object({
+export const polymarketClaudeStrategySchema = object({
   id: string(),
   nome: fallback(string(), ""),
   slug: fallback(string(), ""),

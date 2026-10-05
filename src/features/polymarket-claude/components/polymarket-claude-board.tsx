@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
   Cpu,
@@ -43,15 +44,23 @@ export function PolymarketClaudeBoard({
   botStatus,
   logs,
 }: Props): React.ReactNode {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [slugInput, setSlugInput] = useState("");
   const [activeTab, setActiveTab] = useState<"rbi" | "strategies" | "trades" | "fsm_logs">("rbi");
+  const [localRunning, setLocalRunning] = useState<boolean | null>(null);
 
-  const isScanning = botStatus?.isRunning ?? false;
+  const isScanning = localRunning !== null ? localRunning : (botStatus?.isRunning ?? false);
 
   const handleToggleBot = (): void => {
+    const nextState = !isScanning;
+    setLocalRunning(nextState);
     startTransition(async () => {
-      await alternarIncubacaoClaude(!isScanning, !isScanning);
+      const res = await alternarIncubacaoClaude(nextState, nextState);
+      if (!res.sucesso) {
+        setLocalRunning(isScanning);
+      }
+      router.refresh();
     });
   };
 
