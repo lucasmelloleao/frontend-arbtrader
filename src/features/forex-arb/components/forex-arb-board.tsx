@@ -213,13 +213,10 @@ export function ForexArbBoard({
           buscarEstrategiasForex(),
           buscarSaldoForex(),
           buscarCotacoesAoVivo(),
-          buscarTradesPorPeriodo(
-            closedPeriod,
-            closedSymbol !== "ALL" ? closedSymbol : undefined,
-          ),
+          buscarTradesPorPeriodo(closedPeriod, closedSymbol !== "ALL" ? closedSymbol : undefined),
         ]);
         if (ativo) {
-          if (novasStrats && Array.isArray(novasStrats)) setLocalStrategies(novasStrats);
+          if (Array.isArray(novasStrats)) setLocalStrategies(novasStrats);
           if (novoSaldo !== null && !isNaN(novoSaldo)) setLocalBalance(novoSaldo);
           if (cotacoes !== null) setLivePrices(cotacoes);
           if (resTrades.ok) {
@@ -505,11 +502,21 @@ export function ForexArbBoard({
 
                 const isGoldPair = sym.includes("XAU");
                 const isJpyPair = sym.includes("JPY");
-                const isCrypto = /^(BTC|ETH|SOL|XRP|LTC|DOGE|ADA|AVAX|DOT|LINK|BNB|SHIB|NEAR|MATIC|UNI|BCH)/i.test(sym.replace("/", ""));
+                const isCrypto =
+                  /^(BTC|ETH|SOL|XRP|LTC|DOGE|ADA|AVAX|DOT|LINK|BNB|SHIB|NEAR|MATIC|UNI|BCH)/i.test(
+                    sym.replace("/", ""),
+                  );
                 const volField =
                   primaryLeg.volume || strat.positionVolume || strat.tradeSize || 0.01;
                 const amtField = primaryLeg.amount || strat.positionSize || 0;
-                let contractUnits = amtField > 0 ? amtField : (isCrypto ? (volField <= 50 ? volField : volField / 100000) : volField * 100000);
+                let contractUnits =
+                  amtField > 0
+                    ? amtField
+                    : isCrypto
+                      ? volField <= 50
+                        ? volField
+                        : volField / 100000
+                      : volField * 100000;
                 if (contractUnits > 10000000) {
                   contractUnits = contractUnits / 100000;
                 }
@@ -541,7 +548,9 @@ export function ForexArbBoard({
                       ? rawUnits / 100000
                       : rawUnits;
                 const numLotes001 = isCrypto ? 0 : lotesReais / 0.01;
-                const comm = isCrypto ? 0 : Number(((isGoldPair ? 0.09 : 0.06) * numLotes001).toFixed(2));
+                const comm = isCrypto
+                  ? 0
+                  : Number(((isGoldPair ? 0.09 : 0.06) * numLotes001).toFixed(2));
 
                 // Se temos o preço atual e o preço de entrada (ou médio ponderado), calcula matematicamente em tempo real
                 if (currentPrice && refPrice > 0) {
@@ -551,7 +560,7 @@ export function ForexArbBoard({
                   const calculatedPct = (diff / refPrice) * 100;
 
                   // Se a estratégia já traz o PnL real da cTrader (strat.pnl), usa ele como fonte primária da verdade
-                  if (strat.pnl !== undefined && strat.pnl !== null) {
+                  if (typeof strat.pnl === "number" && !isNaN(strat.pnl)) {
                     livePnl = strat.pnl;
                   } else {
                     let grossPnl: number | null = null;

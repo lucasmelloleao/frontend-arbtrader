@@ -2,14 +2,10 @@
 
 import { useState, useTransition } from "react";
 import {
-  Activity,
-  Bot,
-  Brain,
-  CheckCircle2,
   Cpu,
+  Brain,
   Layers,
   Play,
-  RotateCcw,
   ShieldCheck,
   Sparkles,
   Square,
@@ -18,18 +14,17 @@ import {
 } from "lucide-react";
 
 import {
-  salvarConfiguracoesClaude,
   alternarIncubacaoClaude,
   criarStrategyClaude,
   deletarStrategyClaude,
-} from "../polymarket-claude.actions";
+} from "@/features/polymarket-claude/polymarket-claude.actions";
 import type {
   PolymarketClaudeBotStatus,
   PolymarketClaudeSettings,
   PolymarketClaudeStrategy,
   PolymarketClaudeTrade,
   PolymarketClaudeTradesSummary,
-} from "../polymarket-claude.schema";
+} from "@/features/polymarket-claude/polymarket-claude.schema";
 
 type Props = {
   strategies: readonly PolymarketClaudeStrategy[];
@@ -47,21 +42,20 @@ export function PolymarketClaudeBoard({
   settings,
   botStatus,
   logs,
-}: Props) {
+}: Props): React.ReactNode {
   const [isPending, startTransition] = useTransition();
   const [slugInput, setSlugInput] = useState("");
   const [activeTab, setActiveTab] = useState<"rbi" | "strategies" | "trades" | "fsm_logs">("rbi");
 
   const isScanning = botStatus?.isRunning ?? false;
-  const isLive = botStatus?.allowLiveTrading ?? false;
 
-  const handleToggleBot = () => {
+  const handleToggleBot = (): void => {
     startTransition(async () => {
       await alternarIncubacaoClaude(!isScanning, !isScanning);
     });
   };
 
-  const handleAddSlug = (e: React.FormEvent) => {
+  const handleAddSlug = (e: React.FormEvent): void => {
     e.preventDefault();
     if (!slugInput.trim()) return;
     startTransition(async () => {
@@ -89,7 +83,7 @@ export function PolymarketClaudeBoard({
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Arquitetura Determinística de Execução Micro-Sized, Anti-Amygdala & Telemetria CVD
+              Arquitetura Determinística de Execução Micro-Sized, Anti-Amygdala &amp; Telemetria CVD
             </p>
           </div>
         </div>
@@ -126,13 +120,17 @@ export function PolymarketClaudeBoard({
             <span className="text-xs font-medium">Status do Pipeline RBI</span>
             <Brain className="h-4 w-4 text-purple-400" />
           </div>
-          <p className="mt-2 text-2xl font-bold text-purple-300">{botStatus?.rbiPhase || "INCUBATE"}</p>
-          <p className="text-[11px] text-slate-400 mt-1">Fase 3: 30 dias micro-size (USD 1,00/trade)</p>
+          <p className="mt-2 text-2xl font-bold text-purple-300">
+            {botStatus?.rbiPhase || "INCUBATE"}
+          </p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            Fase 3: 30 dias micro-size (USD 1,00/trade)
+          </p>
         </div>
 
         <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-medium">Win Rate & Expectativa</span>
+            <span className="text-xs font-medium">Win Rate &amp; Expectativa</span>
             <TrendingUp className="h-4 w-4 text-emerald-400" />
           </div>
           <p className="mt-2 text-2xl font-bold text-emerald-400">
@@ -147,16 +145,20 @@ export function PolymarketClaudeBoard({
             <ShieldCheck className="h-4 w-4 text-blue-400" />
           </div>
           <p className="mt-2 text-2xl font-bold text-blue-400">100% Maker</p>
-          <p className="text-[11px] text-slate-400 mt-1">Zero Fees na Polymarket (0.00% taker fee)</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            Zero Fees na Polymarket (0.00% taker fee)
+          </p>
         </div>
 
         <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-medium">Latência FSM & RTT</span>
+            <span className="text-xs font-medium">Latência FSM &amp; RTT</span>
             <Zap className="h-4 w-4 text-amber-400" />
           </div>
           <p className="mt-2 text-2xl font-bold text-amber-400">{botStatus?.rttMs || 38} ms</p>
-          <p className="text-[11px] text-slate-400 mt-1">Decisão &lt; 1ms vs 12ms Amígdala humana</p>
+          <p className="text-[11px] text-slate-400 mt-1">
+            Decisão &lt; 1ms vs 12ms Amígdala humana
+          </p>
         </div>
       </div>
 
@@ -216,15 +218,22 @@ export function PolymarketClaudeBoard({
             <div className="space-y-3 text-xs text-slate-300">
               <div className="p-3 rounded-lg bg-slate-800/40 border border-slate-700/50">
                 <span className="font-bold text-purple-300 block mb-1">1. Research (Pesquisa)</span>
-                Filtragem estatística via teste Dickey-Fuller Aumentado (ADF p &lt; 0.05) e Hurst (H &lt; 0.5) para confirmação de reversão à média.
+                Filtragem estatística via teste Dickey-Fuller Aumentado (ADF p &lt; 0.05) e Hurst (H
+                &lt; 0.5) para confirmação de reversão à média.
               </div>
               <div className="p-3 rounded-lg bg-slate-800/40 border border-slate-700/50">
-                <span className="font-bold text-purple-300 block mb-1">2. Backtest (Simulação)</span>
-                Validação em OHLCV 5m (MACD D3153). Win Rate de 59% a 63%, Profit Factor &gt; 1.8 e Max DD &lt; 15%.
+                <span className="font-bold text-purple-300 block mb-1">
+                  2. Backtest (Simulação)
+                </span>
+                Validação em OHLCV 5m (MACD D3153). Win Rate de 59% a 63%, Profit Factor &gt; 1.8 e
+                Max DD &lt; 15%.
               </div>
               <div className="p-3 rounded-lg bg-slate-800/40 border border-purple-500/40 bg-purple-950/20">
-                <span className="font-bold text-emerald-400 block mb-1">3. Incubate (Em Execução)</span>
-                Operação micro-sized (USD 1,00) por 30 dias para validação de latência WebSocket, derrapagem L2 e preenchimento Maker.
+                <span className="font-bold text-emerald-400 block mb-1">
+                  3. Incubate (Em Execução)
+                </span>
+                Operação micro-sized (USD 1,00) por 30 dias para validação de latência WebSocket,
+                derrapagem L2 e preenchimento Maker.
               </div>
             </div>
           </div>
@@ -237,16 +246,25 @@ export function PolymarketClaudeBoard({
             </div>
             <div className="space-y-3 text-xs text-slate-300">
               <div className="p-3 rounded-lg bg-rose-950/20 border border-rose-800/30">
-                <span className="font-bold text-rose-300 block mb-1">Cérebro Humano (Vulnerável)</span>
-                Amígdala dispara em 12ms (pânico/FOMO) enquanto o córtex pré-frontal leva 500ms. Sangria de 12%/dia em ordens Taker.
+                <span className="font-bold text-rose-300 block mb-1">
+                  Cérebro Humano (Vulnerável)
+                </span>
+                Amígdala dispara em 12ms (pânico/FOMO) enquanto o córtex pré-frontal leva 500ms.
+                Sangria de 12%/dia em ordens Taker.
               </div>
               <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-800/30">
-                <span className="font-bold text-emerald-300 block mb-1">FSM Determinística (Imune)</span>
-                Decisão I/O assíncrona &lt; 1ms. Higiene atômica de ordens obsoletas e adesão estrita ao P&amp;L Close Stop.
+                <span className="font-bold text-emerald-300 block mb-1">
+                  FSM Determinística (Imune)
+                </span>
+                Decisão I/O assíncrona &lt; 1ms. Higiene atômica de ordens obsoletas e adesão
+                estrita ao P&amp;L Close Stop.
               </div>
               <div className="p-3 rounded-lg bg-slate-800/40 border border-slate-700/50">
-                <span className="font-bold text-slate-200 block mb-1">Roteamento Maker Passivo</span>
-                Ordens colocadas com post_only=True na Polymarket. Sobrevida de capital aumentada de 31 dias para 717+ dias.
+                <span className="font-bold text-slate-200 block mb-1">
+                  Roteamento Maker Passivo
+                </span>
+                Ordens colocadas com post_only=True na Polymarket. Sobrevida de capital aumentada de
+                31 dias para 717+ dias.
               </div>
             </div>
           </div>
@@ -260,11 +278,15 @@ export function PolymarketClaudeBoard({
             <div className="space-y-2 text-xs text-slate-300">
               <div className="flex justify-between py-1.5 border-b border-slate-800">
                 <span className="text-slate-400">Tamanho por Operação:</span>
-                <span className="font-mono font-semibold text-slate-200">USD 1,00 (Micro-Sizing)</span>
+                <span className="font-mono font-semibold text-slate-200">
+                  USD 1,00 (Micro-Sizing)
+                </span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-800">
                 <span className="text-slate-400">Circuit Breaker Perda Diária:</span>
-                <span className="font-mono font-semibold text-rose-400">USD 5,00 (Kill-Switch)</span>
+                <span className="font-mono font-semibold text-rose-400">
+                  USD 5,00 (Kill-Switch)
+                </span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-800">
                 <span className="text-slate-400">P&amp;L Close (Stop Loss):</span>
@@ -276,7 +298,9 @@ export function PolymarketClaudeBoard({
               </div>
               <div className="flex justify-between py-1.5">
                 <span className="text-slate-400">Heartbeat WebSocket:</span>
-                <span className="font-mono font-semibold text-blue-400">15s c/ Backoff Exponencial</span>
+                <span className="font-mono font-semibold text-blue-400">
+                  15s c/ Backoff Exponencial
+                </span>
               </div>
             </div>
           </div>
@@ -334,10 +358,10 @@ export function PolymarketClaudeBoard({
                         </span>
                       </td>
                       <td className="p-3.5 font-mono text-slate-400">
-                        H: {s.hurstExponent?.toFixed(2) || "0.42"} | p: {s.adfPValue || "0.01"}
+                        H: {s.hurstExponent.toFixed(2)} | p: {s.adfPValue}
                       </td>
                       <td className="p-3.5 font-mono">
-                        ${s.yesPrice?.toFixed(2) || "0.50"} / ${s.noPrice?.toFixed(2) || "0.50"}
+                        ${s.yesPrice.toFixed(2)} / ${s.noPrice.toFixed(2)}
                       </td>
                       <td className="p-3.5">
                         {s.positionOpen ? (
@@ -350,7 +374,7 @@ export function PolymarketClaudeBoard({
                       </td>
                       <td className="p-3.5 font-mono font-semibold">
                         <span className={s.pnlAtual >= 0 ? "text-emerald-400" : "text-rose-400"}>
-                          {s.pnlAtual >= 0 ? "+" : ""}${s.pnlAtual?.toFixed(2) || "0.00"}
+                          {s.pnlAtual >= 0 ? "+" : ""}${s.pnlAtual.toFixed(2)}
                         </span>
                       </td>
                       <td className="p-3.5 text-right">
@@ -408,7 +432,7 @@ export function PolymarketClaudeBoard({
                         {t.isMaker ? "Maker (Zero Fee)" : "Taker"}
                       </span>
                     </td>
-                    <td className="p-3.5 font-mono text-amber-400">{t.rttMs || 42} ms</td>
+                    <td className="p-3.5 font-mono text-amber-400">{t.rttMs} ms</td>
                     <td className="p-3.5 font-mono font-semibold">
                       <span className={t.pnl >= 0 ? "text-emerald-400" : "text-rose-400"}>
                         {t.pnl >= 0 ? "+" : ""}${t.pnl.toFixed(2)}
@@ -432,8 +456,8 @@ export function PolymarketClaudeBoard({
             <span className="text-[11px] text-emerald-400">100% Determinístico</span>
           </div>
           <div className="space-y-1 max-h-96 overflow-y-auto pt-2">
-            {logs.map((log, idx) => (
-              <div key={idx} className="leading-relaxed hover:bg-slate-900/60 px-2 py-0.5 rounded">
+            {logs.map((log) => (
+              <div key={log} className="leading-relaxed hover:bg-slate-900/60 px-2 py-0.5 rounded">
                 {log}
               </div>
             ))}

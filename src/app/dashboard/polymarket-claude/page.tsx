@@ -25,47 +25,37 @@ async function PolymarketClaudeContent(): Promise<React.ReactNode> {
       apiClient(
         kyServer,
         API_ENDPOINTS.polymarketClaude.listarStrategies,
-        polymarketClaudeStrategyListSchema
+        polymarketClaudeStrategyListSchema,
       ),
       apiClient(
         kyServer,
         API_ENDPOINTS.polymarketClaude.listarTrades,
-        polymarketClaudeTradeListSchema
+        polymarketClaudeTradeListSchema,
       ),
-      apiClient(
-        kyServer,
-        API_ENDPOINTS.polymarketClaude.settings,
-        polymarketClaudeSettingsSchema
-      ),
+      apiClient(kyServer, API_ENDPOINTS.polymarketClaude.settings, polymarketClaudeSettingsSchema),
       apiClient(
         kyServer,
         API_ENDPOINTS.polymarketClaude.tradesResumo,
-        polymarketClaudeTradesSummarySchema
+        polymarketClaudeTradesSummarySchema,
       ),
       apiClient(
         kyServer,
         API_ENDPOINTS.polymarketClaude.botStatus,
-        polymarketClaudeBotStatusSchema
+        polymarketClaudeBotStatusSchema,
       ),
-      apiClient(
-        kyServer,
-        API_ENDPOINTS.polymarketClaude.logs,
-        polymarketClaudeLogsSchema
-      ),
+      apiClient(kyServer, API_ENDPOINTS.polymarketClaude.logs, polymarketClaudeLogsSchema),
     ]);
 
   const strategies: PolymarketClaudeStrategy[] =
     strategiesRes.status === "fulfilled" ? strategiesRes.value : [];
-  const trades: PolymarketClaudeTrade[] =
-    tradesRes.status === "fulfilled" ? tradesRes.value : [];
+  const trades: PolymarketClaudeTrade[] = tradesRes.status === "fulfilled" ? tradesRes.value : [];
   const settings: PolymarketClaudeSettings | null =
     settingsRes.status === "fulfilled" ? settingsRes.value : null;
   const summary: PolymarketClaudeTradesSummary | null =
     tradesResumoRes.status === "fulfilled" ? tradesResumoRes.value : null;
   const botStatus: PolymarketClaudeBotStatus | null =
     botStatusRes.status === "fulfilled" ? botStatusRes.value : null;
-  const logs: string[] =
-    logsRes.status === "fulfilled" ? logsRes.value.lines : [];
+  const logs: string[] = logsRes.status === "fulfilled" ? logsRes.value.lines : [];
 
   return (
     <PolymarketClaudeBoard

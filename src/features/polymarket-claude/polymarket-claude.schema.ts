@@ -9,7 +9,7 @@ import {
   type InferOutput,
 } from "valibot";
 
-export const polymarketClaudeStrategySchema = object({
+const polymarketClaudeStrategySchema = object({
   id: string(),
   nome: fallback(string(), ""),
   slug: fallback(string(), ""),
@@ -58,7 +58,7 @@ export const polymarketClaudeStrategySchema = object({
 
 export const polymarketClaudeStrategyListSchema = array(polymarketClaudeStrategySchema);
 
-export const polymarketClaudeTradeSchema = object({
+const polymarketClaudeTradeSchema = object({
   id: string(),
   strategyId: optional(string()),
   slug: fallback(string(), ""),
@@ -84,7 +84,7 @@ export const polymarketClaudeTradeSchema = object({
       cvdDelta: fallback(number(), 0),
       expectedValue: fallback(number(), 0),
       edgeScore: fallback(number(), 618),
-    })
+    }),
   ),
   createdAt: string(),
 });

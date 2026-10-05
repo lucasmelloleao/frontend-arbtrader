@@ -632,7 +632,10 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                           />
                         </div>
                         <div>
-                          <label htmlFor={`kauf-er-${sym}`} className="mb-1 block text-indigo-400 font-medium">
+                          <label
+                            htmlFor={`kauf-er-${sym}`}
+                            className="mb-1 block text-indigo-400 font-medium"
+                          >
                             ER Mínimo
                           </label>
                           <input
@@ -641,7 +644,7 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                             step="0.05"
                             min="0.05"
                             max="0.99"
-                            value={typeof p.minKaufmanEr === "number" ? p.minKaufmanEr : 0.20}
+                            value={typeof p.minKaufmanEr === "number" ? p.minKaufmanEr : 0.2}
                             placeholder="0.20"
                             onChange={(e) =>
                               atualizarPar(
@@ -654,7 +657,10 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                           />
                         </div>
                         <div>
-                          <label htmlFor={`sep-pips-${sym}`} className="mb-1 block text-indigo-400 font-medium">
+                          <label
+                            htmlFor={`sep-pips-${sym}`}
+                            className="mb-1 block text-indigo-400 font-medium"
+                          >
                             Sep. Médias (Pips)
                           </label>
                           <input
@@ -662,7 +668,11 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                             type="number"
                             step="0.5"
                             min="0"
-                            value={typeof p.minEmaSeparationPips === "number" ? p.minEmaSeparationPips : 3.0}
+                            value={
+                              typeof p.minEmaSeparationPips === "number"
+                                ? p.minEmaSeparationPips
+                                : 3.0
+                            }
                             placeholder="3.0"
                             onChange={(e) =>
                               atualizarPar(
@@ -842,7 +852,10 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                           />
                         </div>
                         <div>
-                          <label htmlFor={`kauf-er-${sym}`} className="mb-1 block text-indigo-400 font-medium">
+                          <label
+                            htmlFor={`kauf-er-${sym}`}
+                            className="mb-1 block text-indigo-400 font-medium"
+                          >
                             ER Mínimo
                           </label>
                           <input
@@ -864,7 +877,10 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                           />
                         </div>
                         <div>
-                          <label htmlFor={`sep-pips-${sym}`} className="mb-1 block text-indigo-400 font-medium">
+                          <label
+                            htmlFor={`sep-pips-${sym}`}
+                            className="mb-1 block text-indigo-400 font-medium"
+                          >
                             Sep. Médias (Pips)
                           </label>
                           <input
@@ -872,7 +888,11 @@ export function ForexSettingsPanel({ settings }: ForexSettingsPanelProps): React
                             type="number"
                             step="0.5"
                             min="0"
-                            value={typeof p.minEmaSeparationPips === "number" ? p.minEmaSeparationPips : ""}
+                            value={
+                              typeof p.minEmaSeparationPips === "number"
+                                ? p.minEmaSeparationPips
+                                : ""
+                            }
                             placeholder="3.0"
                             onChange={(e) =>
                               atualizarPar(
