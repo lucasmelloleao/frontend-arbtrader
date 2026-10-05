@@ -52,13 +52,28 @@ export function PolymarketClaudeBoard({
 
   const isScanning = localRunning !== null ? localRunning : (botStatus?.isRunning ?? false);
 
+  const [statusMessage, setStatusMessage] = useState<{
+    tipo: "erro" | "sucesso";
+    texto: string;
+  } | null>(null);
+
   const handleToggleBot = (): void => {
     const nextState = !isScanning;
     setLocalRunning(nextState);
+    setStatusMessage(null);
     startTransition(async () => {
       const res = await alternarIncubacaoClaude(nextState, nextState);
       if (!res.sucesso) {
         setLocalRunning(isScanning);
+        setStatusMessage({
+          tipo: "erro",
+          texto: res.mensagem || "Falha ao alterar estado do bot.",
+        });
+      } else {
+        setStatusMessage({
+          tipo: "sucesso",
+          texto: nextState ? "Incubação FSM iniciada com sucesso." : "Incubação FSM pausada.",
+        });
       }
       router.refresh();
     });
@@ -67,9 +82,15 @@ export function PolymarketClaudeBoard({
   const handleAddSlug = (e: React.FormEvent): void => {
     e.preventDefault();
     if (!slugInput.trim()) return;
+    setStatusMessage(null);
     startTransition(async () => {
-      await criarStrategyClaude(slugInput.trim(), settings?.tradeSize || 1.0);
-      setSlugInput("");
+      const res = await criarStrategyClaude(slugInput.trim(), settings?.tradeSize || 1.0);
+      if (res.sucesso) {
+        setSlugInput("");
+        setStatusMessage({ tipo: "sucesso", texto: "Mercado adicionado e incubado com sucesso!" });
+      } else {
+        setStatusMessage({ tipo: "erro", texto: res.mensagem || "Falha ao incubar mercado." });
+      }
       router.refresh();
     });
   };
@@ -335,6 +356,18 @@ export function PolymarketClaudeBoard({
               Incubar Mercado
             </button>
           </form>
+
+          {statusMessage && (
+            <div
+              className={`rounded-lg p-3 text-xs font-medium border ${
+                statusMessage.tipo === "erro"
+                  ? "bg-rose-950/30 border-rose-800/40 text-rose-300"
+                  : "bg-emerald-950/30 border-emerald-800/40 text-emerald-300"
+              }`}
+            >
+              {statusMessage.texto}
+            </div>
+          )}
 
           <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/30">
             <table className="w-full text-left text-xs">
