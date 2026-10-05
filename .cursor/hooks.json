@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/inject-patterns.ts\""
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/reinforce-patterns.ts\""
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/pre-pr-review-gate.ts\"",
+        "failClosed": true
+      },
+      {
+        "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/guard-shell.ts\"",
+        "failClosed": true
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/format-after-write.ts\""
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/reinforce-after-write.ts\"",
+        "matcher": "Write"
+      }
+    ],
+    "stop": [
+      {
+        "command": "bun \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/tooling/agent-hooks/verify-before-stop.ts\"",
+        "loop_limit": 3
+      }
+    ]
+  }
+}

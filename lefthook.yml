@@ -1,0 +1,22 @@
+# Pré-commit: barato e focado nos arquivos staged, pra não travar o loop de
+# commit. O gate completo é o pré-push.
+pre-commit:
+  parallel: true
+  commands:
+    oxlint:
+      glob: "*.{ts,tsx,js,jsx}"
+      # --no-error-on-unmatched-pattern: não falhar quando os staged files
+      # forem todos ignorados (ex.: só .claude/** ou docs).
+      run: bunx oxlint --disable-nested-config --no-error-on-unmatched-pattern {staged_files}
+    oxfmt:
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,json}"
+      run: bunx oxfmt --check {staged_files}
+
+# Pré-push: gate canônico completo antes de o código sair da máquina. É a última
+# barreira pré-remoto, então tudo é checado no projeto inteiro — não só o staged.
+# `verify` = lint type-aware + fmt + typecheck (app/testes/tooling) + knip +
+# testes + guard de supressão + budget de peso dos assets de public/.
+pre-push:
+  commands:
+    verify:
+      run: bun run verify

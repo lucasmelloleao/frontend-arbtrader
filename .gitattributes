@@ -1,0 +1,4 @@
+# Normaliza fim de linha pra LF no working tree, independente de core.autocrlf.
+# Sem isso, em checkout Windows (autocrlf=true) todo arquivo vira CRLF e o
+# `oxfmt --check` reprova o repo inteiro (o oxfmt espera LF, igual ao CI Linux).
+* text=auto eol=lf

@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/knip/schema.json",
+  "entry": [
+    "src/app/**/*.{ts,tsx}",
+    "src/features/**/*.actions.ts",
+    "tooling/agent-hooks/*.ts",
+    "tooling/*.ts",
+    "tooling/oxlint-rules/index.ts",
+    "integracoes/coderabbit/cr-comments.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "src/**/*.css", "tooling/**/*.ts", "test/**/*.ts", "*.{ts,mjs}"],
+  "ignoreDependencies": [
+    // Fornece o `tsgo`; invocado pelo toolchain, não importado por nenhum módulo.
+    "@typescript/native-preview",
+    // Instala os git hooks; roda pelo lefthook.yml, não por import.
+    "lefthook"
+  ]
+}

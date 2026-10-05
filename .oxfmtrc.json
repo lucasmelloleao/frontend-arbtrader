@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+
+  // Defaults do oxfmt já batem com o estilo do repo (printWidth 100, tabWidth 2,
+  // semi, aspas duplas, trailingComma "all", endOfLine "lf"). Não restateamos
+  // defaults — só o que difere fica aqui.
+  //
+  // Markdown fica de fora: os docs canônicos (AGENTS/ARCHITECTURE/CODE-PATTERN/
+  // MEMORY/VERCEL-OXLINT-MAPPING) e as skills são prosa mantida à mão;
+  // reformatá-los é churn sem valor. Código e config JSON, sim.
+  //
+  // `srcantigo/` é o app legado (pré-boilerplate): não faz parte do gate.
+  "ignorePatterns": ["**/*.md", "srcantigo/**"]
+}

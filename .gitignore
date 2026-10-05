@@ -1,0 +1,61 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+# typecheck de testes (projeto composite: emite pra um diretório descartável)
+.tsbuild-test
+
+# certificados locais de dev (--experimental-https)
+certificates
+
+# git worktrees do Claude Code (trabalho paralelo, não versionar)
+.claude/worktrees/
+
+# selos e bilhetes locais dos gates de review (pre-review, ack de tamanho de PR,
+# handoff das skills de PR). São por-HEAD e por-máquina: versionar liberaria o
+# gate pra todo mundo.
+.claude/tmp/
+.agents/tmp/
+
+# config/journal local do impeccable live mode (tooling, não versionar)
+.impeccable/
+srcantigo/
+
+# scratchpad da sessão (temporário, por-máquina — nunca versionar).
+# Sem aspas: em .gitignore aspas são literais e o padrão não casa.
+$COMMANDCODE_SCRATCHPAD/
+.vercel
+tooling/oxlint-rules/index.js
+
+.agents/
+.claude/
+.codex/
+.commandcode/
+.cursor/
+
+
