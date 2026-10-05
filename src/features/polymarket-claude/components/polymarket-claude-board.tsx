@@ -70,6 +70,7 @@ export function PolymarketClaudeBoard({
     startTransition(async () => {
       await criarStrategyClaude(slugInput.trim(), settings?.tradeSize || 1.0);
       setSlugInput("");
+      router.refresh();
     });
   };
 
