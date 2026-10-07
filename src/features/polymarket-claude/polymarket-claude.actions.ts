@@ -29,9 +29,15 @@ export async function salvarConfiguracoesClaude(
 
 export async function alternarIncubacaoClaude(
   isScanningEnabled: boolean,
+): Promise<{ sucesso: boolean; mensagem?: string }> {
+  // Não altera o modo (simulado/real) ao ligar/desligar o bot
+  return salvarConfiguracoesClaude({ isScanningEnabled, incubateMode: true });
+}
+
+export async function alternarModoClaude(
   allowLiveTrading: boolean,
 ): Promise<{ sucesso: boolean; mensagem?: string }> {
-  return salvarConfiguracoesClaude({ isScanningEnabled, allowLiveTrading, incubateMode: true });
+  return salvarConfiguracoesClaude({ allowLiveTrading });
 }
 
 export async function criarStrategyClaude(

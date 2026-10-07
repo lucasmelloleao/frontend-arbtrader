@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Activity } from "lucide-react";
 
 import { PredictionArbBoard } from "@/features/prediction-arb/components/prediction-arb-board";
-import { PredictionHarvestButton } from "@/features/prediction-arb/components/prediction-harvest-button";
+import { PredictionModeToggle } from "@/features/prediction-arb/components/prediction-mode-toggle";
 import { PredictionSettingsPanel } from "@/features/prediction-arb/components/prediction-settings-panel";
 import { PredictionStatsHeader } from "@/features/prediction-arb/components/prediction-stats-header";
 import { PredictionTerminalLogs } from "@/features/prediction-arb/components/prediction-terminal-logs";
@@ -86,6 +86,13 @@ async function PolymarketArbContent(): Promise<React.ReactNode> {
   const allowLiveTrading = Boolean(settings?.allowLiveTrading ?? botStatus?.allowLiveTrading);
   const saldoDisponivel = polyKey?.pusdBalance ?? botStatus?.saldoDisponivel ?? 0;
 
+  // PnL e contagem de operações simuladas (persistidas no DB, sem tocar o saldo real)
+  const simulatedCloses = trades.filter(
+    (t) => (t.type === "close_pair" || t.type === "close") && t.status === "simulated",
+  );
+  const simulatedPnl = simulatedCloses.reduce((acc, t) => acc + (t.pnl || 0), 0);
+  const simulatedCount = simulatedCloses.length;
+
   return (
     <div className="space-y-6">
       {/* Header da Página */}
@@ -103,21 +110,7 @@ async function PolymarketArbContent(): Promise<React.ReactNode> {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <PredictionHarvestButton allowLiveTrading={allowLiveTrading} isOnline={isOnline} />
-          <span
-            className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-bold ${
-              isOnline
-                ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
-                : "border-rose-500/30 bg-rose-500/15 text-rose-300"
-            }`}
-          >
-            <span
-              className={`h-2 w-2 rounded-full ${
-                isOnline ? "animate-pulse bg-emerald-400" : "bg-rose-400"
-              }`}
-            />
-            {isOnline ? "SCANNER ONLINE" : "SCANNER OFFLINE"}
-          </span>
+          <PredictionModeToggle allowLiveTrading={allowLiveTrading} isOnline={isOnline} />
           <PredictionSettingsPanel settings={settings} />
         </div>
       </div>
@@ -127,6 +120,10 @@ async function PolymarketArbContent(): Promise<React.ReactNode> {
         summary={summaryData}
         abertasCount={abertas.length}
         saldoDisponivel={saldoDisponivel}
+        simulatedPnl={simulatedPnl}
+        simulatedCount={simulatedCount}
+        isOnline={isOnline}
+        isLive={allowLiveTrading}
       />
 
       {/* Board Principal: Mercados, Posições Abertas, Histórico, Performance, IA e Carteira */}

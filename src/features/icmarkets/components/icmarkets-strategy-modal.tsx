@@ -30,6 +30,15 @@ export function IcMarketsStrategyModal({
       stopLossPips: 15,
       trailingStopPips: 10,
       trailingStepPips: 5,
+      trailingEnabled: true,
+      momentumLookback: 1,
+      minMomentumPips: 0,
+      decisionWindow: 60,
+      kellySizing: false,
+      maxRiskPct: 0.02,
+      maxAtrPips: 15,
+      aiExpectedValue: 0.05,
+      aiEdgePct: 3.0,
       maxSpreadPips: 2.5,
       minVarianceRatio: 1.08,
       minEfficiencyRatio: 0.35,
@@ -199,6 +208,125 @@ export function IcMarketsStrategyModal({
             </div>
           </div>
 
+          {/* Trailing Stop Real + Entrada + Dimensionamento */}
+          <div className="rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 space-y-3">
+            <span className="block text-xs font-bold uppercase tracking-wider text-amber-400">
+              🛡️ Gerenciamento de Risco & Entrada
+            </span>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex items-center gap-2">
+                <input
+                  id="ic-trailing-enabled"
+                  type="checkbox"
+                  checked={form.trailingEnabled}
+                  onChange={(e) => setForm({ ...form, trailingEnabled: e.target.checked })}
+                  className="h-4 w-4 rounded border-amber-500/30 bg-slate-900 text-amber-600 focus:ring-amber-500"
+                />
+                <label
+                  htmlFor="ic-trailing-enabled"
+                  className="text-xs font-semibold text-amber-300"
+                >
+                  Trailing Stop real (na corretora)
+                </label>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-slate-300" htmlFor="ic-momentum-lookback">
+                  Lookback de Momento (velas)
+                </label>
+                <input
+                  id="ic-momentum-lookback"
+                  type="number"
+                  min={1}
+                  value={form.momentumLookback}
+                  onChange={(e) => setForm({ ...form, momentumLookback: Number(e.target.value) })}
+                  className="w-full rounded border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-white"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Período de comparação do momentum da entrada (1 = candle a candle).
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-slate-300" htmlFor="ic-min-momentum">
+                  Momento Mínimo (pips)
+                </label>
+                <input
+                  id="ic-min-momentum"
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={form.minMomentumPips}
+                  onChange={(e) => setForm({ ...form, minMomentumPips: Number(e.target.value) })}
+                  className="w-full rounded border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-white"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Só opera se o movimento superar este tamanho. 0 = desativa.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-slate-300" htmlFor="ic-decision-window">
+                  Janela de Decisão (velas)
+                </label>
+                <input
+                  id="ic-decision-window"
+                  type="number"
+                  min={24}
+                  value={form.decisionWindow}
+                  onChange={(e) => setForm({ ...form, decisionWindow: Number(e.target.value) })}
+                  className="w-full rounded border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-white"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Quantas barras de histórico alimentam os Gates 1-4.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  id="ic-kelly"
+                  type="checkbox"
+                  checked={form.kellySizing}
+                  onChange={(e) => setForm({ ...form, kellySizing: e.target.checked })}
+                  className="h-4 w-4 rounded border-amber-500/30 bg-slate-900 text-amber-600 focus:ring-amber-500"
+                />
+                <label htmlFor="ic-kelly" className="text-xs font-semibold text-amber-300">
+                  Dimensionar lote via Kelly
+                </label>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-slate-300" htmlFor="ic-max-risk">
+                  Risco Máx % (Kelly)
+                </label>
+                <input
+                  id="ic-max-risk"
+                  type="number"
+                  step={0.005}
+                  min={0.001}
+                  max={0.1}
+                  value={form.maxRiskPct}
+                  onChange={(e) => setForm({ ...form, maxRiskPct: Number(e.target.value) })}
+                  className="w-full rounded border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-slate-300" htmlFor="ic-max-atr">
+                  ATR Máx (pips) — Gate de volatilidade
+                </label>
+                <input
+                  id="ic-max-atr"
+                  type="number"
+                  min={1}
+                  value={form.maxAtrPips}
+                  onChange={(e) => setForm({ ...form, maxAtrPips: Number(e.target.value) })}
+                  className="w-full rounded border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-white"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Filtros Quantitativos e IA Meta-Labeling */}
           <div className="rounded-lg border border-purple-500/30 bg-purple-950/20 p-3 space-y-3">
             <span className="block text-xs font-bold uppercase tracking-wider text-purple-400">
@@ -278,6 +406,44 @@ export function IcMarketsStrategyModal({
                   onChange={(e) => setForm({ ...form, minAiConfidence: Number(e.target.value) })}
                   className="w-full rounded border border-purple-500/30 bg-slate-900 px-2 py-1 text-xs text-white"
                 />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-slate-300" htmlFor="ic-ai-ev">
+                  Valor Esperado da IA
+                </label>
+                <input
+                  id="ic-ai-ev"
+                  type="number"
+                  step="0.01"
+                  min="-1"
+                  max="1"
+                  value={form.aiExpectedValue}
+                  onChange={(e) => setForm({ ...form, aiExpectedValue: Number(e.target.value) })}
+                  className="w-full rounded border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-white"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Feature `expectedValue` alimentada ao Random Forest.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs text-slate-300" htmlFor="ic-ai-edge">
+                  Edge da IA (pips)
+                </label>
+                <input
+                  id="ic-ai-edge"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="50"
+                  value={form.aiEdgePct}
+                  onChange={(e) => setForm({ ...form, aiEdgePct: Number(e.target.value) })}
+                  className="w-full rounded border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-white"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  Feature `edgePct` alimentada ao Random Forest.
+                </p>
               </div>
             </div>
           </div>

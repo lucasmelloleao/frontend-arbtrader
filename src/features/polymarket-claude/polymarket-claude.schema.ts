@@ -3,6 +3,7 @@ import {
   boolean,
   fallback,
   number,
+  nullish,
   object,
   optional,
   string,
@@ -53,6 +54,14 @@ const polymarketClaudeStrategySchema = object({
   pnlAtual: fallback(number(), 0),
   retornoVencimento: fallback(number(), 0),
   lucroGarantido: fallback(number(), 0),
+  // Campos novos
+  adaptiveStopLossPct: fallback(number(), 0.5),
+  kellySize: fallback(number(), 0),
+  correlationGroup: fallback(string(), ""),
+  hedgeShares: fallback(number(), 0),
+  hedgeEntryPrice: fallback(number(), 0),
+  peakBalance: fallback(number(), 0),
+  currentBalance: fallback(number(), 0),
   openOrderIds: optional(array(string())),
 });
 
@@ -60,33 +69,33 @@ export const polymarketClaudeStrategyListSchema = array(polymarketClaudeStrategy
 
 const polymarketClaudeTradeSchema = object({
   id: string(),
-  strategyId: optional(string()),
+  strategyId: nullish(string()),
   slug: fallback(string(), ""),
   question: fallback(string(), ""),
-  type: string(),
-  status: string(),
-  side: optional(string()),
-  yesPrice: optional(number()),
-  noPrice: optional(number()),
-  amount: optional(number()),
+  type: fallback(string(), ""),
+  status: fallback(string(), ""),
+  side: nullish(string()),
+  yesPrice: nullish(number()),
+  noPrice: nullish(number()),
+  amount: nullish(number()),
   pnl: fallback(number(), 0),
   investedUsd: fallback(number(), 0),
   realizedUsd: fallback(number(), 0),
-  reason: optional(string()),
+  reason: nullish(string()),
   isMaker: fallback(boolean(), true),
   slippageBps: fallback(number(), 0.1),
   rttMs: fallback(number(), 45),
-  metrics: optional(
+  metrics: nullish(
     object({
-      hurst: fallback(number(), 0.45),
-      adfPValue: fallback(number(), 0.01),
-      sharpeEstimate: fallback(number(), 1.85),
+      hurst: fallback(number(), 0),
+      adfPValue: fallback(number(), 0),
+      sharpeEstimate: fallback(number(), 0),
       cvdDelta: fallback(number(), 0),
       expectedValue: fallback(number(), 0),
-      edgeScore: fallback(number(), 618),
+      edgeScore: fallback(number(), 0),
     }),
   ),
-  createdAt: string(),
+  createdAt: fallback(string(), ""),
 });
 
 export const polymarketClaudeTradeListSchema = array(polymarketClaudeTradeSchema);
@@ -99,8 +108,27 @@ export const polymarketClaudeTradesSummarySchema = object({
   winRate: fallback(number(), 0),
   makerRate: fallback(number(), 100),
   avgSlippageBps: fallback(number(), 0.1),
-  incubateDaysCompleted: fallback(number(), 0),
-  rbiPhase: fallback(string(), "INCUBATE"),
+  live: optional(
+    object({
+      totalTrades: fallback(number(), 0),
+      winningTrades: fallback(number(), 0),
+      losingTrades: fallback(number(), 0),
+      totalPnl: fallback(number(), 0),
+      winRate: fallback(number(), 0),
+      volumeUsd: fallback(number(), 0),
+      balanceUsd: fallback(number(), 0),
+    }),
+  ),
+  simulated: optional(
+    object({
+      totalTrades: fallback(number(), 0),
+      winningTrades: fallback(number(), 0),
+      losingTrades: fallback(number(), 0),
+      totalPnl: fallback(number(), 0),
+      winRate: fallback(number(), 0),
+      volumeUsd: fallback(number(), 0),
+    }),
+  ),
 });
 
 export const polymarketClaudeSettingsSchema = object({
@@ -126,6 +154,46 @@ export const polymarketClaudeSettingsSchema = object({
   marketFilter: fallback(string(), ""),
   incubateMode: fallback(boolean(), true),
   incubateDaysTarget: fallback(number(), 30),
+  enableTrailingStop: fallback(boolean(), true),
+  trailingActivationGainCents: fallback(number(), 0.1),
+  trailingStepCents: fallback(number(), 0.01),
+  trailingStopOffsetCents: fallback(number(), 0.01),
+  enableTakerAggression: fallback(boolean(), true),
+  takerConfidenceThreshold: fallback(number(), 0.3),
+  enableStopLoss: fallback(boolean(), true),
+  stopLossPercent: fallback(number(), 0.5),
+  // Stop Loss Adaptativo
+  enableAdaptiveStopLoss: fallback(boolean(), true),
+  adaptiveStopLossUnderdogPct: fallback(number(), 0.65),
+  adaptiveStopLossFavoritePct: fallback(number(), 0.35),
+  adaptiveStopLossMidPct: fallback(number(), 0.5),
+  // Kelly Criterion Sizing
+  enableKellySizing: fallback(boolean(), true),
+  kellyFraction: fallback(number(), 0.25),
+  minTradeSize: fallback(number(), 1.0),
+  maxTradeSize: fallback(number(), 10.0),
+  // Correlação
+  enableCorrelationFilter: fallback(boolean(), true),
+  correlatedSizeReductionPct: fallback(number(), 0.5),
+  // Time-decay buffer
+  enableTimeDecayBuffer: fallback(boolean(), true),
+  timeDecayBufferSeconds: fallback(number(), 7200),
+  timeDecayBufferMinProfitPct: fallback(number(), 0.05),
+  // Rebalance via mid-price
+  enableMidPriceRebalance: fallback(boolean(), true),
+  rebalancePassiveWaitMs: fallback(number(), 5000),
+  // Expansão de mercados
+  enableMarketExpansion: fallback(boolean(), true),
+  minMarketVolume24h: fallback(number(), 10000),
+  minMarketLiquidity: fallback(number(), 5000),
+  minMarketTimeSeconds: fallback(number(), 3600),
+  // Drawdown Circuit Breaker
+  enablePortfolioDrawdownBreaker: fallback(boolean(), true),
+  maxPortfolioDrawdownPct: fallback(number(), 0.1),
+  drawdownRecoveryPct: fallback(number(), 0.05),
+  // Hedge
+  enableHedgeMode: fallback(boolean(), false),
+  hedgeSizeFraction: fallback(number(), 0.3),
 });
 
 export const polymarketClaudeBotStatusSchema = object({

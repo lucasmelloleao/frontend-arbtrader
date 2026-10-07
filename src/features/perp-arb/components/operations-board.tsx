@@ -32,6 +32,16 @@ type LiveSpotCoin = {
   askPrice: number | null;
 };
 
+/** Intervalos disponíveis para filtrar o histórico de operações encerradas. */
+const INTERVALOS: readonly { id: string; label: string; ms: number | null }[] = [
+  { id: "1h", label: "Última 1 hora", ms: 60 * 60 * 1000 },
+  { id: "6h", label: "Últimas 6 horas", ms: 6 * 60 * 60 * 1000 },
+  { id: "24h", label: "Últimas 24 horas", ms: 24 * 60 * 60 * 1000 },
+  { id: "7d", label: "Últimos 7 dias", ms: 7 * 24 * 60 * 60 * 1000 },
+  { id: "30d", label: "Últimos 30 dias", ms: 30 * 24 * 60 * 60 * 1000 },
+  { id: "all", label: "Todo o período", ms: null },
+];
+
 /**
  * Painel de operações (em aberto + encerradas) com dados AO VIVO: faz polling
  * do `/portfolio/live` a cada 10s via Server Action (o backend consulta as
@@ -46,6 +56,16 @@ export function OperationsBoard({
   const [livePositions, setLivePositions] = useState<readonly LivePosition[]>([]);
   const [liveSpotCoins, setLiveSpotCoins] = useState<readonly LiveSpotCoin[]>([]);
   const [aba, setAba] = useState<"open" | "closed">("open");
+  // Filtro de intervalo do histórico: default = última 1 hora ao carregar a página.
+  const [intervalo, setIntervalo] = useState<string>("1h");
+  // Captura o timestamp no início do ciclo de render para consistência do filtro.
+  const [now] = useState(() => Date.now());
+
+  const filtroMs = INTERVALOS.find((f) => f.id === intervalo)?.ms ?? null;
+  const filteredMarried = marriedTrades.filter((trade) => {
+    if (filtroMs === null) return true;
+    return now - new Date(trade.createdAt).getTime() <= filtroMs;
+  });
 
   useEffect(() => {
     let ativo = true;
@@ -131,16 +151,41 @@ export function OperationsBoard({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {marriedTrades.length === 0 ? (
-            <div className="col-span-full rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-slate-500">
-              Nenhuma operação encerrada no histórico ainda.
-            </div>
-          ) : (
-            marriedTrades.map((trade) => (
-              <ClosedTradeCard key={trade.id} trade={trade} allTrades={trades} />
-            ))
-          )}
+        <div>
+          {/* Filtro de intervalo do histórico */}
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Intervalo
+            </span>
+            <select
+              value={intervalo}
+              onChange={(e) => setIntervalo(e.target.value)}
+              className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-bold text-white outline-none focus:border-indigo-400"
+            >
+              {INTERVALOS.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-slate-500">
+              ({filteredMarried.length} {filteredMarried.length === 1 ? "operação" : "operações"})
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {filteredMarried.length === 0 ? (
+              <div className="col-span-full rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-slate-500">
+                {marriedTrades.length === 0
+                  ? "Nenhuma operação encerrada no histórico ainda."
+                  : "Nenhuma operação encerrada no período selecionado."}
+              </div>
+            ) : (
+              filteredMarried.map((trade) => (
+                <ClosedTradeCard key={trade.id} trade={trade} allTrades={trades} />
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>

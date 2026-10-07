@@ -1,4 +1,12 @@
-import { Activity, ArrowUpRight, CheckCircle2, DollarSign, TrendingUp, Wallet } from "lucide-react";
+import {
+  Activity,
+  ArrowUpRight,
+  CheckCircle2,
+  DollarSign,
+  Gauge,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 
 import type { PredictionArbTradesSummary } from "@/features/prediction-arb/prediction-arb.schema";
 
@@ -6,6 +14,10 @@ type PredictionStatsHeaderProps = {
   summary: PredictionArbTradesSummary | null;
   abertasCount: number;
   saldoDisponivel: number;
+  simulatedPnl: number;
+  simulatedCount: number;
+  isOnline: boolean;
+  isLive: boolean;
 };
 
 const fmtUsd = (v: number): string => `${v >= 0 ? "+" : "-"}$${Math.abs(v).toFixed(2)}`;
@@ -19,6 +31,10 @@ export function PredictionStatsHeader({
   summary,
   abertasCount,
   saldoDisponivel,
+  simulatedPnl,
+  simulatedCount,
+  isOnline,
+  isLive,
 }: PredictionStatsHeaderProps): React.ReactNode {
   const totalPnl = summary?.totalPnl ?? 0;
   const operacoesEncerradas = summary?.operacoesEncerradas ?? 0;
@@ -89,6 +105,49 @@ export function PredictionStatsHeader({
         </div>
         <div className="mt-1 text-[11px] text-slate-500">
           Estimado com base em spreads capturados
+        </div>
+      </div>
+
+      {/* PnL Estimado (Simulado) */}
+      <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 shadow-lg">
+        <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+            PnL Estimado (Simulado)
+          </span>
+          <Activity className="h-4 w-4 text-sky-400" aria-hidden="true" />
+        </div>
+        <div
+          className={`mt-2 font-mono text-2xl font-black ${
+            simulatedPnl >= 0 ? "text-emerald-400" : "text-rose-400"
+          }`}
+        >
+          {fmtUsd(simulatedPnl)}
+        </div>
+        <div className="mt-1 text-[11px] text-slate-500 font-mono">
+          {simulatedCount} operação(simuladas) sem consumir saldo real
+        </div>
+      </div>
+
+      {/* Estado do Motor */}
+      <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 shadow-lg">
+        <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
+          <span>Estado do Motor</span>
+          <Gauge className="h-4 w-4 text-indigo-400" aria-hidden="true" />
+        </div>
+        <div
+          className={`mt-2 font-mono text-2xl font-black ${
+            !isOnline ? "text-slate-500" : isLive ? "text-rose-400" : "text-sky-400"
+          }`}
+        >
+          {!isOnline ? "OFFLINE" : isLive ? "LIVE" : "SIMULANDO"}
+        </div>
+        <div className="mt-1 text-[11px] text-slate-500">
+          {isOnline
+            ? isLive
+              ? "Ordens reais ativas"
+              : "Dry-run ativo (saldo intacto)"
+            : "Scanner desligado"}
         </div>
       </div>
     </div>
